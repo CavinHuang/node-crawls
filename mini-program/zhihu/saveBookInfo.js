@@ -40,16 +40,18 @@ function normalTitle(title = '') {
 }
 
 function saveBookData(book, charpt = {}) {
-  const bookPath = fs.existsSync(path.resolve(bookBasePath, book))
-  if (!bookBasePath) {
-    fs.mkdirSync(normalTitle(book))
+  const bookName = normalTitle(book);
+  const bookPath = path.resolve(bookBasePath, bookName);
+  if (!fs.existsSync(bookPath)) {
+    fs.mkdirSync(bookPath, { recursive: true });
   }
 
   const charptTitle = normalTitle(charpt.title)
-  const charptPath = path.join(bookPath, charptTitle)
-  // if (!fs.existsSync(path.resolve(bookPath, charptTitle))) {
-    
-  // }
+  const charptPath = path.join(bookPath, charptTitle);
+  console.log('章节数据', charpt)
+  console.log("章节数据", charptTitle);
+  console.log("章节数据", charptPath);
+
   // HTML
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
@@ -64,10 +66,10 @@ function saveBookData(book, charpt = {}) {
   ${charpt.content}
 </body>
 </html>`;
-  fs.writeFileSync(path.join(charptPath, '.html'), htmlContent)
+  fs.writeFileSync(`${charptPath}.html`, htmlContent)
 
   const markdownContent = sitdown.HTMLToMD(charpt.content)
-  fs.writeFileSync(path.join(charptPath, ".md"), markdownContent);
+  fs.writeFileSync(`${charptPath}.md`, markdownContent);
 }
 
 

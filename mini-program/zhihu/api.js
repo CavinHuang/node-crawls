@@ -4,7 +4,7 @@ const dom = new JSDOM("<!DOCTYPE html><p>Hello world</p>", {
 });
 var crypto = require("crypto");
 const { default: axios } = require("axios");
-const { saveBookInfo } = require("./saveBookInfo");
+const { saveBookInfo, saveBookData } = require("./saveBookInfo");
 const cheerio = require('cheerio')
 window = dom.window;
 document = window.document;
@@ -741,7 +741,14 @@ async function fetchCharpt(url, datas = []) {
     if (res.data) {
       if (res.data.data.length) {
         datas.push(
-          ...res.data.data.map((item) => ({ id: item.id, title: item.title }))
+          ...res.data.data.map((item) => ({
+            url:
+              item.section_cell.url.indexOf("https:") > -1
+                ? item.section_cell.url
+                : `https:${item.section_cell.url}`,
+            title: item.index.serial_number_txt + item.title,
+            id: item.section_cell.id,
+          }))
         );
         if (res.data.pagination) {
           offset += 10;
@@ -771,7 +778,7 @@ async function fetchDetail(url = '', sku) {
       const data = JSON.parse(appData)
       const catalogData = data.appContext.catalogData || { default: [], paging: {} };
       console.log(data.appContext)
-      res.push(catalogData.default.map(item => {
+      res.push(...catalogData.default.map(item => {
         return {
           title: item.index.serialNumberTxt + item.title,
           id: item.sectionCell.id,
@@ -793,6 +800,23 @@ async function fetchDetail(url = '', sku) {
   return res
 }
 
+async function fetchChartptContent(url = '') {
+  let html = ''
+  console.log('【开始抓取内容】', url)
+  const content = await axios({
+    url,
+    type: 'GET',
+    headers: {
+      Cookie: cookie
+    }
+  })
+  if (content.status === 200) {
+    const $ = cheerio.load(content.data)
+    html = $("#manuscript").html().toString();
+  }
+  return html
+}
+
 const listUrl = (offset) =>
   `https://api.zhihu.com/pluton/shelves?limit=10&offset=${offset}`;
 
@@ -812,7 +836,14 @@ async function getListData(offset) {
           console.log("开始抓取章节", book.business_url);
           const chartpts = await fetchDetail(book.business_url, book.sku_id);
           // await fetchCharpt(book.sku_id, 0, chartpts);
-          book.chartpts = chartpts;
+          res.data.data[i].chartpts = chartpts;
+          console.log("【获取到的所有章节数据】", chartpts)
+          // 请求章节内
+          for (let j = 0; j < chartpts.length; j++) {
+            const item = chartpts[j]
+            const content = await fetchChartptContent(item.url)
+            saveBookData(book.title, { id: item.id, content, title: item.title })
+          }
         }
         saveBookInfo(res.data.data)
         if (res.data.pagination) {
