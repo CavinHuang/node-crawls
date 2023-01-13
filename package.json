@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@auramarker/epub-gen": "^1.0.5",
+    "@mr-huang/html-to-epub": "^1.0.0",
     "@sitdown/zhihu": "^1.1.2",
     "apify": "^3.1.1",
     "axios": "^0.27.2",

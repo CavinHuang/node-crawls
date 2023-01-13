@@ -76,4 +76,5 @@ function saveBookData(book, charpt = {}) {
 module.exports = {
   saveBookInfo,
   saveBookData,
+  normalTitle,
 };

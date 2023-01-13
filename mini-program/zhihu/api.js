@@ -2,10 +2,12 @@ const { JSDOM } = require("jsdom");
 const dom = new JSDOM("<!DOCTYPE html><p>Hello world</p>", {
   url: "https://www.zhihu.com/search",
 });
+// const { EPub } = require("@mr-huang/html-to-epub");
 var crypto = require("crypto");
 const { default: axios } = require("axios");
-const { saveBookInfo, saveBookData } = require("./saveBookInfo");
-const cheerio = require('cheerio')
+const { saveBookInfo, saveBookData, normalTitle } = require("./saveBookInfo");
+const cheerio = require('cheerio');
+const path = require("path");
 window = dom.window;
 document = window.document;
 navigator = window.navigator;
@@ -839,10 +841,25 @@ async function getListData(offset) {
           res.data.data[i].chartpts = chartpts;
           console.log("【获取到的所有章节数据】", chartpts)
           // 请求章节内
+          const bookData = {
+            title: book.title,
+            author: book.author,
+            cover: book.image[0],
+            output: path.resolve(__dirname, `./books/${normalTitle(book.title)}/read.epub`),
+            content: []
+          };
           for (let j = 0; j < chartpts.length; j++) {
             const item = chartpts[j]
             const content = await fetchChartptContent(item.url)
+            bookData.content.push({
+              title: item.title,
+              data: content
+            })
             saveBookData(book.title, { id: item.id, content, title: item.title })
+            // console.log('【开始保存电子书】', book.title)
+            // const epub = new EPub(bookData);
+            // await epub.render();
+            // console.log('【保存电子书完成】')
           }
         }
         saveBookInfo(res.data.data)
