@@ -857,8 +857,8 @@ async function getListData(offset) {
         let hasChange = false;
         for (let i = 0; i < res.data.data.length; i++) {
           const book = res.data.data[i];
-          if (book.producer === 'training') {
-            console.log('【训练营课程跳过】', book.title)
+          if (['training', 'album'].includes(book.producer)) {
+            console.log('【训练营课和视频课程跳过】', book.title)
             continue
           }
           // 开始抓取章节信息
@@ -916,7 +916,8 @@ async function getListData(offset) {
             const { EPub } = await import("@mr-huang/html-to-epub");
             console.log("【开始保存电子书】", book.title);
             console.log("【配置】", bookData);
-            const epub = new EPub(
+            try {
+              const epub = new EPub(
               bookData,
               path.resolve(
                 __dirname,
@@ -927,6 +928,9 @@ async function getListData(offset) {
             );
             await epub.render();
             console.log("【保存电子书完成】");
+            } catch (e) {
+              console.log('制作失败')
+            }
           }
         }
         if (hasChange) {
