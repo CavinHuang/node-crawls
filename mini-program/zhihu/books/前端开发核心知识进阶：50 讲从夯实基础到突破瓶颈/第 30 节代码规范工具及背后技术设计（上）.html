@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 30 节代码规范工具及背后技术设计（上）</h1>
+  <p>不管是团队的扩张还是业务的发展<span class=" fw-cl "><span>，</span></span>都会导致项目代码量出现爆炸式增长<span class=" fw-cl "><span>。</span></span>为了防止<span class="fw-op  "><span>「</span></span>野蛮生长<span class=" fw-cl "><span>」</span></span>现象<span class=" fw-cl "><span>，</span></span>我们需要有一个良好的技术选型和成熟的架构做支撑<span class=" fw-cl "><span>，</span></span>也需要团队中每一个开发者都能用心维护项目<span class=" fw-cl "><span>。</span></span>在此方向上除了人工 code review 以外<span class=" fw-cl "><span>，</span></span>相信大家对于一些规范工具并不陌生<span class=" fw-cl "><span>。</span></span></p>
+<p>作为一名前端工程师<span class=" fw-cl "><span>，</span></span><strong style="">在使用现代化工具的基础上<span class=" fw-cl "><span>，</span></span>如何尽可能发挥其能量<span class=" fw-cl "><span>？</span></span>在必要的情况下<span class=" fw-cl "><span>，</span></span>如何开发适合自己团队需求的工具<span class=" fw-cl "><span>？</span></span></strong> 本节将围绕这些问题展开<span class=" fw-cl "><span>，</span></span>我们重点分析<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-0e82a8d157452401bdce4e0756e4b464.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:24.593023255813954% 0" data-src="https://pic3.zhimg.com/v2-0e82a8d157452401bdce4e0756e4b464.png">加载中...</span></figure>
+<p>接下来<span class=" fw-cl "><span>，</span></span>我们通过 2 节内容来学习这个主题<span class=" fw-cl "><span>。</span></span></p>
+<h3>自动化工具巡礼</h3>
+<p>现代前端开发<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>武器<span class=" fw-cl "><span>」</span></span>都已经非常自动化了<span class=" fw-cl "><span>。</span></span>不同工具分工不同<span class=" fw-cl "><span>，</span></span>我们的目标是合理结合各种工具<span class=" fw-cl "><span>，</span></span>打造一条完善的自动化流水线<span class=" fw-cl "><span>，</span></span>以高效率<span class=" fw-cl "><span>、</span></span>低投入的方式<span class=" fw-cl "><span>，</span></span>为我们的代码质量提供有效保障<span class=" fw-cl "><span>。</span></span></p>
+<h4>prettier</h4>
+<p>首先从 prettier 说起<span class=" fw-cl "><span>，</span></span>英文单词 prettier 是 pretty 的比较级<span class=" fw-cl "><span>，</span></span>pretty 译为<span class="fw-op  "><span>「</span></span>漂亮<span class=" fw-cl "><span>、</span></span>美化<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>顾名思义<span class=" fw-cl "><span>，</span></span>prettier 这个工具能够美化我们的代码<span class=" fw-cl "><span>，</span></span>或者说格式化<span class=" fw-cl "><span>、</span></span>规范化代码<span class=" fw-cl "><span>，</span></span>使其更加工整<span class=" fw-cl "><span>。</span></span>它一般不会检查我们代码具体的写法<span class=" fw-cl "><span>，</span></span>而是在<span class="fw-op  "><span>「</span></span>可读性<span class=" fw-cl "><span>」</span></span>上做文章<span class=" fw-cl "><span>。</span></span>目前支持包括 JavaScript<span class=" fw-cl "><span>、</span></span>JSX<span class=" fw-cl "><span>、</span></span>Angular<span class=" fw-cl "><span>、</span></span>Vue<span class=" fw-cl "><span>、</span></span>Flow<span class=" fw-cl "><span>、</span></span>TypeScript<span class=" fw-cl "><span>、</span></span>CSS<span class="fw-op  "><span>（</span></span>Less<span class=" fw-cl "><span>、</span></span>SCSS<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span>JSON 等多种语言<span class=" fw-cl "><span>、</span></span>数据交换格式<span class=" fw-cl "><span>、</span></span>语法规范扩展<span class=" fw-cl "><span>。</span></span>总结一下<span class=" fw-cl "><span>，</span></span>它能够将原始代码风格移除<span class=" fw-cl "><span>，</span></span>并替换为团队统一配置的代码风格<span class=" fw-cl "><span>。</span></span>虽然几乎所有团队都在使用这款工具<span class=" fw-cl "><span>，</span></span>不过我们还是简单分析一下使用它的原因吧<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">构建并统一代码风格</li>
+  <li style="">帮助团队新成员快速融入团队</li>
+  <li style="">开发者可以完全聚焦业务开发<span class=" fw-cl "><span>，</span></span>不必在代码整理上花费过多心思</li>
+  <li style="">方便低成本灵活接入<span class=" fw-cl "><span>，</span></span>并快速发挥作用</li>
+  <li style="">清理并规范已有代码</li>
+  <li style="">减少潜在 Bug</li>
+  <li style="">丰富强大的社区支持</li>
+</ul>
+<p>我们来看一个从零开始的简单 demo<span class=" fw-cl "><span>，</span></span>首先创建一个项目<span class="fw-op  "><span>（</span></span>该 demo 引用自系列文章 <a href="https://gist.github.com/adeelibr/3d71c39436fc0d9721330d0b66a5790c" title="Prettier-Eslinst-Editor-Config-Article">Prettier-Eslinst-Editor-Config-Article</a><span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span></p>
+<p><code>mkdir prettier-demo &amp;&amp; cd prettier-demo</code></p>
+<p>进行项目初始化<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn init -y</code></p>
+<p>安装依赖<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn add prettier --dev --exact</code></p>
+<p>在 package.json 中加入 script<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;"name": "prettier-demo",<br>
+ &nbsp;&nbsp;&nbsp;"version": "1.0.0",<br>
+ &nbsp;&nbsp;&nbsp;"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"prettier": "prettier --write src/index.js"<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+}</code></p>
+<p>prettier --write src/index.js 意思是运行 prettier<span class=" fw-cl "><span>，</span></span>并对 src/index.js 文件进行处理<span class=" fw-cl "><span>：</span></span>--write 标识告诉 prettier 要把格式化好的内容保存到当前文件中<span class=" fw-cl "><span>。</span></span></p>
+<p>我们在 ./src 目录中新建 index.js 文件<span class=" fw-cl "><span>，</span></span>键入一些格式缺失的代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>&nbsp;&nbsp;&nbsp;&nbsp;let person = {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name: "Yoda",<br>
+ &nbsp;&nbsp;&nbsp;designation: 'Jedi Master '<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function trainJedi (jediWarrion) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (jediWarrion.name === 'Yoda') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('No need! already trained')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;console.log(`Training ${jediWarrion.name} complete`)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;trainJedi(person)<br>
+ &nbsp;&nbsp;&nbsp;trainJedi({ name: 'Adeel', &nbsp;&nbsp;&nbsp;designation: 'padawan'})</code></p>
+<p>同时在根文件中创建 prettier.config.js 文件<span class=" fw-cl "><span>，</span></span>添加 prettier 规则<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = {<br>
+ &nbsp;&nbsp;&nbsp;printWidth: 100,<br>
+ &nbsp;&nbsp;&nbsp;singleQuote: true,<br>
+ &nbsp;&nbsp;&nbsp;trailingComma: 'all',<br>
+ &nbsp;&nbsp;&nbsp;bracketSpacing: true,<br>
+ &nbsp;&nbsp;&nbsp;jsxBracketSameLine: false,<br>
+ &nbsp;&nbsp;&nbsp;tabWidth: 2,<br>
+ &nbsp;&nbsp;&nbsp;semi: true,<br>
+}</code></p>
+<p>prettier 读取这些规则 <span class=" fw-cl "><span>，</span></span>并按照以上规则配置美化代码<span class=" fw-cl "><span>。</span></span>对于这些规则<span class=" fw-cl "><span>，</span></span>我们看其命名便能理解大概<span class=" fw-cl "><span>，</span></span>更多内容留给大家去官网寻找<span class=" fw-cl "><span>。</span></span></p>
+<p>现在运行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn prettier</code></p>
+<p>代码就会自动被格式化了<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>prettier 也可以与编辑器结合<span class=" fw-cl "><span>，</span></span>在开发者保存后立即进行美化<span class=" fw-cl "><span>，</span></span>也可以集成到 CI 环境中<span class=" fw-cl "><span>，</span></span>或者 git pre-commit 的 hook 阶段<span class=" fw-cl "><span>。</span></span>比如使用 <a href="https://www.npmjs.com/package/pretty-quick" title="pretty-quick">pretty-quick</a><span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn add prettier pretty-quick husky --dev</code></p>
+<p>并在 package.json 中配置<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;"husky": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hooks": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"pre-commit": "pretty-quick --staged"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>husky 中<span class=" fw-cl "><span>，</span></span>定义 pre-commit 阶段<span class=" fw-cl "><span>，</span></span>对变化的文件运行 prettier<span class=" fw-cl "><span>，</span></span>--staged 参数表示 pre-commit 模式<span class=" fw-cl "><span>：</span></span>只对 staged 的文件进行格式化<span class=" fw-cl "><span>。</span></span></p>
+<p>这里我们使用了官方推荐的 <a href="https://www.npmjs.com/package/pretty-quick" title="pretty-quick">pretty-quick</a> 来实现 pre-commit 阶段的美化<span class=" fw-cl "><span>。</span></span>这只是实现方式之一<span class=" fw-cl "><span>，</span></span>还可以通过 lint-staged 来实现<span class=" fw-cl "><span>，</span></span>我们会在下面介绍 ESLint 和 husky 当中介绍<span class=" fw-cl "><span>。</span></span> ​<br>
+通过 demo 我们能看出<span class=" fw-cl "><span>，</span></span>prettier 确实很灵活<span class=" fw-cl "><span>，</span></span>且自动化程度很高<span class=" fw-cl "><span>，</span></span>接入项目也十分方便<span class=" fw-cl "><span>。</span></span></p>
+<h4>ESLint</h4>
+<p>下面来看一下以 ESLint 为代表的 linter<span class=" fw-cl "><span>。</span></span>code linting 表示基于静态分析代码原理<span class=" fw-cl "><span>，</span></span>找出代码反模式的这过程<span class=" fw-cl "><span>。</span></span>多数编程语言都有 linter<span class=" fw-cl "><span>，</span></span>它们往往被集成在编译阶段<span class=" fw-cl "><span>，</span></span>完成 coding linting 的任务<span class=" fw-cl "><span>。</span></span></p>
+<p>对于 JavaScript 这种动态<span class=" fw-cl "><span>、</span></span>松类型的语言来说<span class=" fw-cl "><span>，</span></span>开发者更容易犯错<span class=" fw-cl "><span>。</span></span>由于 JavaScript 不具备先天编译流程<span class=" fw-cl "><span>，</span></span>往往在运行时暴露错误<span class=" fw-cl "><span>，</span></span>而 linter<span class=" fw-cl "><span>，</span></span>尤其最具代表性的 ESLint 的出现<span class=" fw-cl "><span>，</span></span>允许开发者在执行前发现代码错误或不合理的写法<span class=" fw-cl "><span>。</span></span></p>
+<p>ESLint 最重要的几点哲学思想<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">所有规则都插件化</li>
+  <li style="">所有规则都可插拔<span class="fw-op  "><span>（</span></span>随时开关<span class=" fw-cl "><span>）</span></span></li>
+  <li style="">所有设计都透明化</li>
+  <li style="">使用 espree 进行 JavaScript 解析</li>
+  <li style="">使用 AST 分析语法</li>
+</ul>
+<p>最后两点我们将在<span class="fw-op  "><span>「</span></span>工具背后的技术原理和设计<span class=" fw-cl "><span>」</span></span>一小节进行分析<span class=" fw-cl "><span>。</span></span>下面我们简单配置一个 ESLint 规则<span class=" fw-cl "><span>：</span></span></p>
+<p>初始化项目<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn init -y</code></p>
+<p>安装依赖<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn add eslint --dev</code></p>
+<p>并执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npx eslint --init</code></p>
+<p>之后<span class=" fw-cl "><span>，</span></span>我们就可以对任意文件进行 lint<span class=" fw-cl "><span>：</span></span></p>
+<p><code>eslint XXX.js</code></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>想要顺利执行 eslint<span class=" fw-cl "><span>，</span></span>还需要安装应用规则插件<span class=" fw-cl "><span>。</span></span></p>
+<p>那么如何声明并应用规则呢<span class=" fw-cl "><span>？</span></span>在根目录中打开 .eslintrc 配置文件<span class=" fw-cl "><span>，</span></span>我们在该文件中加入<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;"rules": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"semi": ["error", "always"],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"quote": ["error", "double"]<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>semi<span class=" fw-cl "><span>、</span></span>quote 就是 ESLint 规则的名称<span class=" fw-cl "><span>，</span></span>其值对应的数组第一项可以为<span class=" fw-cl "><span>：</span></span>off/0<span class=" fw-cl "><span>、</span></span>warn/1<span class=" fw-cl "><span>、</span></span>error/2<span class=" fw-cl "><span>，</span></span>分别表示关闭规则<span class=" fw-cl "><span>、</span></span>以 warning 形式打开规则<span class=" fw-cl "><span>、</span></span>以 error 形式打开规则<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">off/0<span class=" fw-cl "><span>：</span></span>关闭规则</li>
+  <li style="">warn/1<span class=" fw-cl "><span>：</span></span>以 warning 形式打开规则</li>
+  <li style="">error/2<span class=" fw-cl "><span>：</span></span>以 error 形式打开规则</li>
+</ul>
+<p>同样我们还会在 .eslintrc 文件中发现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"extends": "eslint:recommended"</code></p>
+<p>这行表示 ESLint 默认的规则都将会被打开<span class=" fw-cl "><span>。</span></span>当然<span class=" fw-cl "><span>，</span></span>我们也可以选取其他规则集合<span class=" fw-cl "><span>，</span></span>比较出名的有<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style=""><a href="https://google.github.io/styleguide/jsguide.html" title="Google JavaScript Style Guide">Google JavaScript Style Guide</a></li>
+  <li style=""><a href="https://github.com/airbnb/javascript#table-of-contents" title="Airbnb JavaScript Style Guide">Airbnb JavaScript Style Guide</a></li>
+</ul>
+<p>我们继续拆分 .eslintrc 文件<span class=" fw-cl "><span>，</span></span>其实它主要由六个字段组成<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = { <br>
+ &nbsp;&nbsp;env: {}, <br>
+ &nbsp;&nbsp;extends: {}, <br>
+ &nbsp;&nbsp;plugins: {}, <br>
+ &nbsp;&nbsp;parser: {}, <br>
+ &nbsp;&nbsp;parserOptions: {}, <br>
+ &nbsp;&nbsp;rules: {},<br>
+}</code></p>
+<ul>
+  <li style="">env<span class=" fw-cl "><span>：</span></span>表示指定想启用的环境</li>
+  <li style="">extends<span class=" fw-cl "><span>：</span></span>指定额外配置的选项<span class=" fw-cl "><span>，</span></span>如 ['airbnb'] 表示使用 Airbnb 的 linting 规则</li>
+  <li style="">plugins<span class=" fw-cl "><span>：</span></span>设置规则插件</li>
+  <li style="">parser<span class=" fw-cl "><span>：</span></span>默认情况下 ESLint 使用 espree 进行解析</li>
+  <li style="">parserOptions<span class=" fw-cl "><span>：</span></span>如果将默认解析器更改<span class=" fw-cl "><span>，</span></span>需要制定 parserOptions</li>
+  <li style="">rules<span class=" fw-cl "><span>：</span></span>定义拓展并通过插件添加的所有规则</li>
+</ul>
+<p>注意<span class=" fw-cl "><span>，</span></span>上文中 .eslintrc 文件我们采用了 .eslintrc.js 的 JavaScript 文件格式<span class=" fw-cl "><span>，</span></span>此外还可以采用 .yaml<span class=" fw-cl "><span>、</span></span>.json<span class=" fw-cl "><span>、</span></span>yml 等格式<span class=" fw-cl "><span>。</span></span>如果项目中含有多种配置文件格式<span class=" fw-cl "><span>，</span></span>优先级顺序为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.eslintrc.js<br>
+.eslintrc.yaml<br>
+.eslintrc.yml<br>
+.eslintrc.json<br>
+.eslintrc<br>
+package.json</code></p>
+<p>最终<span class=" fw-cl "><span>，</span></span>我们在 package.json 中可以添加 script<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;"lint": "eslint --debug src/",<br>
+ &nbsp;&nbsp;&nbsp;"lint:write": "eslint --debug src/ --fix"<br>
+ },</code></p>
+<ul>
+  <li style=""><br></li>
+</ul>
+<p>lint 这个命令将遍历所有文件<span class=" fw-cl "><span>，</span></span>并在每个找到错误的文件中提供详细日志<span class=" fw-cl "><span>，</span></span>但需要开发者手动打开这些文件并更正错误<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style=""><br></li>
+</ul>
+<p>lint:write 与上类似<span class=" fw-cl "><span>，</span></span>但这个命令可以自动纠正错误<span class=" fw-cl "><span>。</span></span></p>
+<h4>linter VS prettier</h4>
+<p>我们应该如何对比以 ESLint 为代表的 linter 和 prettier 呢<span class=" fw-cl "><span>，</span></span>它们到底是什么关系<span class=" fw-cl "><span>？</span></span>就像开篇所提到的那样<span class=" fw-cl "><span>，</span></span>它们解决不同的问题<span class=" fw-cl "><span>，</span></span>定位不同<span class=" fw-cl "><span>，</span></span>但是又可以相辅相成<span class=" fw-cl "><span>。</span></span></p>
+<p>所有的 linter 类似 ESLint<span class=" fw-cl "><span>，</span></span>其规则都可以划分为两类<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">格式化规则<span class="fw-op  "><span>（</span></span>formatting rules<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>这类<span class="fw-op  "><span>「</span></span>格式化规则<span class="fw-op  "><span>「</span></span>典型的有 max-len<span class=" fw-cl "><span>、</span></span>no-mixed-spaces-and-tabs<span class=" fw-cl "><span>、</span></span>keyword-spacing<span class=" fw-cl "><span>、</span></span>comma-style<span class=" fw-cl "><span>，</span></span>它们<span class="fw-op  "><span>「</span></span>限制一行的最大长度<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>禁止使用空格和 tab 混合缩进<span class=" fw-cl "><span>」</span></span>等代码格式方面的规范<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>即便开发者写出的代码违反了这类规则<span class=" fw-cl "><span>，</span></span>如果在 lint 阶段前<span class=" fw-cl "><span>，</span></span>先经过 prettier 处理<span class=" fw-cl "><span>，</span></span>这些问题会先在 prettier 阶段被纠正<span class=" fw-cl "><span>，</span></span>因此 linter 不会抛出提醒<span class=" fw-cl "><span>，</span></span>非常省心<span class=" fw-cl "><span>，</span></span>这属于 linter 和 prettier 重叠的地方<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">代码质量规则<span class="fw-op  "><span>（</span></span>code quality rules<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>这类<span class="fw-op  "><span>「</span></span>代码质量规则<span class=" fw-cl "><span>」</span></span>类似 no-unused-vars<span class=" fw-cl "><span>、</span></span>no-extra-bind<span class=" fw-cl "><span>、</span></span>no-implicit-globals<span class=" fw-cl "><span>、</span></span>prefer-promise-reject-errors<span class=" fw-cl "><span>，</span></span>它们限制<span class="fw-op  "><span>「</span></span>声明未使用变量<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>不必要的函数绑定<span class=" fw-cl "><span>」</span></span> 等代码写法规范<span class=" fw-cl "><span>。</span></span>这个时候<span class=" fw-cl "><span>，</span></span>prettier 对这些规则无能为力<span class=" fw-cl "><span>。</span></span>而这些规则对于代码质量和强健性至关重要<span class=" fw-cl "><span>，</span></span>还是需要 linter 来保障的<span class=" fw-cl "><span>。</span></span></p>
+<p>如同 prettier<span class=" fw-cl "><span>，</span></span>ESLint 也可以集成到编辑器或者 git pre-commit 阶段<span class=" fw-cl "><span>。</span></span>前文已经演示过了 prettier 搭配 husky<span class=" fw-cl "><span>，</span></span>下面我们来介绍一下 husky 到底是什么<span class=" fw-cl "><span>。</span></span></p>
+<h4>husky 和 lint-staged</h4>
+<p>其实<span class=" fw-cl "><span>，</span></span>husky 就是 git 的一个钩子<span class=" fw-cl "><span>，</span></span>在 git 进行到某一时段时<span class=" fw-cl "><span>，</span></span>可以交给开发者完成某些特定的操作<span class=" fw-cl "><span>。</span></span>安装 husky<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn add --dev husky</code></p>
+<p>然后在 package.json 文件中添加<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"husky": { &nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;"hooks": { &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"pre-commit": "YOUR_SCRIPT", <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"pre-push": "YOUR_SCRIPT" &nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;} &nbsp;<br>
+},</code></p>
+<p>这样每次提交<span class="fw-op  "><span>（</span></span>commit 阶段<span class=" fw-cl "><span>）</span></span>或者推送<span class="fw-op  "><span>（</span></span>push 阶段<span class=" fw-cl "><span>）</span></span>代码时<span class=" fw-cl "><span>，</span></span>就可以执行相关 npm 脚本<span class=" fw-cl "><span>。</span></span>需要注意的是<span class=" fw-cl "><span>，</span></span>在整个项目上运行 lint 会很慢<span class=" fw-cl "><span>，</span></span>我们一般只想对更改的文件进行检查<span class=" fw-cl "><span>，</span></span>这时候就需要使用到 lint-staged<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn add --dev lint-staged</code></p>
+<p>然后在 package.json 添加<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"lint-staged": { &nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;"*.(js|jsx)": ["npm run lint:write", "git add"] &nbsp;<br>
+},</code></p>
+<p>最终代码为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;"lint": "eslint --debug src/",<br>
+ &nbsp;&nbsp;&nbsp;"lint:write": "eslint --debug src/ --fix",<br>
+ &nbsp;&nbsp;&nbsp;"prettier": "prettier --write src/**/*.js"<br>
+},<br>
+"husky": {<br>
+ &nbsp;&nbsp;&nbsp;"hooks": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"pre-commit": "lint-staged"<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+},<br>
+"lint-staged": {<br>
+ &nbsp;&nbsp;&nbsp;"*.(js|jsx)": ["npm run lint:write", "npm run prettier", "git add"]<br>
+},</code></p>
+<p>它表示在 pre-commit 阶段对于 js 或者 jsx 后缀且修改的文件执行 ESLint 和 prettier 操作<span class=" fw-cl "><span>，</span></span>通过之后再进行 git add 添加到暂存区<span class=" fw-cl "><span>。</span></span></p>
+<p>俗话说<span class="fw-op  "><span>「</span></span>工欲善其事<span class=" fw-cl "><span>，</span></span>必先利其器<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>本节课我们对常用工具进行了<span class="fw-op  "><span>「</span></span>巡礼<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>请读者们亲自动手实践<span class=" fw-cl "><span>，</span></span>了解其中奥秘<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1eY6XmypC6PKaxpFD0Lp</span></p>
+</body>
+</html>

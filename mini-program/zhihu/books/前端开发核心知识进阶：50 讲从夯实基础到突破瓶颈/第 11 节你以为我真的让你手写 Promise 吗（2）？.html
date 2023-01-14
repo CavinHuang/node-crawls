@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 11 节你以为我真的让你手写 Promise 吗（2）？</h1>
+  <p>在上一讲中<span class=" fw-cl "><span>，</span></span>我们渐进式地实现了一个貌似能工作的 Promise<span class=" fw-cl "><span>，</span></span>并配以实例进行完善<span class=" fw-cl "><span>。</span></span>如果你觉得已经接近<span class="fw-op  "><span>「</span></span>大功告成<span class=" fw-cl "><span>」</span></span>了<span class=" fw-cl "><span>，</span></span>其实这才刚刚开始<span class=" fw-cl "><span>。</span></span>Promise 这个概念相对来说比较复杂<span class=" fw-cl "><span>，</span></span>下面继续一边研究<span class=" fw-cl "><span>、</span></span>一边实现吧<span class=" fw-cl "><span>。</span></span></p>
+<p>先来回顾一下这两节课的相关知识点<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-26717d99278999786e79d258620c24ff.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:18.795430944963655% 0" data-src="https://pic2.zhimg.com/v2-26717d99278999786e79d258620c24ff.png">加载中...</span></figure>
+<p>话不多说<span class=" fw-cl "><span>，</span></span>让我们开始吧<span class=" fw-cl "><span>。</span></span></p>
+<h3>从 Promise then 的链式调用继续谈起</h3>
+<p>先来看一道题目<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+ &nbsp;return `${data} next then`<br>
+})<br>
+.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>这段代码执行后<span class=" fw-cl "><span>，</span></span>将会在 2 秒后输出<span class=" fw-cl "><span>：</span></span>lucas<span class=" fw-cl "><span>，</span></span>紧接着输出<span class=" fw-cl "><span>：</span></span>lucas next then<span class=" fw-cl "><span>。</span></span></p>
+<p>我们看到<span class=" fw-cl "><span>，</span></span>Promise 实例的 then 方法支持链式调用<span class=" fw-cl "><span>，</span></span>输出 resolved 值后<span class=" fw-cl "><span>，</span></span>如果在 then 方法体 onfulfilled 函数中同步显式返回新的值<span class=" fw-cl "><span>，</span></span>将会在新 Promise 实例的 then 方法 onfulfilled 函数中输出新值<span class=" fw-cl "><span>。</span></span></p>
+<p>如果在第一个 then 方法体 onfulfilled 函数中返回另一个 Promise 实例 <span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(`${data} next then`)<br>
+ &nbsp;&nbsp;&nbsp;}, 4000)<br>
+ &nbsp;})<br>
+})<br>
+.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>将在 2 秒后输出<span class=" fw-cl "><span>：</span></span>lucas<span class=" fw-cl "><span>，</span></span>紧接着再过 4 秒后<span class="fw-op  "><span>（</span></span>第 6 秒<span class=" fw-cl "><span>）</span></span>输出<span class=" fw-cl "><span>：</span></span>lucas next then<span class=" fw-cl "><span>。</span></span></p>
+<p>由此可知<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<p>一个 Promise 实例的 then 方法体 onfulfilled 函数和 onrejected 函数中<span class=" fw-cl "><span>，</span></span>是支持再次返回一个 Promise 实例的<span class=" fw-cl "><span>，</span></span>也支持返回一个非 Promise 实例的普通值<span class=" fw-cl "><span>；</span></span>并且返回的这个 Promise 实例或者这个非 Promise 实例的普通值将会传给下一个 then 方法 onfulfilled 函数或者 onrejected 函数中<span class=" fw-cl "><span>，</span></span>这样就支持链式调用了<span class=" fw-cl "><span>。</span></span></p>
+<p>那我们该怎么实现这种行为呢<span class=" fw-cl "><span>？</span></span></p>
+<h3>链式调用初步实现</h3>
+<p>让我们来分析一下<span class=" fw-cl "><span>：</span></span>为了能够支持 then 方法的链式调用<span class=" fw-cl "><span>，</span></span>那么每一个 then 方法的 onfulfilled 函数和 onrejected 函数都应该返回一个 Promise 实例<span class=" fw-cl "><span>。</span></span></p>
+<p>我们一步一步来<span class=" fw-cl "><span>，</span></span>先实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+ &nbsp;return `${data} next then`<br>
+})<br>
+.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>这种 onfulfilled 函数返回一个普通值的场景<span class=" fw-cl "><span>，</span></span>这里 onfulfilled 函数指的是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+ &nbsp;return `${data} next then`<br>
+}</code></p>
+<p>在我们上一讲实现的 then 方法中<span class=" fw-cl "><span>，</span></span>就可以创建一个新的 promise2 用以返回<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;&nbsp;&nbsp;onfulfilled = typeof onfulfilled === 'function' ? onfulfilled : data =&gt; data<br>
+ &nbsp;onrejected = typeof onrejected === 'function' ? onrejected : error =&gt; { throw error }<br>
+ &nbsp;// promise2 将作为 then 方法的返回值<br>
+ &nbsp;let promse2<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;return promse2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 这个新的 promse2 resolved 的值为 onfulfilled 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;onrejected(this.reason)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;this.onFulfilledArray.push(onfulfilled)<br>
+ &nbsp;&nbsp;&nbsp;this.onRejectedArray.push(onrejected)<br>
+ &nbsp;}<br>
+}</code></p>
+<p>当然别忘了 this.status === 'rejected' 状态和 this.status === 'pending' 状态也要加入相同的逻辑<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;// promise2 将作为 then 方法的返回值<br>
+ &nbsp;let promise2<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 这个新的 promise2 resolved 的值为 onfulfilled 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 这个新的 promise2 reject 的值为 onrejected 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.push(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.push(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(this.reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+}</code></p>
+<p>这里要重点理解 this.status === 'pending' 判断分支中的逻辑<span class=" fw-cl "><span>，</span></span>这也最难理解的<span class=" fw-cl "><span>。</span></span>我们先想想<span class=" fw-cl "><span>：</span></span>当使用 Promise 实例<span class=" fw-cl "><span>，</span></span>调用其 then 方法时<span class=" fw-cl "><span>，</span></span>应该返回一个 Promise 实例<span class=" fw-cl "><span>，</span></span>返回的就是 this.status === 'pending' 判断分支中返回的 promise2<span class=" fw-cl "><span>。</span></span>那么这个 promise2 什么时候被 resolve 或者 reject 呢<span class=" fw-cl "><span>？</span></span>应该是在异步结束<span class=" fw-cl "><span>，</span></span>依次执行 onFulfilledArray 或者 onRejectedArray 数组中的函数时<span class=" fw-cl "><span>。</span></span></p>
+<p>我们再思考<span class=" fw-cl "><span>，</span></span>那么 onFulfilledArray 或者 onRejectedArray 数组中的函数应该做些什么呢<span class=" fw-cl "><span>？</span></span>很明显<span class=" fw-cl "><span>，</span></span>需要将 promise2 的状态切换<span class=" fw-cl "><span>，</span></span>并 resolve onfulfilled 函数执行结果或者 reject onrejected 结果<span class=" fw-cl "><span>。</span></span></p>
+<p>这也就是我们的改动<span class=" fw-cl "><span>，</span></span>将 this.onFulfilledArray.push 的函数由<span class=" fw-cl "><span>：</span></span></p>
+<p><code>this.onFulfilledArray.push(onfulfilled)</code></p>
+<p>改为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+}</code></p>
+<p>的原因<span class=" fw-cl "><span>。</span></span> this. onRejectedArray.push 的函数的改动点同理<span class=" fw-cl "><span>。</span></span></p>
+<p>这非常不容易理解<span class=" fw-cl "><span>，</span></span>如果读者仍然想不明白<span class=" fw-cl "><span>，</span></span>也不需要着急<span class=" fw-cl "><span>。</span></span>还是应该先理解透 Promise<span class=" fw-cl "><span>，</span></span>再返回来看<span class=" fw-cl "><span>，</span></span>多看几次<span class=" fw-cl "><span>，</span></span>一定会有所收获<span class=" fw-cl "><span>。</span></span></p>
+<p>请注意<span class=" fw-cl "><span>，</span></span>此时 Promise 实现的完整代码为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+ &nbsp;this.onFulfilledArray = []<br>
+ &nbsp;this.onRejectedArray = []<br>
+<br>
+ &nbsp;const resolve = value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (value instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return value.then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'fulfilled'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const reject = reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'rejected'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;executor(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;} catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;// promise2 将作为 then 方法的返回值<br>
+ &nbsp;let promise2<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 这个新的 promise2 resolved 的值为 onfulfilled 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 这个新的 promise2 reject 的值为 onrejected 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.push(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.push(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(this.reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+}</code></p>
+<h3>链式调用实现完善</h3>
+<p>我们继续来实现 then 方法显式返回一个 Promise 实例的情况<span class=" fw-cl "><span>。</span></span>对应场景<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(`${data} next then`)<br>
+ &nbsp;&nbsp;&nbsp;}, 4000)<br>
+ &nbsp;})<br>
+})<br>
+.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>对比第一种情况<span class="fw-op  "><span>（</span></span> onfulfilled 函数和 onrejected 函数返回一个普通值的情况<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>实现这种 onfulfilled 函数和 onrejected 函数返回一个 Promise 实例也并不困难<span class=" fw-cl "><span>。</span></span>但是我们需要小幅度重构一下代码<span class=" fw-cl "><span>，</span></span>在上面实现的 let result = onfulfilled(this.value) 语句和 let result = onrejected(this.reason) 语句中<span class=" fw-cl "><span>，</span></span>变量 result 由一个普通值会成为一个 Promise 实例<span class=" fw-cl "><span>。</span></span>换句话说就是<span class=" fw-cl "><span>：</span></span>变量 result 既可以是一个普通值<span class=" fw-cl "><span>，</span></span>也可以是一个 Promise 实例<span class=" fw-cl "><span>，</span></span>为此我们抽象出 resolvePromise 方法进行统一处理<span class=" fw-cl "><span>。</span></span>改动已有实现为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const resolvePromise = (promise2, result, resolve, reject) =&gt; {<br>
+<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;// promise2 将作为 then 方法的返回值<br>
+ &nbsp;let promise2<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//这个新的 promise2 resolved 的值为 onfulfilled 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//这个新的 promise2 reject 的值为 onrejected 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.push(value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.push(reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+}</code></p>
+<p>现在的任务就是完成 resolvePromise 函数<span class=" fw-cl "><span>，</span></span>这个函数接受四个参数<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">promise2: 返回的 Promise 实例</li>
+  <li style="">result: onfulfilled 或者 onrejected 函数的返回值</li>
+  <li style="">resolve: promise2 的 resolve 方法</li>
+  <li style="">reject: promise2 的 reject 方法</li>
+</ul>
+<p>有了这些参数<span class=" fw-cl "><span>，</span></span>我们就具备了抽象逻辑的必备条件<span class=" fw-cl "><span>。</span></span>接下来就是动手实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const resolvePromise = (promise2, result, resolve, reject) =&gt; {<br>
+ &nbsp;// 当 result 和 promise2 相等时<span class=" fw-cl "><span>，</span></span>也就是说 onfulfilled 返回 promise2 时<span class=" fw-cl "><span>，</span></span>进行 reject<br>
+ &nbsp;if (result === promise2) {<br>
+ &nbsp;&nbsp;&nbsp;reject(new TypeError('error due to circular reference'))<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// 是否已经执行过 onfulfilled 或者 onrejected<br>
+ &nbsp;let consumed = false<br>
+ &nbsp;let thenable<br>
+<br>
+ &nbsp;if (result instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;if (result.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.then(function(data) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, data, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, reject)<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;let isComplexResult = target =&gt; (typeof target === 'function' || typeof target === 'object') &amp;&amp; (target !== null)<br>
+<br>
+ &nbsp;// 如果返回的是疑似 Promise 类型<br>
+ &nbsp;if (isComplexResult(result)) {<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thenable = result.then<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果返回的是 Promise 类型<span class=" fw-cl "><span>，</span></span>具有 then 方法<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof thenable === 'function') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thenable.call(result, function(data) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (consumed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consumed = true<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return resolvePromise(promise2, data, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, function(error) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (consumed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consumed = true<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(error)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;} catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (consumed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consumed = true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+ &nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;}<br>
+}</code></p>
+<p>我们看 resolvePromise 方法第一步进行了以<span class="fw-op  "><span>「</span></span>死循环<span class=" fw-cl "><span>」</span></span>的处理<span class=" fw-cl "><span>。</span></span>并在发生死循环是<span class=" fw-cl "><span>，</span></span>reject 掉<span class=" fw-cl "><span>，</span></span>错误信息为 new TypeError('error due to circular reference')<span class=" fw-cl "><span>。</span></span>怎么理解这个处理呢<span class=" fw-cl "><span>，</span></span>规范中为我们指出<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-f19afadfc997221001f4c7c502260668.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:26.105651105651106% 0" data-src="https://pic3.zhimg.com/v2-f19afadfc997221001f4c7c502260668.png">加载中...</span></figure>
+<p>其实出现<span class="fw-op  "><span>「</span></span>死循环<span class=" fw-cl "><span>」</span></span>的情况如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise.then(onfulfilled = data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+ &nbsp;return onfulfilled(data)<br>
+})<br>
+.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>接着<span class=" fw-cl "><span>，</span></span>对于 onfulfilled 函数返回的结果 result<span class=" fw-cl "><span>：</span></span>如果 result 非 Promise 实例<span class=" fw-cl "><span>，</span></span>非对象<span class=" fw-cl "><span>，</span></span>非函数类型<span class=" fw-cl "><span>，</span></span>是一个普通值的话<span class="fw-op  "><span>（</span></span>上述代码中 isComplexResult 函数进行判断<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>我们直接将 promise2 以该值 resolve 掉<span class=" fw-cl "><span>。</span></span></p>
+<p>对于 onfulfilled 函数返回的结果 result<span class=" fw-cl "><span>：</span></span>如果 result 含有 then 属性方法<span class=" fw-cl "><span>，</span></span>我们称该属性方法为 thenable<span class=" fw-cl "><span>，</span></span>说明 result 是一个 Promise 实例<span class=" fw-cl "><span>，</span></span>我们执行该实例的 then 方法<span class="fw-op  "><span>（</span></span>既 thenable<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>此时的返回结果有可能又是一个 Promise 实例类型<span class=" fw-cl "><span>，</span></span>也可能是一个普通值<span class=" fw-cl "><span>，</span></span>因此还要递归调用 resolvePromise<span class=" fw-cl "><span>。</span></span>如果读者还是不明白这里为什么需要递归调用 resolvePromise<span class=" fw-cl "><span>，</span></span>可以看代码例子<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(`${data} next then`)<br>
+ &nbsp;&nbsp;&nbsp;}, 4000)<br>
+ &nbsp;})<br>
+ &nbsp;.then(data =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(`${data} next then`)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, 4000)<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;})<br>
+})<br>
+.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>该段代码将会在 2 秒是输出<span class=" fw-cl "><span>：</span></span>lucas<span class=" fw-cl "><span>，</span></span>10 秒时输出<span class=" fw-cl "><span>：</span></span>lucas next then next then<span class=" fw-cl "><span>。</span></span></p>
+<p>此时我们的 Promise 实现的完整代码为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+ &nbsp;this.onFulfilledArray = []<br>
+ &nbsp;this.onRejectedArray = []<br>
+<br>
+ &nbsp;const resolve = value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (value instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return value.then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'fulfilled'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const reject = reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'rejected'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;executor(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;} catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+const resolvePromise = (promise2, result, resolve, reject) =&gt; {<br>
+ &nbsp;// 当 result 和 promise2 相等时<span class=" fw-cl "><span>，</span></span>也就是说 onfulfilled 返回 promise2 时<span class=" fw-cl "><span>，</span></span>进行 reject<br>
+ &nbsp;if (result === promise2) {<br>
+ &nbsp;&nbsp;&nbsp;reject(new TypeError('error due to circular reference'))<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// 是否已经执行过 onfulfilled 或者 onrejected<br>
+ &nbsp;let consumed = false<br>
+ &nbsp;let thenable<br>
+<br>
+ &nbsp;if (result instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;if (result.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.then(function(data) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, data, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, reject)<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;let isComplexResult = target =&gt; (typeof target === 'function' || typeof target === 'object') &amp;&amp; (target !== null)<br>
+<br>
+ &nbsp;// 如果返回的是疑似 Promise 类型<br>
+ &nbsp;if (isComplexResult(result)) {<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thenable = result.then<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果返回的是 Promise 类型<span class=" fw-cl "><span>，</span></span>具有 then 方法<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof thenable === 'function') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thenable.call(result, function(data) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (consumed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consumed = true<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return resolvePromise(promise2, data, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, function(error) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (consumed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consumed = true<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(error)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;} catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (consumed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consumed = true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+ &nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;resolve(result)<br>
+ &nbsp;}<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;onfulfilled = typeof onfulfilled === 'function' ? onfulfilled : data =&gt; data<br>
+ &nbsp;onrejected = typeof onrejected === 'function' ? onrejected : error =&gt; { throw error }<br>
+<br>
+ &nbsp;// promise2 将作为 then 方法的返回值<br>
+ &nbsp;let promise2<br>
+<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 这个新的 promise2 resolved 的值为 onfulfilled 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 这个新的 promise2 reject 的值为 onrejected 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(this.reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.push(value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.push(reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+}</code></p>
+<h3>Promise 穿透实现</h3>
+<p>到这里<span class=" fw-cl "><span>，</span></span>读者可以松口气<span class=" fw-cl "><span>，</span></span>我们的 Promise 基本实现除了静态方法以外<span class=" fw-cl "><span>，</span></span>已经完成了 95%<span class=" fw-cl "><span>。</span></span>为什么不是 100% 呢<span class=" fw-cl "><span>？</span></span>其实还有一处细节<span class=" fw-cl "><span>，</span></span>我们看代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+<br>
+promise.then(null)<br>
+.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>这段代码将会在 2 秒后输出<span class=" fw-cl "><span>：</span></span>lucas<span class=" fw-cl "><span>。</span></span>这就是 Promise 穿透现象<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<p>给 .then() 函数传递非函数值作为其参数时<span class=" fw-cl "><span>，</span></span>实际上会被解析成 .then(null)<span class=" fw-cl "><span>，</span></span>这时候的表现应该是<span class=" fw-cl "><span>：</span></span>上一个 promise 对象的结果进行<span class="fw-op  "><span>「</span></span>穿透<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>如果在后面链式调用仍存在第二个 .then() 函数时<span class=" fw-cl "><span>，</span></span>将会获取被穿透下来的结果<span class=" fw-cl "><span>。</span></span></p>
+<p>那该如何实现 Promise 穿透呢<span class=" fw-cl "><span>？</span></span></p>
+<p>其实很简单<span class=" fw-cl "><span>，</span></span>并且我们已经做到了<span class=" fw-cl "><span>。</span></span>想想在 then() 方法的实现中<span class=" fw-cl "><span>：</span></span>我们已经对 onfulfilled 和 onrejected 函数加上判断<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Promise.prototype.then = function(onfulfilled = Function.prototype, onrejected = Function.prototype) {<br>
+ &nbsp;onfulfilled = typeof onfulfilled === 'function' ? onfulfilled : data =&gt; data<br>
+ &nbsp;onrejected = typeof onrejected === 'function' ? onrejected : error =&gt; { throw error }<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+}</code></p>
+<p>如果 onfulfilled 不是函数类型<span class=" fw-cl "><span>，</span></span>则给一个默认值<span class=" fw-cl "><span>，</span></span>该默认值是返回其参数的函数<span class=" fw-cl "><span>。</span></span>onrejected 函数同理<span class=" fw-cl "><span>。</span></span>这段逻辑<span class=" fw-cl "><span>，</span></span>就是起到了实现<span class="fw-op  "><span>「</span></span>穿透<span class=" fw-cl "><span>」</span></span>的作用<span class=" fw-cl "><span>。</span></span></p>
+<h3>Promise 静态方法和其他方法实现</h3>
+<p>这一部分<span class=" fw-cl "><span>，</span></span>我们将实现<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">Promise.prototype.catch</li>
+  <li style="">Promise.resolve<span class=" fw-cl "><span>，</span></span>Promise.reject</li>
+  <li style="">Promise.all</li>
+  <li style="">Promise.race</li>
+</ul>
+<h4>Promise.prototype.catch 实现</h4>
+<p>Promise.prototype.catch 可以进行异常捕获<span class=" fw-cl "><span>，</span></span>它的典型用法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promise1 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject('lucas error')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise1.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+}).catch(error =&gt; {<br>
+ &nbsp;console.log(error)<br>
+})</code></p>
+<p>会在 2 秒后输出<span class=" fw-cl "><span>：</span></span>lucas error<span class=" fw-cl "><span>。</span></span></p>
+<p>其实在这种场景下<span class=" fw-cl "><span>，</span></span>它就相当于<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Promise.prototype.catch = function(catchFunc) {<br>
+ &nbsp;return this.then(null, catchFunc)<br>
+}</code></p>
+<p>因为我们知道 .then() 方法的第二个参数也是进行异常捕获的<span class=" fw-cl "><span>，</span></span>通过这个特性<span class=" fw-cl "><span>，</span></span>我们比较简单地实现了 Promise.prototype.catch<span class=" fw-cl "><span>。</span></span></p>
+<h4>Promise.prototype.resolve 实现</h4>
+<p>MDN 上对于 Promise.resolve(value) 方法的介绍<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>Promise.resolve(value) 方法返回一个以给定值解析后的 Promise 实例对象<span class=" fw-cl "><span>。</span></span></p>
+<p>请看实例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Promise.resolve('data').then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})<br>
+console.log(1)</code></p>
+<p>先输出 1 再输出 data<span class=" fw-cl "><span>。</span></span></p>
+<p>那么实现 Promise.resolve(value) 也很简单<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Promise.resolve = function(value) {<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;resolve(value)<br>
+ &nbsp;})<br>
+}</code></p>
+<p>顺带实现一个 Promise.reject(value)<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Promise.reject = function(value) {<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;reject(value)<br>
+ &nbsp;})<br>
+}</code></p>
+<h4>Promise.all 实现</h4>
+<p>MDN 关于 的解释<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>Promise.all(iterable)&nbsp;方法返回一个&nbsp;Promise 实例<span class=" fw-cl "><span>，</span></span>此实例在&nbsp;iterable&nbsp;参数内所有的&nbsp;promise&nbsp;都<span class="fw-op  "><span>「</span></span>完成<span class="fw-op  "><span>（</span></span>resolved<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>」</span></span>或参数中不包含&nbsp;promise&nbsp;时回调完成<span class="fw-op  "><span>（</span></span>resolve<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>；</span></span>如果参数中&nbsp;&nbsp;promise&nbsp;有一个失败<span class="fw-op  "><span>（</span></span>rejected<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>此实例回调失败<span class="fw-op  "><span>（</span></span>reject<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>失败原因的是第一个失败&nbsp;promise&nbsp;的结果<span class=" fw-cl "><span>。</span></span></p>
+<p>还是看实例体会一下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promise1 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+const promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+Promise.all([promise1, promise2]).then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>将在 2 秒后输出<span class=" fw-cl "><span>：</span></span>["lucas", "lucas"]<span class=" fw-cl "><span>。</span></span></p>
+<p>实现思路也很简单<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Promise.all = function(promiseArray) {<br>
+ &nbsp;if (!Array.isArray(promiseArray)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TypeError('The arguments should be an array!')<br>
+ &nbsp;}<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let resultArray = []<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const length = promiseArray.length<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let i = 0; i <length; i++)="" {<br="">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;promiseArray[i].then(data =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resultArray.push(data)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (resultArray.length === length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(resultArray)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})<br>
+}</length;></code></p>
+<p>我们先进行了对参数 promiseArray 的类型判断<span class=" fw-cl "><span>，</span></span>对于非数组类型参数<span class=" fw-cl "><span>，</span></span>进行抛错<span class=" fw-cl "><span>。</span></span>Promise.all 会返回一个 Promise 实例<span class=" fw-cl "><span>，</span></span>这个实例将会在 promiseArray 中的所有 Promise 实例 resolve 后进行 resolve<span class=" fw-cl "><span>，</span></span>且 resolve 的值是一个数组<span class=" fw-cl "><span>，</span></span>这个数组存有 promiseArray 中的所有 Promise 实例 resolve 的值<span class=" fw-cl "><span>。</span></span></p>
+<p>整体思路依赖一个 for 循环对 promiseArray 进行遍历<span class=" fw-cl "><span>。</span></span>同样按照这个思路<span class=" fw-cl "><span>，</span></span>我们对 Promise.race 进行实现<span class=" fw-cl "><span>。</span></span></p>
+<h4>Promise.race 实现</h4>
+<p>还是先来看一下 Promise.race 的用法<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const promise1 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas1')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+const promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve('lucas2')<br>
+ &nbsp;}, 4000)<br>
+})<br>
+<br>
+Promise.race([promise1, promise2]).then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>将会在 2 秒后输出<span class=" fw-cl "><span>：</span></span>lucas1<span class=" fw-cl "><span>，</span></span>实现 Promise.race 为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Promise.race = function(promiseArray) {<br>
+ &nbsp;if (!Array.isArray(promiseArray)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TypeError('The arguments should be an array!')<br>
+ &nbsp;}<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const length = promiseArray.length<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let i = 0; i <length; i++)="" {<br="">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;promiseArray[i].then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})<br>
+}</length;></code></p>
+<p>我们来简单分析一下<span class=" fw-cl "><span>，</span></span>这里使用 for 循环同步执行 promiseArray 数组中的所有 promise 实例 then 方法<span class=" fw-cl "><span>，</span></span>第一个 resolve 的实例直接会触发新 Promise<span class="fw-op  "><span>（</span></span>代码中新 new 出来的<span class=" fw-cl "><span>）</span></span> 实例的 resolve 方法<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>这两节课<span class=" fw-cl "><span>，</span></span>相信读者通过对 Promise 实现的学习<span class=" fw-cl "><span>，</span></span>对 Promise 这个概念的理解大大加深<span class=" fw-cl "><span>。</span></span>其实<span class=" fw-cl "><span>，</span></span>实现一个 Promise 不是目的<span class=" fw-cl "><span>，</span></span>并且这个 Promise 实现也没有完全 100% 遵循规范<span class=" fw-cl "><span>，</span></span>我们更加应该掌握概念<span class=" fw-cl "><span>，</span></span>融会贯通<span class=" fw-cl "><span>。</span></span>另外<span class=" fw-cl "><span>，</span></span>整体来看<span class=" fw-cl "><span>，</span></span>这部分内容不好理解<span class=" fw-cl "><span>，</span></span>如果暂时难以接受全部概念<span class=" fw-cl "><span>，</span></span>也不要灰心<span class=" fw-cl "><span>。</span></span>实现的代码就在那里<span class=" fw-cl "><span>，</span></span>我们要有决心慢慢地掌握它<span class=" fw-cl "><span>。</span></span></p>
+<p>最终把所有的实现放在一起<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+ &nbsp;this.onFulfilledArray = []<br>
+ &nbsp;this.onRejectedArray = []<br>
+<br>
+ &nbsp;const resolve = value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (value instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return value.then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'fulfilled'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const reject = reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'rejected'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;executor(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;} catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+const resolvePromise = (promise2, result, resolve, reject) =&gt; {<br>
+ &nbsp;// 当 result 和 promise2 相等时<span class=" fw-cl "><span>，</span></span>也就是说 onfulfilled 返回 promise2 时<span class=" fw-cl "><span>，</span></span>进行 reject<br>
+ &nbsp;if (result === promise2) {<br>
+ &nbsp;&nbsp;&nbsp;return reject(new TypeError('error due to circular reference'))<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// 是否已经执行过 onfulfilled 或者 onrejected<br>
+ &nbsp;let consumed = false<br>
+ &nbsp;let thenable<br>
+<br>
+ &nbsp;if (result instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;if (result.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.then(function(data) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, data, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, reject)<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;let isComplexResult = target =&gt; (typeof target === 'function' || typeof target === 'object') &amp;&amp; (target !== null)<br>
+ &nbsp;// 如果返回的是疑似 Promise 类型<br>
+ &nbsp;if (isComplexResult(result)) {<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thenable = result.then<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果返回的是 Promise 类型<span class=" fw-cl "><span>，</span></span>具有 then 方法<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof thenable === 'function') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thenable.call(result, function(data) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (consumed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consumed = true<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return resolvePromise(promise2, data, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, function(error) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (consumed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consumed = true<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(error)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return resolve(result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;} catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (consumed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consumed = true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+ &nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;return resolve(result)<br>
+ &nbsp;}<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;onfulfilled = typeof onfulfilled === 'function' ? onfulfilled : data =&gt; data<br>
+ &nbsp;onrejected = typeof onrejected === 'function' ? onrejected : error =&gt; {throw error}<br>
+<br>
+ &nbsp;// promise2 将作为 then 方法的返回值<br>
+ &nbsp;let promise2<br>
+<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 这个新的 promise2 resolved 的值为 onfulfilled 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 这个新的 promise2 reject 的值为 onrejected 的执行结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(this.reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;return promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.push(value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onfulfilled(value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.push(reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = onrejected(reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolvePromise(promise2, result, resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(e)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+}<br>
+<br>
+Promise.prototype.catch = function(catchFunc) {<br>
+ &nbsp;return this.then(null, catchFunc)<br>
+}<br>
+<br>
+Promise.resolve = function(value) {<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;resolve(value)<br>
+ &nbsp;})<br>
+}<br>
+<br>
+Promise.reject = function(value) {<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;reject(value)<br>
+ &nbsp;})<br>
+}<br>
+<br>
+Promise.race = function(promiseArray) {<br>
+ &nbsp;if (!Array.isArray(promiseArray)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TypeError('The arguments should be an array!')<br>
+ &nbsp;}<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const length = promiseArray.length<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let i = 0; i <length; i++)="" {<br="">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;promiseArray[i].then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})<br>
+}<br>
+<br>
+Promise.all = function(promiseArray) {<br>
+ &nbsp;if (!Array.isArray(promiseArray)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TypeError('The arguments should be an array!')<br>
+ &nbsp;}<br>
+ &nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let resultArray = []<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const length = promiseArray.length<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let i = 0; i <length; i++)="" {<br="">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;promiseArray[i].then(data =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resultArray.push(data)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (resultArray.length === length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(resultArray)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, reject)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})<br>
+}</length;></length;></code></p>
+<h3><br></h3><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1yLrxzXLijAgXwzFk9NJ</span></p>
+</body>
+</html>

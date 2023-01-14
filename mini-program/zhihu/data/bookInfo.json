@@ -1958,5 +1958,425 @@
     "summary": "",
     "description": "【课程联报】知乎写作新人培养计划-升级早鸟价-副本",
     "business_url": "https://www.zhihu.com/xen/market/remix/training/1459581637990748160"
+  },
+  {
+    "sku_id": "1173161426456862720",
+    "business_id": "1173161426159071232",
+    "title": "写作技能实用技巧：从认知跃迁到下笔如神",
+    "image": [
+      "https://picx.zhimg.com/v2-340ba7e7656106608752bcf2c8cf47b5.jpg?source=6a64a727"
+    ],
+    "author": [
+      "怀左同学"
+    ],
+    "summary": "简书签约作者，文学硕士，90后畅销书作者。",
+    "description": "<p>写作能力<span class=\" fw-cl \"><span>，</span></span></p>\n<p>是每个人都应具备的底层能力<span class=\" fw-cl \"><span>。</span></span></p>\n<p>到现在还不会写作的你<span class=\" fw-cl \"><span>，</span></span></p>\n<p>可能正在失去自己未来的竞争力<span class=\" fw-cl \"><span>。</span></span>&nbsp;</p>\n<p>本课程主讲人怀左同学<span class=\" fw-cl \"><span>，</span></span>文章全网阅读量破 10 亿<span class=\" fw-cl \"><span>，</span></span>多次被<span class=\"fw-op  \"><span>《</span></span>人民日报<span class=\" fw-cl fw--collapsed\"><span>》</span></span><span class=\" fw-cl \"><span>、</span></span><span class=\"fw-op  fw--collapsed\"><span>《</span></span>人民网<span class=\" fw-cl fw--collapsed\"><span>》</span></span><span class=\" fw-cl \"><span>、</span></span><span class=\"fw-op  fw--collapsed\"><span>《</span></span>中国青年报<span class=\" fw-cl \"><span>》</span></span>等大号转载<span class=\" fw-cl \"><span>。</span></span>&nbsp;</p>\n<p>本课程中<span class=\" fw-cl \"><span>，</span></span>怀左同学将自己多年的写作经验<span class=\" fw-cl \"><span>，</span></span>总结为认知<span class=\" fw-cl \"><span>、</span></span>动笔<span class=\" fw-cl \"><span>、</span></span>障碍<span class=\" fw-cl \"><span>、</span></span>敏感度<span class=\" fw-cl \"><span>、</span></span>金句等 18 项实用技巧<span class=\" fw-cl \"><span>，</span></span>帮你掌握写好文章的窍门<span class=\" fw-cl \"><span>，</span></span>增加自身竞争力<span class=\" fw-cl \"><span>。</span></span></p>",
+    "business_url": "https://www.zhihu.com/remix/albums/1173161426159071232"
+  },
+  {
+    "sku_id": "1263552499938037760",
+    "business_id": "1263552499761496064",
+    "title": "为什么要留在大城市：当代青年的一线城市奋斗指南",
+    "image": [
+      "https://pic1.zhimg.com/v2-3eded17924389a940833b073c910f9d0.jpg?source=6a64a727"
+    ],
+    "author": [
+      "何玉东"
+    ],
+    "summary": "",
+    "description": "帮年轻人摸清职场规律、做好关键决策，找到一套适合自己的职业规划方法论。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1263552499761496064?extra_tab=2"
+  },
+  {
+    "sku_id": "1445078703173201920",
+    "business_id": "1445078703084191744",
+    "title": "从面试到 offer：过来人的大厂上岸秘籍",
+    "image": [
+      "https://picx.zhimg.com/v2-27860e27050a826c1ddfbd29a182cd71.jpg?source=6a64a727"
+    ],
+    "author": [
+      "刘泽宏"
+    ],
+    "summary": "",
+    "description": "一毕业就拿到 50 万年包的大厂 offer 有多牛？",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1445078703084191744?extra_tab=2"
+  },
+  {
+    "sku_id": "1497037437544747008",
+    "business_id": "1497037437453406208",
+    "title": "互联网大厂第一年：普通大学生如何「卷」进大厂",
+    "image": [
+      "https://pica.zhimg.com/v2-62453087ae5f68a681da3df353e935ca.jpg?source=6a64a727"
+    ],
+    "author": [
+      "闫泽华"
+    ],
+    "summary": "",
+    "description": "行业竞争内卷、大厂裁员风波……普通打工人何去何从？",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1497037437453406208?extra_tab=2"
+  },
+  {
+    "sku_id": "1515366512626438144",
+    "business_id": "1515366512130621440",
+    "title": "跳槽不失手：给2年+职场人的跳槽转行攻略",
+    "image": [
+      "https://picx.zhimg.com/v2-9bf3a47836b503d5734f180db8674c7a.jpg?source=6a64a727"
+    ],
+    "author": [
+      "夏姐聊转型"
+    ],
+    "summary": "",
+    "description": "越是流年不利，越是要掌控好跳槽。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1515366512130621440?extra_tab=2"
+  },
+  {
+    "sku_id": "1249063195572035584",
+    "business_id": "1249063195358502912",
+    "title": "心力：创业如何在事与难中精进",
+    "image": [
+      "https://pic1.zhimg.com/v2-9b5e585db97dd7b4a942c33a22f4ef84.jpg?source=6a64a727"
+    ],
+    "author": [
+      "吴世春"
+    ],
+    "summary": "",
+    "description": "本专栏讲述了阳明心学如何具体指导创业，心学闭环如何与创业观照，以及企业成长如何形成连续的、螺旋向上的闭环，一步一步向更高阶跃迁。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1249063195358502912?extra_tab=2"
+  },
+  {
+    "sku_id": "1304094459190439936",
+    "business_id": "1304094458758254592",
+    "title": "职场新人口才技巧：靠「说话」在公司立足",
+    "image": [
+      "https://picx.zhimg.com/v2-99331f1a1310558432725e008bb93aff.jpg?source=6a64a727"
+    ],
+    "author": [
+      "吴昊杰"
+    ],
+    "summary": "",
+    "description": "一起炼就职场口才，靠「说话」在公司立足。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1304094458758254592?extra_tab=2"
+  },
+  {
+    "sku_id": "1458954425120899072",
+    "business_id": "1458954425021124608",
+    "title": "突破社交障碍：建立优质人脉圈",
+    "image": [
+      "https://picx.zhimg.com/v2-1ed3e6cbc04421c6de012872355ffe8b.jpg?source=6a64a727"
+    ],
+    "author": [
+      "李轩洋"
+    ],
+    "summary": "",
+    "description": "教你简单实用的人际交往策略，帮助你打破社交壁垒，成为高情商社交达人。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1458954425021124608?extra_tab=2"
+  },
+  {
+    "sku_id": "1488108312733958144",
+    "business_id": "1488108312637558785",
+    "title": "告别社恐：高情商沟通术修炼手册",
+    "image": [
+      "https://pic1.zhimg.com/v2-d3be3081292b65c2d9b7ace37e88c003.jpg?source=6a64a727"
+    ],
+    "author": [
+      "小乘学堂"
+    ],
+    "summary": "",
+    "description": "社恐患者自救指南，职场小白升级宝典\n",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1488108312637558785?extra_tab=2"
+  },
+  {
+    "sku_id": "1355571913335345152",
+    "business_id": "1355571913264185345",
+    "title": "给压力山大的职场新人：升级职场能力，拼的是高手思维",
+    "image": [
+      "https://picx.zhimg.com/v2-bfb38d28fcf268be6d2c28a86620f6b8.jpg?source=6a64a727"
+    ],
+    "author": [
+      "蓝胖说说"
+    ],
+    "summary": "",
+    "description": "当遇到束手无策，且无法解决的时候，除了能力方面问题，思维模式也是决定性因素。本专栏将从「思维方式」落地到「职场专业能力」，给入职 1-3 年你一堂最该补充的职场必修课，帮助你解决职场关键问题，赢得时间和效率。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1355571913264185345?extra_tab=2"
+  },
+  {
+    "sku_id": "1167078439994777600",
+    "business_id": "1167078439772721152",
+    "title": "前端开发核心知识进阶：50 讲从夯实基础到突破瓶颈",
+    "image": [
+      "https://pic1.zhimg.com/v2-39fa776732e5fc8636f771d2d5599cfb.jpg?source=6a64a727"
+    ],
+    "author": [
+      "Lucas HC"
+    ],
+    "summary": "",
+    "description": "以工作中的实际问题为切入点，系统梳理前端开发核心知识脉络，立体剖析前端开发进阶的方方面面，帮你突破学习瓶颈，提升前端开发综合技术实力。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1167078439772721152?extra_tab=2"
+  },
+  {
+    "sku_id": "1502705131636764673",
+    "business_id": "1502705131536203776",
+    "title": "脑洞故事盒：从不做人开始",
+    "image": [
+      "https://pic1.zhimg.com/v2-82ed72801dea294735de3a92ad4b6d96.jpg?source=6a64a727"
+    ],
+    "author": [
+      "生鱻记"
+    ],
+    "summary": "",
+    "description": "非人类的我，都可以做什么呢？",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1502705131536203776?extra_tab=2"
+  },
+  {
+    "sku_id": "1486805707446489088",
+    "business_id": "1486805707345735680",
+    "title": "悬疑故事匣：压在箱底的爱与背叛",
+    "image": [
+      "https://pic1.zhimg.com/v2-fcbc4f9e885fca518e895cf8beb7d831.jpg?source=6a64a727"
+    ],
+    "author": [
+      "一瞬永恒"
+    ],
+    "summary": "",
+    "description": "关于爱和背叛，你有多少压在心底、打死也不愿意说出的秘密故事？",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1486805707345735680?extra_tab=2"
+  },
+  {
+    "sku_id": "1481675133438222336",
+    "business_id": "1481675133236867072",
+    "title": "微甜刚刚好：关于爱你这件小事",
+    "image": [
+      "https://picx.zhimg.com/v2-b18e85cdc038ca189381ece8bc70a1f0.jpg?source=6a64a727"
+    ],
+    "author": [
+      "铜铁丝"
+    ],
+    "summary": "",
+    "description": "爱情的浓度，微甜刚刚好。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1481675133236867072?extra_tab=2"
+  },
+  {
+    "sku_id": "1591799583750995968",
+    "business_id": "1591799583654510592",
+    "title": "人都活一次，凭啥惯着你",
+    "image": [
+      "https://picx.zhimg.com/v2-d6bdefe3ddc41d8edf69f233a41ea243.jpg?source=6a64a727"
+    ],
+    "author": [
+      "八宝食堂"
+    ],
+    "summary": "",
+    "description": "生活不易，就更不能胡乱受委屈。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1591799583654510592?extra_tab=2"
+  },
+  {
+    "sku_id": "1517917622834720770",
+    "business_id": "1517917622716362753",
+    "title": "在人间：穿过荆棘照亮你",
+    "image": [
+      "https://picx.zhimg.com/v2-59d3a85ca7006ad4a8b790697bd577da.jpg?source=6a64a727"
+    ],
+    "author": [
+      "一个大西瓜"
+    ],
+    "summary": "",
+    "description": "努力生活，人间值得。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1517917622716362753?extra_tab=2"
+  },
+  {
+    "sku_id": "1537395514928898048",
+    "business_id": "1537395514702528513",
+    "title": "独出心裁：爱有千万种表达",
+    "image": [
+      "https://pic1.zhimg.com/v2-a6597c288b1764afba8c039b3c36b793.jpg?source=6a64a727"
+    ],
+    "author": [
+      "半裁明月"
+    ],
+    "summary": "",
+    "description": "彩虹糖与小甜饼，向日葵与镁光灯。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1537395514702528513?extra_tab=2"
+  },
+  {
+    "sku_id": "1588215702703472640",
+    "business_id": "1588215702615449600",
+    "title": "摆烂后，我突然一夜爆红了",
+    "image": [
+      "https://picx.zhimg.com/v2-4feffa523fb63c578d10b6bf12d79dfa.jpg?source=6a64a727"
+    ],
+    "author": [
+      "月鹿"
+    ],
+    "summary": "",
+    "description": "人生不摆烂，快乐少一半。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1588215702615449600?extra_tab=2"
+  },
+  {
+    "sku_id": "1569323210671378432",
+    "business_id": "1569323210591387648",
+    "title": "炽冬，在他的心尖下一场雪",
+    "image": [
+      "https://picx.zhimg.com/v2-8c8eac4bfff02d4d7aaa7fa6b070c76c.jpg?source=6a64a727"
+    ],
+    "author": [
+      "徐有容"
+    ],
+    "summary": "",
+    "description": "爱你是一场蓄谋已久的冲动。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1569323210591387648?extra_tab=2"
+  },
+  {
+    "sku_id": "1588945470138884096",
+    "business_id": "1588945469954359296",
+    "title": "日日夜夜，偷偷念你",
+    "image": [
+      "https://picx.zhimg.com/v2-aea86482541f519ca473bffb07115b45.jpg?source=6a64a727"
+    ],
+    "author": [
+      "不是卿"
+    ],
+    "summary": "",
+    "description": "初见乍欢，久处仍怦然。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1588945469954359296?extra_tab=2"
+  },
+  {
+    "sku_id": "1573008190958104576",
+    "business_id": "1573008190849200128",
+    "title": "等你下课，等你长大",
+    "image": [
+      "https://picx.zhimg.com/v2-8554a4c3f463a89de746fc8938d12682.jpg?source=6a64a727"
+    ],
+    "author": [
+      "是谁在耳边"
+    ],
+    "summary": "",
+    "description": "你不用多好，我喜欢就好。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1573008190849200128?extra_tab=2"
+  },
+  {
+    "sku_id": "1509933524480487424",
+    "business_id": "1509933524400869376",
+    "title": "半岛铁盒：消失的情书",
+    "image": [
+      "https://picx.zhimg.com/v2-6f840b06c70d87bdd41bf633877df3a9.jpg?source=6a64a727"
+    ],
+    "author": [
+      "小玉鹅"
+    ],
+    "summary": "",
+    "description": "谋杀罗曼蒂克。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1509933524400869376?extra_tab=2"
+  },
+  {
+    "sku_id": "1571523474996326400",
+    "business_id": "1571523474916614144",
+    "title": "情深刺骨，我将你归于人海",
+    "image": [
+      "https://pica.zhimg.com/v2-dcd51c038378c791a86510e250f43c44.jpg?source=6a64a727"
+    ],
+    "author": [
+      "无心坏女人"
+    ],
+    "summary": "",
+    "description": "烟花一瞬间，却困我一世仰望。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1571523474916614144?extra_tab=2"
+  },
+  {
+    "sku_id": "1578430712184877056",
+    "business_id": "1578430712075776001",
+    "title": "故人往：怎堪红颜悲白发",
+    "image": [
+      "https://picx.zhimg.com/v2-47f5d2ceb6d95dd29bffde859964d086.jpg?source=6a64a727"
+    ],
+    "author": [
+      "阿晔"
+    ],
+    "summary": "",
+    "description": "当时的人，如今在何方？",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1578430712075776001?extra_tab=2"
+  },
+  {
+    "sku_id": "1578760802454142976",
+    "business_id": "1578760802382823424",
+    "title": "暗恋无声：偏偏喜欢你",
+    "image": [
+      "https://pic1.zhimg.com/v2-3dd1a4e85f57795f2ad6ef876e1e8e1d.jpg?source=6a64a727"
+    ],
+    "author": [
+      "予希"
+    ],
+    "summary": "",
+    "description": "遇见你，是我心动的开始。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1578760802382823424?extra_tab=2"
+  },
+  {
+    "sku_id": "1594357457857568768",
+    "business_id": "1594357457756913665",
+    "title": "刺客爱人：甜虐反转的古言故事",
+    "image": [
+      "https://pic1.zhimg.com/v2-bc3fa04ac590bb9962aea09c306c1387.jpg?source=6a64a727"
+    ],
+    "author": [
+      "别搞笑了"
+    ],
+    "summary": "",
+    "description": "集合穿越、甜爽、虐恋的古言故事。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1594357457756913665?extra_tab=2"
+  },
+  {
+    "sku_id": "1575512474039885824",
+    "business_id": "1575512473909776384",
+    "title": "向阳而生，做自己的光",
+    "image": [
+      "https://pic1.zhimg.com/v2-5ef9054a5dfcce54dbe4fb5f10ad66b9.jpg?source=6a64a727"
+    ],
+    "author": [
+      "岁引"
+    ],
+    "summary": "",
+    "description": "如果过于黑暗，那就亲手凿开一道光。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1575512473909776384?extra_tab=2"
+  },
+  {
+    "sku_id": "1548337020354904066",
+    "business_id": "1548337020216573952",
+    "title": "不自觉心动：陷入热恋的我们",
+    "image": [
+      "https://picx.zhimg.com/v2-9c299d534faed728b30bc02e6e45837e.jpg?source=6a64a727"
+    ],
+    "author": [
+      "巧克力阿华甜"
+    ],
+    "summary": "",
+    "description": "人生有限，大胆热恋",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1548337020216573952?extra_tab=2"
+  },
+  {
+    "sku_id": "1550791232061980672",
+    "business_id": "1550791231973871616",
+    "title": "妖夜慌踪",
+    "image": [
+      "https://pica.zhimg.com/v2-a9ca0887e4b21ea015aba1fc29b34d98.jpg?source=6a64a727"
+    ],
+    "author": [
+      "大橘"
+    ],
+    "summary": "",
+    "description": "忽然间一切都失控了。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1550791231973871616?extra_tab=2"
+  },
+  {
+    "sku_id": "1589249372503666688",
+    "business_id": "1589249372289720320",
+    "title": "且听凤吟：闺中娇娘不好惹",
+    "image": [
+      "https://picx.zhimg.com/v2-1c0fd20e336bd753a3157d1b8012c3ab.jpg?source=6a64a727"
+    ],
+    "author": [
+      "我有故事你有酒吗"
+    ],
+    "summary": "",
+    "description": "宫斗宅斗冠军选手申请出战。",
+    "business_url": "https://www.zhihu.com/xen/market/remix/paid_column/1589249372289720320?extra_tab=2"
   }
 ]

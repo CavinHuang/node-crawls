@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 38 节揭秘前端设计模式（1）</h1>
+  <p>设计模式——我认为这是一个一言难尽的概念<span class=" fw-cl "><span>。</span></span>维基百科对设计模式的定义为<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>在软件工程中<span class=" fw-cl "><span>，</span></span>设计模式<span class="fw-op  "><span>（</span></span>Design Pattern<span class=" fw-cl "><span>）</span></span>是对软件设计中普遍存在<span class="fw-op  "><span>（</span></span>反复出现<span class=" fw-cl "><span>）</span></span>的各种问题<span class=" fw-cl "><span>，</span></span>所提出的解决方案<span class=" fw-cl "><span>。</span></span>这个术语是由埃里希·伽玛<span class="fw-op  "><span>（</span></span>Erich Gamma<span class=" fw-cl "><span>）</span></span>等人在 1990 年代从建筑设计领域引入到计算机科学的<span class=" fw-cl "><span>。</span></span>设计模式并不是直接用来完成代码的编写<span class=" fw-cl "><span>，</span></span>而是描述在各种不同情况下<span class=" fw-cl "><span>，</span></span>要怎么解决问题的一种方案<span class=" fw-cl "><span>。</span></span></p>
+<p>为什么<span class="fw-op  "><span>「</span></span>一言难尽<span class=" fw-cl "><span>」</span></span>呢<span class=" fw-cl "><span>？</span></span>首先从设计模式的概念可以看出<span class=" fw-cl "><span>：</span></span>这是一套理论<span class=" fw-cl "><span>，</span></span>干巴巴的描述其所有内容并没有太大意义<span class=" fw-cl "><span>。</span></span>我们不会在面试中提出<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>请你解释一下设计模式<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>你会多少种设计模式<span class=" fw-cl "><span>」</span></span>这种问题<span class=" fw-cl "><span>。</span></span>设计模式一般认为有 23 种<span class=" fw-cl "><span>，</span></span><strong style="">这 23 种设计模式的本质是面向对象设计原则的实际运用<span class=" fw-cl "><span>，</span></span>是对类的封装性<span class=" fw-cl "><span>、</span></span>继承性和多态性<span class=" fw-cl "><span>，</span></span>以及类的关联关系和组合关系的总结应用<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>那么对于 JavaScript 或者前端开发来说<span class=" fw-cl "><span>，</span></span>设计模式似乎是一个有些遥远的概念<span class=" fw-cl "><span>。</span></span>我们应该如何了解并学习设计模式呢<span class=" fw-cl "><span>？</span></span></p>
+<p><strong style="">我认为设计模式不能停留在理论上<span class=" fw-cl "><span>，</span></span>而是应该结合到实际代码当中</strong><span class=" fw-cl "><span>。</span></span>因此打算通过两讲内容来介绍<span class=" fw-cl "><span>：</span></span>本讲内容先介绍基本概念<span class=" fw-cl "><span>，</span></span>分享一些经典的设计模式书籍以及相关经验<span class=" fw-cl "><span>，</span></span>也许稍微有些<span class="fw-op  "><span>「</span></span>无趣<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>；</span></span>第二讲内容将深入结合前端开发<span class=" fw-cl "><span>，</span></span>挑选那些我们一直使用的<span class=" fw-cl "><span>、</span></span>会用到的设计模式进行讲解<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-0401c69f907fcb5b9b2584fde983fa13.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:64.27320490367777% 0" data-src="https://pic3.zhimg.com/v2-0401c69f907fcb5b9b2584fde983fa13.png">加载中...</span></figure>
+<h3>设计模式到底是什么</h3>
+<p>之前提到<span class=" fw-cl "><span>，</span></span>设计模式是一种经验总结<span class=" fw-cl "><span>，</span></span>它就是一套兵法<span class=" fw-cl "><span>，</span></span>一共包含了 23 个套路<span class=" fw-cl "><span>。</span></span>最终目的是为了更好的代码重用性<span class=" fw-cl "><span>、</span></span>可读性<span class=" fw-cl "><span>、</span></span>可靠性<span class=" fw-cl "><span>、</span></span>可维护性<span class=" fw-cl "><span>。</span></span></p>
+<p>在平常开发中<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>也许你不知道<span class=" fw-cl "><span>，</span></span>但是已经在使用设计模式了<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>在之前课程内容的学习中<span class=" fw-cl "><span>，</span></span>我们其实也有所提及<span class=" fw-cl "><span>，</span></span>比如单例模式<span class="fw-op  "><span>（</span></span>细心的读者还能找到单例模式实现的课程出处吗<span class=" fw-cl fw--collapsed"><span>？</span></span><span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span>发布订阅模式<span class=" fw-cl "><span>、</span></span>原型模式等<span class=" fw-cl "><span>。</span></span></p>
+<p>如果到此<span class=" fw-cl "><span>，</span></span>仍然不明白设计模式到底是指什么<span class=" fw-cl "><span>，</span></span>别着急<span class=" fw-cl "><span>，</span></span>请继续阅读以下内容<span class=" fw-cl "><span>。</span></span></p>
+<h3>设计模式原则</h3>
+<p>既然是一套理论<span class=" fw-cl "><span>，</span></span>是一种约定和规范<span class=" fw-cl "><span>，</span></span>那么设计模式也就有自己的模式原则<span class=" fw-cl "><span>。</span></span>总体来说<span class=" fw-cl "><span>，</span></span>其六大原则包括<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">开闭原则</li>
+  <li style="">里氏替换原则</li>
+  <li style="">依赖反转原则</li>
+  <li style="">接口隔离原则</li>
+  <li style="">最小知道原则</li>
+  <li style="">合成复用原则</li>
+</ul>
+<p>如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-cf3f870c7fa6f580f2b1e1ded9385ad6.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:32.92349726775956% 0" data-src="https://pic2.zhimg.com/v2-cf3f870c7fa6f580f2b1e1ded9385ad6.png">加载中...</span></figure>
+<p>我们来逐一了解<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">开闭原则<span class="fw-op  "><span>（</span></span>Open Close Principle<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>理解开闭原则<span class=" fw-cl "><span>，</span></span>就要了解开和闭<span class=" fw-cl "><span>。</span></span><strong style="">这里的开是指对扩展开放<span class=" fw-cl "><span>，</span></span>闭是说对修改关闭</strong><span class=" fw-cl "><span>。</span></span>想想我们有一套实现<span class=" fw-cl "><span>、</span></span>提供一个服务<span class=" fw-cl "><span>，</span></span>这样的程序需要能够随时进行扩展<span class=" fw-cl "><span>、</span></span>随时支持第三方的自定义配置<span class=" fw-cl "><span>，</span></span>但是不能去修改已用的实现代码<span class=" fw-cl "><span>。</span></span></p>
+<p>比如我们做了一个 UI 组件轮子<span class=" fw-cl "><span>，</span></span>业务方在使用时显然不能够修改我们的代码<span class=" fw-cl "><span>，</span></span>但是仍然可以进行扩展<span class=" fw-cl "><span>。</span></span>再比如著名的 Draft.js 库<span class=" fw-cl "><span>，</span></span>在实现一个编辑器时<span class=" fw-cl "><span>，</span></span>提供了灵活的插件机制<span class=" fw-cl "><span>，</span></span>实现了热插拔效果<span class=" fw-cl "><span>，</span></span>使得整个程序的扩展性好<span class=" fw-cl "><span>，</span></span>易于维护和升级<span class=" fw-cl "><span>。</span></span>甚至 Redux 库<span class=" fw-cl "><span>、</span></span>Koa 库等基本所有库都有开闭原则的体现<span class=" fw-cl "><span>。</span></span></p>
+<p>对于面向对象类型的语言来说<span class=" fw-cl "><span>，</span></span>想要严格遵守开闭原则<span class=" fw-cl "><span>，</span></span>往往需要使用接口和抽象类<span class=" fw-cl "><span>，</span></span>这个我们会在具体设计中再次提到<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">里氏替换原则<span class="fw-op  "><span>（</span></span>Liskov Substitution Principle<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>里氏代换原则就稍微有些抽象<span class=" fw-cl "><span>，</span></span>但它是面向对象设计的基本原则之一<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<blockquote><br></blockquote>
+<p>里氏代换原则要求<span class=" fw-cl "><span>，</span></span>任何基类可以发挥作用的地方<span class=" fw-cl "><span>，</span></span>子类一定可以发挥作用<span class=" fw-cl "><span>。</span></span></p>
+<p>这句话怎么理解呢<span class=" fw-cl "><span>？</span></span>想想我们的继承实现<span class=" fw-cl "><span>，</span></span>里氏替换原则就是继承复用的基础<span class=" fw-cl "><span>。</span></span>只有当派生类可以随时替换掉其基类<span class=" fw-cl "><span>，</span></span>同时功能不被破坏<span class=" fw-cl "><span>，</span></span>基类的方法仍然能被使用<span class=" fw-cl "><span>，</span></span>这才是真正的继承<span class=" fw-cl "><span>，</span></span>继承才能真正地实现复用<span class=" fw-cl "><span>，</span></span>当然<span class=" fw-cl "><span>，</span></span>派生类也需要随时能够在基类的基础上增加新的行为<span class=" fw-cl "><span>。</span></span></p>
+<p>事实上<span class=" fw-cl "><span>，</span></span>里氏代换原则是对开闭原则的补充<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">依赖反转原则<span class="fw-op  "><span>（</span></span>Dependence Inversion Principle<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>该原则要求针对接口编程<span class=" fw-cl "><span>，</span></span>依赖于抽象<span class=" fw-cl "><span>。</span></span>更多理论内容我并不打算展开<span class=" fw-cl "><span>，</span></span>后续在程序设计中会结合实例提及<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">接口隔离原则<span class="fw-op  "><span>（</span></span>Interface Segregation Principle<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>接口隔离的意思或者目的是减少耦合的出现<span class=" fw-cl "><span>。</span></span>在大型软件架构中<span class=" fw-cl "><span>，</span></span>使用多个相互隔离的接口<span class=" fw-cl "><span>，</span></span>一定比使用单个大而全的接口要好<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">最少知道原则<span class=" fw-cl "><span>，</span></span>又称迪米特法则<span class="fw-op  "><span>（</span></span>Demeter Principle<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>最少知道顾名思义<span class=" fw-cl "><span>，</span></span>是指<span class=" fw-cl "><span>：</span></span>一个系统的功能模块应该最大限度地不知晓其他模块的出现<span class=" fw-cl "><span>，</span></span>减少感知<span class=" fw-cl "><span>，</span></span>模块应相对独立<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">合成复用原则<span class="fw-op  "><span>（</span></span>Composite Reuse Principle<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>合成复用原则是指<span class=" fw-cl "><span>：</span></span>尽量使用合成 / 聚合的方式<span class=" fw-cl "><span>，</span></span>而不是使用继承<span class=" fw-cl "><span>。</span></span>这是很有意思的一点<span class=" fw-cl "><span>，</span></span>我们在之前的课程中提到过<span class=" fw-cl "><span>：</span></span>基于原型的继承在很多程度上<span class="fw-op  "><span>「</span></span>优于<span class=" fw-cl "><span>」</span></span>基于类的继承<span class=" fw-cl "><span>，</span></span>原因就在于基于原型的继承模式体现了可组合性<span class=" fw-cl "><span>，</span></span>能够规避<span class="fw-op  "><span>「</span></span>大猩猩和香蕉<span class=" fw-cl "><span>」</span></span>等问题的出现<span class=" fw-cl "><span>。</span></span>组合是非常优秀的编程思想<span class=" fw-cl "><span>，</span></span>这一点在函数式编程范畴中得到了最大程度的印证<span class=" fw-cl "><span>。</span></span></p>
+<h3>设计模式的三大类型和二十三种套路</h3>
+<p>设计模式并没有什么困难的<span class=" fw-cl "><span>，</span></span>大体上所有的设计模式可以归结为三大类<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">创建型</li>
+  <li style="">结构型</li>
+  <li style="">行为型</li>
+</ul>
+<p>如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-922beefc9004e4431431ae11ceee1770.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:74.32% 0" data-src="https://pic3.zhimg.com/v2-922beefc9004e4431431ae11ceee1770.png">加载中...</span></figure>
+<p>对于 Java 来说<span class=" fw-cl "><span>，</span></span>它还包括了 J2EE 类型设计模式<span class=" fw-cl "><span>。</span></span></p>
+<p>我们分别来看<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">创建型<span class="fw-op  "><span>（</span></span>Creational Patterns<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>创建型的五种设计模式提供了更加灵活的对象创建方式<span class=" fw-cl "><span>，</span></span>同时可以隐藏创建的具体逻辑<span class=" fw-cl "><span>。</span></span>与直接使用 new 运算符实例化对象相比<span class=" fw-cl "><span>，</span></span>这些模式具有更强的灵活性以及可定制性<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">结构型<span class="fw-op  "><span>（</span></span>Structural Patterns<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>结构型的七种设计模式关注类和对象的组合<span class=" fw-cl "><span>，</span></span>结合继承的概念<span class=" fw-cl "><span>，</span></span>这些设计模式能使得对象具有更加灵活的功能设定<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">行为型<span class="fw-op  "><span>（</span></span>Behavioral Patterns<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>行为型的十一种设计模式聚焦于对象和类之间的通信<span class=" fw-cl "><span>，</span></span>这是构建大型程序架构必不可少的环节<span class=" fw-cl "><span>。</span></span></p>
+<h3>关于设计模式的学习</h3>
+<p>设计模式使代码编写真正工程化<span class=" fw-cl "><span>，</span></span>我们说设计模式是软件工程的基石脉络<span class=" fw-cl "><span>，</span></span>如同大厦的结构一样<span class=" fw-cl "><span>。</span></span>其实我认为没有必要刻意地去学习设计模式<span class=" fw-cl "><span>，</span></span>因为有关设计模式的思想一定是在实际工程开发中慢慢体会总结的<span class=" fw-cl "><span>。</span></span>但是这需要开发者做到<span class="fw-op  "><span>「</span></span>非常有心<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>才能够自己去慢慢积累<span class=" fw-cl "><span>，</span></span>为了能够培养这种<span class="fw-op  "><span>「</span></span>用心<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>读者去专门了解设计模式似乎也是一种捷径和方式<span class=" fw-cl "><span>。</span></span>两节课程的设置足以帮助大家培养设计模式思想<span class=" fw-cl "><span>，</span></span>同时我再分享一些关于设计模式的经典资料<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style=""><a href="https://github.com/kamranahmedse/design-patterns-for-humans" title="design-patterns-for-humans">design-patterns-for-humans</a><span class=" fw-cl "><span>：</span></span>这是一本非常著名的设计模式书 pdf</li>
+  <li style=""><a href="https://github.com/guanguans/design-patterns-for-humans-cn" title="design-patterns-for-humans-cn">design-patterns-for-humans-cn</a><span class=" fw-cl "><span>：</span></span>上本书的中文版 pdf</li>
+  <li style=""><a href="https://addyosmani.com/resources/essentialjsdesignpatterns/book/" title="Learning JavaScript Design Patterns">Learning JavaScript Design Patterns</a><span class=" fw-cl "><span>：</span></span>addyosmani 大神的书 pdf</li>
+  <li style=""><a href="https://design-patterns.readthedocs.io/zh_CN/latest/" title="图说设计模式">图说设计模式</a></li>
+</ul>
+<p>其中强烈推荐<span class="fw-op  "><span>《</span></span>Learning JavaScript Design Patterns<span class=" fw-cl fw--collapsed"><span>》</span></span><span class=" fw-cl "><span>，</span></span>这本书在网上开源免费<span class=" fw-cl "><span>，</span></span>其中的内容示例都是用 JavaScript 编写的<span class=" fw-cl "><span>，</span></span>而且在代码实例编写当中剖析了很多 jQuery 等经典<span class="fw-op  "><span>「</span></span>轮子<span class=" fw-cl "><span>」</span></span>的设计<span class=" fw-cl "><span>。</span></span></p>
+<p>同时 GitHub 上也有一个不错的 repo<span class=" fw-cl "><span>：</span></span><a href="https://github.com/DavidCai1993/JsPattern-ES6" title="JsPattern-ES6">JsPattern-ES6</a><span class=" fw-cl "><span>，</span></span>使用 ES6 重写了<span class="fw-op  "><span>《</span></span>JavaScript 模式<span class=" fw-cl "><span>》</span></span>一书中的样例<span class=" fw-cl "><span>。</span></span></p>
+<p>还有一个<span class="fw-op  "><span>「</span></span>神器<span class=" fw-cl "><span>」</span></span>是<span class=" fw-cl "><span>：</span></span><a href="http://loredanacirstea.github.io/es6-design-patterns/#composite" title="es6-design-patterns">es6-design-patterns</a><span class=" fw-cl "><span>，</span></span>如截图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-753ebe1de68752468146be06bde69515.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:62.77932960893855% 0" data-src="https://pic2.zhimg.com/v2-753ebe1de68752468146be06bde69515.png">加载中...</span></figure>
+<p>这个网站通过 UML 图解释设计模式<span class=" fw-cl "><span>，</span></span>同时配以可以运行的代码示例<span class=" fw-cl "><span>，</span></span>非常方便对每一种设计模式进行学习<span class=" fw-cl "><span>。</span></span></p>
+<h3><br></h3><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1eY6XMeDC6PKaxpFD0Lp</span></p>
+</body>
+</html>

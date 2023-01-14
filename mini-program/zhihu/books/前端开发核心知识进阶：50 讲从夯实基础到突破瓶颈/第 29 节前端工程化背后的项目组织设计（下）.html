@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 29 节前端工程化背后的项目组织设计（下）</h1>
+  <p>承接上一节的内容<span class=" fw-cl "><span>，</span></span>本节来继续学习前端工程化中依赖关系相关的内容<span class=" fw-cl "><span>。</span></span>在此之前<span class=" fw-cl "><span>，</span></span>先回顾一下<span class="fw-op  "><span>「</span></span>项目组织<span class=" fw-cl "><span>」</span></span>主题的知识点<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-ca5479f4dfdf16e62d04b4a5402c1db8.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:31.567080045095828% 0" data-src="https://pic1.zhimg.com/v2-ca5479f4dfdf16e62d04b4a5402c1db8.png">加载中...</span></figure>
+<p>说到项目中的依赖关系<span class=" fw-cl "><span>，</span></span>我们往往会想到使用 yarn/npm 解决依赖问题<span class=" fw-cl "><span>。</span></span>依赖关系大体上可以分为<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">嵌套依赖</li>
+  <li style="">扁平依赖</li>
+</ul>
+<p>项目中<span class=" fw-cl "><span>，</span></span>我们引用了三个包<span class=" fw-cl "><span>：</span></span>PackageA<span class=" fw-cl "><span>、</span></span>PackageB<span class=" fw-cl "><span>、</span></span>PackageC<span class=" fw-cl "><span>，</span></span> 它们都依赖了 PackageD 的不同版本<span class=" fw-cl "><span>。</span></span>那么在安装时<span class=" fw-cl "><span>，</span></span>如果 PackageA<span class=" fw-cl "><span>、</span></span>PackageB<span class=" fw-cl "><span>、</span></span>PackageC 在各自的 node_modules 目录中分别含有 PackageD<span class=" fw-cl "><span>，</span></span>那么我们将其理解为嵌套依赖<span class=" fw-cl "><span>：</span></span></p>
+<p><code>PackageA<br>
+ &nbsp;&nbsp;&nbsp;node_modules/PackageD@v1.1<br>
+PackageB<br>
+ &nbsp;&nbsp;&nbsp;node_modules/PackageD@v1.2<br>
+PackageC<br>
+ &nbsp;&nbsp;&nbsp;node_modules/PackageD@v1.3</code></p>
+<p>如果在安装时<span class=" fw-cl "><span>，</span></span>先安装了 PackageA<span class=" fw-cl "><span>，</span></span>那么 PackageA 依赖的 PackageD 版本成为主版本<span class=" fw-cl "><span>，</span></span>它和 PackageA<span class=" fw-cl "><span>、</span></span>PackageB<span class=" fw-cl "><span>、</span></span>PackageC 一起平级出现<span class=" fw-cl "><span>，</span></span>我们认为这是扁平依赖<span class=" fw-cl "><span>。</span></span>此时 PackageB<span class=" fw-cl "><span>、</span></span>PackageC 各自的 node_modules 目录中也含有各自的 PackageD 版本<span class=" fw-cl "><span>：</span></span></p>
+<p><code>PackageA<br>
+PackageD@v1.1<br>
+PackageB<br>
+ &nbsp;&nbsp;&nbsp;node_modules/PackageD@v1.2<br>
+PackageC<br>
+ &nbsp;&nbsp;&nbsp;node_modules/PackageD@v1.3</code></p>
+<p>npm 在安装依赖包时<span class=" fw-cl "><span>，</span></span>会将依赖包下载到当前的 node_modules 目录中<span class=" fw-cl "><span>。</span></span>对于嵌套依赖和扁平依赖的话题<span class=" fw-cl "><span>，</span></span>npm 给出了不同的处理方案<span class=" fw-cl "><span>：</span></span>npm3 以下版本在依赖安装时<span class=" fw-cl "><span>，</span></span>非常直接<span class=" fw-cl "><span>，</span></span>它会按照包依赖的树形结构下载到本地 node_modules 目录中<span class=" fw-cl "><span>，</span></span>也就是说<span class=" fw-cl "><span>，</span></span>每个包都会将该包的依赖放到当前包所在的 node_modules 目录中<span class=" fw-cl "><span>。</span></span></p>
+<p>这么做的原因可以理解<span class=" fw-cl "><span>：</span></span>它考虑到了包依赖的版本错综复杂的问题<span class=" fw-cl "><span>，</span></span>同一个包因为被依赖的关系原因会出现多个版本<span class=" fw-cl "><span>，</span></span>保证树形结构的安装能够简化和统一对于包的安装和删除行为<span class=" fw-cl "><span>。</span></span>这样能够简单地解决多版本兼容问题<span class=" fw-cl "><span>，</span></span>可是也带来了较大的冗余<span class=" fw-cl "><span>。</span></span></p>
+<p>npm3 则采用了扁平结构<span class=" fw-cl "><span>，</span></span>但是更加智能<span class=" fw-cl "><span>。</span></span>在安装时<span class=" fw-cl "><span>，</span></span>按照 package.json 里声明的顺序依次安装包<span class=" fw-cl "><span>，</span></span>遇到新的包就把它放在第一级 node_modules 目录<span class=" fw-cl "><span>。</span></span>后面再进行安装时<span class=" fw-cl "><span>，</span></span>如果遇到一级 node_modules 目录已经存在的包<span class=" fw-cl "><span>，</span></span>那么会先判断包版本<span class=" fw-cl "><span>，</span></span>如果版本一样则跳过安装<span class=" fw-cl "><span>，</span></span>否则会按照 npm2 的方式安装在树形目录结构下<span class=" fw-cl "><span>。</span></span></p>
+<p>npm3 这种安装方式只能够<strong style="">部分解决</strong>问题<span class=" fw-cl "><span>，</span></span>比如<span class=" fw-cl "><span>：</span></span>项目里依赖模块 PackageA<span class=" fw-cl "><span>、</span></span>PackageB<span class=" fw-cl "><span>、</span></span>PackageC<span class=" fw-cl "><span>、</span></span>PackageD, 其中 PackageC<span class=" fw-cl "><span>、</span></span>PackageB 依赖模块 PackageD v2.0<span class=" fw-cl "><span>，</span></span>A 依赖模块 PackageD v1.0<span class=" fw-cl "><span>。</span></span>那么可能在安装时<span class=" fw-cl "><span>，</span></span>先安装了 PackageD v1.0<span class=" fw-cl "><span>，</span></span>然后分别在 PackageC<span class=" fw-cl "><span>、</span></span>PackageB 树形结构内部分别安装 PackageD v2.0<span class=" fw-cl "><span>。</span></span>这也是一定程度的冗余<span class=" fw-cl "><span>。</span></span>为了解决这个问题<span class=" fw-cl "><span>，</span></span>因此也就有了 npm dedupe 命令<span class=" fw-cl "><span>。</span></span></p>
+<p>npm 和 yarn 的内容足以单独开讲<span class=" fw-cl "><span>，</span></span>我们这里不再展开<span class=" fw-cl "><span>。</span></span></p>
+<p>另外<span class=" fw-cl "><span>，</span></span>为了保证同一个项目中不同团队成员安装的版本依赖相同<span class=" fw-cl "><span>，</span></span>我们往往使用 package-lock.json 或 yarn-lock.json 这类文件通过 git 上传以共享<span class=" fw-cl "><span>。</span></span>在安装依赖时<span class=" fw-cl "><span>，</span></span>依赖版本将会锁定<span class=" fw-cl "><span>。</span></span></p>
+<p>这些内容与开发息息相关<span class=" fw-cl "><span>，</span></span>但是往往被开发者所忽视<span class=" fw-cl "><span>。</span></span>依赖问题说小很小<span class=" fw-cl "><span>，</span></span>说复杂却也很复杂<span class=" fw-cl "><span>，</span></span>我们再来看一个循环依赖的问题<span class=" fw-cl "><span>。</span></span></p>
+<h3>复杂依赖关系分析和处理</h3>
+<p>前端项目<span class=" fw-cl "><span>，</span></span>安装依赖非常简单<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npm install / yarn add</code></p>
+<p>安装一时爽<span class=" fw-cl "><span>，</span></span>而带来的依赖关系慢慢地会让人头大<span class=" fw-cl "><span>。</span></span>依赖关系的复杂性带来的主要副作用有就是<strong style="">循环依赖</strong><span class=" fw-cl "><span>。</span></span></p>
+<p>这里我们来重点说一下<span class=" fw-cl "><span>。</span></span>简单来说<span class=" fw-cl "><span>，</span></span>循环依赖就是模块 A 和模块 B 相互引用<span class=" fw-cl "><span>，</span></span>在不同的模块化规范下<span class=" fw-cl "><span>，</span></span>对于循环依赖的处理不尽相同<span class=" fw-cl "><span>。</span></span></p>
+<p>Node.js 中<span class=" fw-cl "><span>，</span></span>我们制造一个简单的循环引用场景<span class=" fw-cl "><span>。</span></span></p>
+<p>模块 A<span class=" fw-cl "><span>：</span></span></p>
+<p><code>exports.loaded = false<br>
+const b = require('./b')<br>
+module.exports = { <br>
+ &nbsp;&nbsp;&nbsp;bWasLoaded: b.loaded, <br>
+ &nbsp;&nbsp;&nbsp;loaded: true <br>
+}</code></p>
+<p>模块 B<span class=" fw-cl "><span>：</span></span></p>
+<p><code>exports.loaded = false<br>
+const a = require('./a')<br>
+module.exports = { <br>
+ &nbsp;&nbsp;&nbsp;aWasLoaded: a.loaded, <br>
+ &nbsp;&nbsp;&nbsp;loaded: true <br>
+}</code></p>
+<p>在 index.js 中调用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const a = require('./a');<br>
+const b = require('./b') <br>
+console.log(a)<br>
+console.log(b)</code></p>
+<p>这种情况下<span class=" fw-cl "><span>，</span></span>并未出现死循环崩溃的现象<span class=" fw-cl "><span>，</span></span>而是输出<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{ bWasLoaded: true, loaded: true }<br>
+{ aWasLoaded: false, loaded: true }</code></p>
+<p><strong style="">原因是模块加载过程的缓存机制<span class=" fw-cl "><span>：</span></span>Node.js 对模块加载进行了缓存</strong><span class=" fw-cl "><span>。</span></span>按照执行顺序<span class=" fw-cl "><span>，</span></span>第一次加载 a 时<span class=" fw-cl "><span>，</span></span>走到 const b = require('./b')<span class=" fw-cl "><span>，</span></span>这样直接进入模块 B 当中<span class=" fw-cl "><span>，</span></span>此时模块 B 中 const a = require('./a')<span class=" fw-cl "><span>，</span></span>模块 A 已经被缓存<span class=" fw-cl "><span>，</span></span>因此模块 B 返回的结果为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;aWasLoaded: false,<br>
+ &nbsp;&nbsp;&nbsp;loaded: true<br>
+}</code></p>
+<p>模块 B 加载完成<span class=" fw-cl "><span>，</span></span>回到模块 A 中继续执行<span class=" fw-cl "><span>，</span></span>模块 A 返回的结果为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;aWasLoaded: true,<br>
+ &nbsp;&nbsp;&nbsp;loaded: true<br>
+}</code></p>
+<p>据此分析<span class=" fw-cl "><span>，</span></span>我们不难理解最终的打印结果<span class=" fw-cl "><span>。</span></span>也可以总结为<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<p>Node.js<span class=" fw-cl "><span>，</span></span>或者 CommonJS 规范<span class=" fw-cl "><span>，</span></span>得益于其缓存机制<span class=" fw-cl "><span>，</span></span>在遇见循环引用时<span class=" fw-cl "><span>，</span></span>程序并不会崩溃<span class=" fw-cl "><span>。</span></span>但这样的机制<span class=" fw-cl "><span>，</span></span>仍然会有问题<span class=" fw-cl "><span>：</span></span>它只会输出已执行部分<span class=" fw-cl "><span>，</span></span>对于未执行部分<span class=" fw-cl "><span>，</span></span>export 内容为 undefined<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">ES 模块化与 CommonJS 规范不同<span class=" fw-cl "><span>，</span></span>ES 模块不存在缓存机制<span class=" fw-cl "><span>，</span></span>而是动态引用依赖的模块<span class=" fw-cl "><span>。</span></span></strong></p>
+<p><a href="http://exploringjs.com/es6/ch_modules.html" title="《Exploring ES6》"><span class="fw-op  "><span>《</span></span>Exploring ES6<span class=" fw-cl "><span>》</span></span></a> 一文中的示例很好地阐明了这样的行为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>//------ a.js ------<br>
+import {bar} from 'b'; // (i)<br>
+export function foo() {<br>
+ &nbsp;&nbsp;&nbsp;bar(); // (ii)<br>
+}<br>
+<br>
+//------ b.js ------<br>
+import {foo} from 'a'; // (iii)<br>
+export function bar() {<br>
+ &nbsp;&nbsp;&nbsp;if (Math.random()) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foo(); // (iv)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>这样的代码<span class=" fw-cl "><span>，</span></span>如果在 commonJS 规范中<span class=" fw-cl "><span>：</span></span></p>
+<p><code>//------ a.js ------<br>
+var b = require('b');<br>
+function foo() {<br>
+ &nbsp;&nbsp;&nbsp;b.bar();<br>
+}<br>
+exports.foo = foo;<br>
+<br>
+//------ b.js ------<br>
+var a = require('a');<br>
+function bar() {<br>
+ &nbsp;&nbsp;&nbsp;if (Math.random()) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a.foo();<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+exports.bar = bar;</code></p>
+<p>如果模块 a.js 先被执行<span class=" fw-cl "><span>，</span></span>a.js 依赖 b.js<span class=" fw-cl "><span>，</span></span>在 b.js 中<span class=" fw-cl "><span>，</span></span>因为 a.js 此刻还并没有暴漏出任何内容<span class=" fw-cl "><span>，</span></span>因此如果在 b.js 中<span class=" fw-cl "><span>，</span></span>对于顶层 a.foo() 的调用<span class=" fw-cl "><span>，</span></span>会得到报错<span class=" fw-cl "><span>。</span></span>但是如果 a.js 模块执行完毕后<span class=" fw-cl "><span>，</span></span>再调用 b.bar()<span class=" fw-cl "><span>，</span></span>b.bar() 当中的 a.foo() 可以正常运行<span class=" fw-cl "><span>。</span></span></p>
+<p>但是这样的方式的局限性<span class=" fw-cl "><span>：</span></span></p>
+<p>如果 a.js 采用 module.exports = function () { ··· } 的方式<span class=" fw-cl "><span>，</span></span>那么 b.js 当中的 a 变量在赋值之后不会二次更新<span class=" fw-cl "><span>。</span></span></p>
+<p>ESM 不会存在这样的局限性<span class=" fw-cl "><span>。</span></span>ESM 加载的变量<span class=" fw-cl "><span>，</span></span>都是动态引用其所在的模块<span class=" fw-cl "><span>。</span></span>只要引用是存在的<span class=" fw-cl "><span>，</span></span>代码就能执行<span class=" fw-cl "><span>。</span></span>回到<span class=" fw-cl "><span>：</span></span></p>
+<p><code>//------ a.js ------<br>
+import {bar} from 'b'; // (i)<br>
+export function foo() {<br>
+ &nbsp;&nbsp;&nbsp;bar(); // (ii)<br>
+}<br>
+<br>
+//------ b.js ------<br>
+import {foo} from 'a'; // (iii)<br>
+export function bar() {<br>
+ &nbsp;&nbsp;&nbsp;if (Math.random()) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foo(); // (iv)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>代码<span class=" fw-cl "><span>，</span></span>第 ii 行和第 iv 行<span class=" fw-cl "><span>，</span></span>bar 和 foo 都指向原始模块数据的引用<span class=" fw-cl "><span>。</span></span>ESM 的设计目的之一就是支持循环引用<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">ES 的设计思想是<span class=" fw-cl "><span>：</span></span>尽量静态化<span class=" fw-cl "><span>，</span></span>这样在编译时就能确定模块之间的依赖关系<span class=" fw-cl "><span>。</span></span>这也是 import 命令一定要出现在模块开头部分的原因<span class=" fw-cl "><span>。</span></span>在模块中<span class=" fw-cl "><span>，</span></span>import 实际上不会直接执行模块<span class=" fw-cl "><span>，</span></span>而是只生成一个引用<span class=" fw-cl "><span>。</span></span>在模块内真正引用依赖逻辑时<span class=" fw-cl "><span>，</span></span>再到模块里取值</strong><span class=" fw-cl "><span>。</span></span>这样的设计非常有利于 tree shaking 技术的实现<span class=" fw-cl "><span>，</span></span>我们在<span class="fw-op  "><span>《</span></span>深入浅出模块化相关话题<span class="fw-op  "><span>（</span></span>含 tree shaking<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>》</span></span>课程中继续展开<span class=" fw-cl "><span>。</span></span></p>
+<p>在工程实践中<span class=" fw-cl "><span>，</span></span>循环引用的出现往往是由设计不合理造成的<span class=" fw-cl "><span>。</span></span>如果使用 webpack 进行项目构建<span class=" fw-cl "><span>，</span></span>可以使用 webpack 插件 <a href="https://www.npmjs.com/package/circular-dependency-plugin" title="circular-dependency-plugin">circular-dependency-plugin</a> 来帮助检测项目中存在的所有循环依赖<span class=" fw-cl "><span>。</span></span>循环依赖这个问题说大不大<span class=" fw-cl "><span>，</span></span>说小不小<span class=" fw-cl "><span>，</span></span>我们应该尽可能在设计源头规避<span class=" fw-cl "><span>。</span></span></p>
+<p>另外复杂的依赖关系还会带来以下等问题<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">依赖版本不一致</li>
+  <li style="">依赖丢失</li>
+</ul>
+<p>针对此<span class=" fw-cl "><span>，</span></span>需要开发者根据真实情况进行处理<span class=" fw-cl "><span>，</span></span>同时<span class=" fw-cl "><span>，</span></span>合理使用 npm/yarn 工具<span class=" fw-cl "><span>，</span></span>也能起到非常关键的作用<span class=" fw-cl "><span>。</span></span></p>
+<p>笔者团队中通过<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;&nbsp;&nbsp;"analyzeDeps": "scripts analyzeDeps",<br>
+ &nbsp;&nbsp;&nbsp;"graph": "scripts graph",<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+}</code></p>
+<p>即</p>
+<p><code>yarn run analyzeDeps</code></p>
+<p>来对依赖进行分析<span class=" fw-cl "><span>。</span></span>具体流程是 analyzeDeps 脚本会对依赖版本冲突和依赖丢失的情况进行处理<span class=" fw-cl "><span>，</span></span>这个过程依赖 missingDepsAnalyze 和 versionConflictsAnalyze 两个任务<span class=" fw-cl "><span>：</span></span></p>
+<p>其中 missingDepsAnalyze 依赖 <a href="https://www.npmjs.com/package/depcheck" title="depcheck">depcheck</a><span class=" fw-cl "><span>，</span></span>depcheck 可以找出哪些依赖是没有用到的<span class=" fw-cl "><span>，</span></span>或者对比 package.json 声明中缺少的依赖项<span class=" fw-cl "><span>。</span></span></p>
+<p>同时 missingDepsAnalyze 会读取 lerna.json 配置<span class=" fw-cl "><span>，</span></span>获得项目中所有 package<span class=" fw-cl "><span>，</span></span>接着对所有 package 中的 package.json 进行遍历<span class=" fw-cl "><span>，</span></span>检查是否存在相关依赖<span class=" fw-cl "><span>，</span></span>如果不存在则自动执行 yarn add XXXX 进行安装<span class=" fw-cl "><span>。</span></span></p>
+<p>versionConflictsAnalyze 任务类似<span class=" fw-cl "><span>，</span></span>只不过在获得每个 package 的 package.json 中定义的依赖之后<span class=" fw-cl "><span>，</span></span>检查同一个依赖是否有重复声明且存在版本不一致的情况<span class=" fw-cl "><span>。</span></span>对于版本冲突<span class=" fw-cl "><span>，</span></span>采用交互式命令行<span class=" fw-cl "><span>，</span></span>让开发者选择正确的版本<span class=" fw-cl "><span>。</span></span> ​<br>
+相关代码并不难实现<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以在评论区交流或者向我提问<span class=" fw-cl "><span>，</span></span>出于隐私原因<span class=" fw-cl "><span>，</span></span>这里不再贴出<span class=" fw-cl "><span>。</span></span></p>
+<h3>使用 yarn workspace 管理依赖关系</h3>
+<p>monorepo 项目中依赖管理问题值得重视<span class=" fw-cl "><span>。</span></span>现在我们来看一下非常流行的 yarn workspace 如何处理这种问题<span class=" fw-cl "><span>。</span></span></p>
+<p>workspace 的定位为<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>It allows you to setup multiple packages in such a way that you only need to run yarn install once to install all of them in a single pass.&nbsp;</p>
+<p>翻译过来<span class=" fw-cl "><span>，</span></span>workspace 能帮助你更好地管理有多个子 package 的 monorepo<span class=" fw-cl "><span>。</span></span>开发者既可以在每个子 package 下使用独立的 package.json 管理依赖<span class=" fw-cl "><span>，</span></span>又可以享受一条 yarn 命令安装或者升级所有依赖的便利<span class=" fw-cl "><span>。</span></span></p>
+<p>引入 workspace 之后<span class=" fw-cl "><span>，</span></span>在根目录执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn install / yarn updrade XX</code></p>
+<p>所有的依赖都会被安装或者更新<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>如果只想更新某一个包内的版本<span class=" fw-cl "><span>，</span></span>可以通过以下代码完成<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn workspace <workspace-name> upgrade XX</workspace-name></code></p>
+<p>在使用 yarn 的项目中<span class=" fw-cl "><span>，</span></span>如果想使用 yarn workspace<span class=" fw-cl "><span>，</span></span>我们不需要安装其他的包<span class=" fw-cl "><span>，</span></span>只要简单更改 package.json 便可以工作<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// package.json<br>
+{<br>
+ &nbsp;"private": true,<br>
+ &nbsp;"workspaces": ["workspace-1", "workspace-2"]<br>
+}</code></p>
+<p>需要注意的是<span class=" fw-cl "><span>，</span></span><strong style="">如果需要启用 workspace<span class=" fw-cl "><span>，</span></span>那么这里的 private 字段必须设置成 true<span class=" fw-cl "><span>。</span></span></strong> 同时 workspaces 这个字段值对应一个数组<span class=" fw-cl "><span>，</span></span>数组每一项是个字符串<span class=" fw-cl "><span>，</span></span>表示一个 workspace<span class="fw-op  "><span>（</span></span>可以理解为一个 repo<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>接着<span class=" fw-cl "><span>，</span></span>我们可以在 workspace-1 和 workspace-2 项目中分别添加 package.json 内容<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;"name": "workspace-1",<br>
+ &nbsp;"version": "1.0.0",<br>
+<br>
+ &nbsp;"dependencies": {<br>
+ &nbsp;&nbsp;&nbsp;"react": "16.2.3"<br>
+ &nbsp;}<br>
+}</code></p>
+<p>以及<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;"name": "workspace-2",<br>
+ &nbsp;"version": "1.0.0",<br>
+<br>
+ &nbsp;"dependencies": {<br>
+ &nbsp;&nbsp;&nbsp;"react": "16.2.3",<br>
+ &nbsp;&nbsp;&nbsp;"workspace-1": "1.0.0"<br>
+ &nbsp;}<br>
+}</code></p>
+<p>执行 yarn install 之后<span class=" fw-cl "><span>，</span></span>发现项目根目录下的 node_modules 内已经包含所有声明的依赖<span class=" fw-cl "><span>，</span></span>且各个子 package 的 node_modules 里面不会重复存在依赖<span class=" fw-cl "><span>，</span></span>只会有针对根目录下 node_modules 中的 React 引用<span class=" fw-cl "><span>。</span></span></p>
+<p>我们发现<span class=" fw-cl "><span>，</span></span>yarn workspace 跟 Lerna 有很多共同之处<span class=" fw-cl "><span>，</span></span>解决的问题也部分重叠<span class=" fw-cl "><span>。</span></span><strong style="">下面我们对比一下 workspace 和 Lerna<span class=" fw-cl "><span>。</span></span></strong></p>
+<ul>
+  <li style="">yarn workspace 寄存于 yarn<span class=" fw-cl "><span>，</span></span>不需要开发者额外安装工具<span class=" fw-cl "><span>，</span></span>同时它的使用也非常简单<span class=" fw-cl "><span>，</span></span>只需要在 package.json 中进行相关的配置<span class=" fw-cl "><span>，</span></span>不像 Learn 那样提供了大量 API</li>
+  <li style="">yarn workspace 只能在根目录中引入<span class=" fw-cl "><span>，</span></span>不需要在各个子项目中引入</li>
+</ul>
+<p><strong style="">事实上<span class=" fw-cl "><span>，</span></span>Lerna 可以与 workspace 共存<span class=" fw-cl "><span>，</span></span>搭配使用能够发挥更大作用<span class=" fw-cl "><span>。</span></span>在我们团队中<span class=" fw-cl "><span>：</span></span>Lerna 负责版本管理与发布<span class=" fw-cl "><span>，</span></span>依靠其强大的 API 和设置<span class=" fw-cl "><span>，</span></span>做到灵活细致<span class=" fw-cl "><span>；</span></span>workspace 负责依赖管理<span class=" fw-cl "><span>，</span></span>整个流程非常清晰<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>在 Lerna 中使用 workspace<span class=" fw-cl "><span>，</span></span>首先需要修改 lerna.json 中的设置<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;...<br>
+ &nbsp;&nbsp;&nbsp;"npmClient": "yarn",<br>
+ &nbsp;&nbsp;&nbsp;"useWorkspaces": true,<br>
+ &nbsp;&nbsp;&nbsp;...<br>
+}</code></p>
+<p>然后将根目录下的 package.json 中的 workspaces 字段设置为 Lerna 标准 packages 目录<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;...<br>
+ &nbsp;"private": true,<br>
+ &nbsp;"workspaces": [<br>
+ &nbsp;&nbsp;&nbsp;"packages/*"<br>
+ &nbsp;],<br>
+ &nbsp;...<br>
+}</code></p>
+<p>注意<span class=" fw-cl "><span>：</span></span>如果我们开启了 workspace 功能<span class=" fw-cl "><span>，</span></span>lerna.json 中的 packages 值便不再生效<span class=" fw-cl "><span>。</span></span>原因是 Lerna 会将 package.json 中 workspaces 中所设置的 workspaces 数组作为 lerna packages 的路径<span class=" fw-cl "><span>，</span></span>也就是各个子 repo 的路径<span class=" fw-cl "><span>。</span></span>换句话说<span class=" fw-cl "><span>，</span></span>Lerna 会优先使用 package.json 中的 workspaces 字段<span class=" fw-cl "><span>，</span></span>在不存在该字段的情况下<span class=" fw-cl "><span>，</span></span>再使用 lerna.json 中的 packages 字段<span class=" fw-cl "><span>。</span></span>如果未开启 workspace 功能<span class=" fw-cl "><span>，</span></span>lerna.json 配置为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;"npmClient": "yarn",<br>
+ &nbsp;"useWorkspaces": false,<br>
+ &nbsp;"packages": [<br>
+ &nbsp;&nbsp;&nbsp;"packages/11/*",<br>
+ &nbsp;&nbsp;&nbsp;"packages/12/*"<br>
+ &nbsp;]<br>
+}</code></p>
+<p>根目录下的 package.json 配置为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;"private": true,<br>
+ &nbsp;&nbsp;&nbsp;"workspaces": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"packages/21/*",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"packages/22/*",<br>
+ &nbsp;&nbsp;&nbsp;],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+}</code></p>
+<p>那么这就意味着使用 yarn 管理的是 package.json 中 workspaces 所对应的项目路径下的依赖<span class=" fw-cl "><span>：</span></span><code>packages/21/*</code> 以及 <code>packages/22/*</code><span class=" fw-cl "><span>。</span></span>而 Leran 管理的是 lerna.json 中 packages 所对应的 <code>packages/11/*</code> 以及 <code>packages/12/*</code> 的项目<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>本节主要抛出了大型前端项目的组织选型问题<span class=" fw-cl "><span>，</span></span>着重分析了 monorepo 方案<span class=" fw-cl "><span>，</span></span>内容注重实战<span class=" fw-cl "><span>。</span></span>对于大型代码库的组织<span class=" fw-cl "><span>，</span></span>本节梳理出一条完善的工作流程<span class=" fw-cl "><span>。</span></span>找到适合自己团队的风格<span class=" fw-cl "><span>，</span></span>是一名合格的开发者所需要具备的技能<span class=" fw-cl "><span>。</span></span></p>
+<p>但是关于 npm 和 yarn 以及所牵扯出的依赖问题<span class=" fw-cl "><span>、</span></span>monorepo 设计问题仍然将是挑战<span class=" fw-cl "><span>，</span></span>其中的话题仍然值得深挖和系统展开<span class=" fw-cl "><span>。</span></span>具体工程化项目的代码组织选型和设计<span class=" fw-cl "><span>，</span></span>开发者一定要通过动手来理解<span class=" fw-cl "><span>。</span></span>在此学习过程中<span class=" fw-cl "><span>，</span></span>有任何疑问和想法<span class=" fw-cl "><span>，</span></span>都欢迎与我交流<span class=" fw-cl "><span>，</span></span>也希望能有更多机会和大家交流<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1QZKkQx6cMBZY3DFb8lX</span></p>
+</body>
+</html>

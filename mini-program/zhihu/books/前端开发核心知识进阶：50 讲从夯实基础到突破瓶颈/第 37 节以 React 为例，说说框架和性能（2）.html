@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 37 节以 React 为例，说说框架和性能（2）</h1>
+  <p>在上一讲中<span class=" fw-cl "><span>，</span></span>我们提到了框架性能优化的一些基本概念<span class=" fw-cl "><span>，</span></span>并分析了以 React 框架为代表的常用优化手段<span class=" fw-cl "><span>。</span></span>但是这些内容还不够<span class=" fw-cl "><span>，</span></span>需要了解更多框架设计底层的性能相关话题<span class=" fw-cl "><span>。</span></span>这一讲<span class=" fw-cl "><span>，</span></span>我将会以 Vue<span class="fw-op  "><span>（</span></span>未来新版本 3.0<span class=" fw-cl "><span>）</span></span>和 React 为主<span class=" fw-cl "><span>，</span></span>分析这两个框架在设计层面<span class=" fw-cl "><span>，</span></span>而非使用层面的性能考量<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下图所示<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-dd13793859debac5bc9930e68b38fc48.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:18.917819365337674% 0" data-src="https://pic3.zhimg.com/v2-dd13793859debac5bc9930e68b38fc48.png">加载中...</span></figure>
+<h3>React 性能设计亮点</h3>
+<p>React 设计上的性能亮点非常多<span class=" fw-cl "><span>，</span></span>除了<span class="fw-op  "><span>「</span></span>老生常谈<span class=" fw-cl "><span>」</span></span>的虚拟 DOM 之外<span class=" fw-cl "><span>，</span></span>还有很多不为人知的细节<span class=" fw-cl "><span>，</span></span>比如事件机制<span class="fw-op  "><span>（</span></span>合成和池化<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span>React fiber 设计<span class=" fw-cl "><span>。</span></span></p>
+<h4>React 性能设计亮点之事件</h4>
+<p>React 事件机制我们前面已经有所介绍<span class=" fw-cl "><span>，</span></span>总结一下性能亮点的体现有<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">将所有事件挂载到 document 节点上<span class=" fw-cl "><span>，</span></span>利用事件代理实现优化<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">采用合成事件<span class=" fw-cl "><span>，</span></span>在原生事件的基础上包装合成事件<span class=" fw-cl "><span>，</span></span>并结合池化思路实现内存保护<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>前面课程<span class="fw-op  "><span>《</span></span>第 4-2 课<span class=" fw-cl "><span>：</span></span>你真的懂 React 吗<span class=" fw-cl fw--collapsed"><span>？</span></span><span class=" fw-cl "><span>》</span></span>已经介绍过相关内容<span class=" fw-cl "><span>，</span></span>这里不再展开<span class=" fw-cl "><span>。</span></span></p>
+<h4>React 性能设计亮点之 setState</h4>
+<p>setState 这个谜之 API 我们也有所介绍<span class=" fw-cl "><span>，</span></span>其异步<span class="fw-op  "><span>（</span></span>或者叫做 batch 合并<span class=" fw-cl "><span>）</span></span>设计也是出于性能的考虑<span class=" fw-cl "><span>。</span></span>这种优化思路已经被很多框架所借鉴<span class=" fw-cl "><span>，</span></span>Vue 当中也是有类似的设计<span class=" fw-cl "><span>。</span></span></p>
+<h4>React 性能设计亮点之 React fiber</h4>
+<p>前面两个<span class="fw-op  "><span>「</span></span>亮点<span class=" fw-cl "><span>」</span></span>我们在以往的课程中已经有所涉及<span class=" fw-cl "><span>，</span></span>这里来重点说一下 React fiber<span class=" fw-cl "><span>。</span></span></p>
+<p>通过课程<span class="fw-op  "><span>《</span></span>第 2-1 和 2-2 课<span class=" fw-cl "><span>：</span></span>异步不可怕<span class="fw-op  "><span>「</span></span>死记硬背<span class=" fw-cl "><span>」</span></span>+ 实战拿下<span class=" fw-cl fw--collapsed"><span>》</span></span><span class=" fw-cl "><span>，</span></span>我们知道在浏览器主线程中<span class=" fw-cl "><span>，</span></span>JavaScript 代码在调用栈 call stack 执行时<span class=" fw-cl "><span>，</span></span>可能会调用浏览器的 APIs<span class=" fw-cl "><span>，</span></span>对 DOM 进行操作<span class=" fw-cl "><span>；</span></span>也可能执行一些异步任务<span class=" fw-cl "><span>：</span></span>这些异步任务如果是以回调的方式处理<span class=" fw-cl "><span>，</span></span>那么往往会被添加到 event queue 当中<span class=" fw-cl "><span>；</span></span>如果是以 promise 处理<span class=" fw-cl "><span>，</span></span>就会先放到 job queue 当中<span class=" fw-cl "><span>。</span></span>这个涉及到宏任务和微任务<span class=" fw-cl "><span>，</span></span>这些异步任务和渲染任务将会在下一个时序当中由调用栈处理执行<span class=" fw-cl "><span>。</span></span></p>
+<p>理解了这些<span class=" fw-cl "><span>，</span></span>大家就会明白<span class=" fw-cl "><span>：</span></span>如果调用栈 call stack 运行一个很耗时的脚本<span class=" fw-cl "><span>，</span></span>比如解析一个图片<span class=" fw-cl "><span>，</span></span>call stack 就会像北京上下班高峰期的环路入口一样<span class=" fw-cl "><span>，</span></span>被这个复杂任务堵塞<span class=" fw-cl "><span>。</span></span>主线程其他任务都要排队<span class=" fw-cl "><span>，</span></span>进而阻塞 UI 响应<span class=" fw-cl "><span>。</span></span>这时候用户点击<span class=" fw-cl "><span>、</span></span>输入<span class=" fw-cl "><span>、</span></span>页面动画等都没有了响应<span class=" fw-cl "><span>。</span></span></p>
+<p>这样的性能瓶颈<span class=" fw-cl "><span>，</span></span>就如同阿喀琉斯之踵一样<span class=" fw-cl "><span>，</span></span>在一定程度上限制着 JavaScript 的发挥<span class=" fw-cl "><span>。</span></span></p>
+<p>我们一般有两种方案突破上文提到的瓶颈<span class=" fw-cl "><span>，</span></span>其中之一就是将耗时高<span class=" fw-cl "><span>、</span></span>成本高<span class=" fw-cl "><span>、</span></span>易阻塞的长任务切片<span class=" fw-cl "><span>，</span></span>分成子任务<span class=" fw-cl "><span>，</span></span>并异步执行<span class=" fw-cl "><span>。</span></span></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>这些子任务会在不同的 call stack tick 周期执行<span class=" fw-cl "><span>，</span></span>进而主线程就可以在子任务间隙当中执行 UI 更新操作<span class=" fw-cl "><span>。</span></span>设想一个常见的场景<span class=" fw-cl "><span>：</span></span>如果我们需要渲染一个由十万条数据组成的列表<span class=" fw-cl "><span>，</span></span>那么相比一次性渲染全部数据<span class=" fw-cl "><span>，</span></span>我们可以将数据分段<span class=" fw-cl "><span>，</span></span>使用 setTimeout API 去分步处理<span class=" fw-cl "><span>，</span></span>构建渲染列表的工作就被分成了不同的子任务在浏览器中执行<span class=" fw-cl "><span>。</span></span>在这些子任务间隙<span class=" fw-cl "><span>，</span></span>浏览器得以处理 UI 更新<span class=" fw-cl "><span>。</span></span></p>
+<p>React 在 JavaScript 执行层面花费的时间较多<span class=" fw-cl "><span>，</span></span>这是因为下面一系列复杂过程所造成的<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>Virtual DOM 构建 → 计算 DOM diff → 生成 render patch</p>
+<p>也就是说<span class=" fw-cl "><span>，</span></span>在一定程度上<span class=" fw-cl "><span>：</span></span>React 著名的调度策略 -- stack reconcile 是 React 的性能瓶颈<span class=" fw-cl "><span>。</span></span>因为 React stack reconcile 过程会深度优先遍历所有的 Virtual DOM 节点<span class=" fw-cl "><span>，</span></span>进行 diff<span class=" fw-cl "><span>。</span></span>整棵 Virtual DOM 树计算完成之后<span class=" fw-cl "><span>，</span></span>将任务出栈释放主线程<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>浏览器主线程被 React 更新状态任务占据的时候<span class=" fw-cl "><span>，</span></span>用户与浏览器进行任何交互都不能得到反馈<span class=" fw-cl "><span>，</span></span>只有等到任务结束<span class=" fw-cl "><span>，</span></span>才能得到浏览器的响应<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来看一个典型的场景<span class=" fw-cl "><span>，</span></span>来自文章<span class=" fw-cl "><span>：</span></span><a href="https://link.zhihu.com/?target=http%3A//www.infoq.com/cn/articles/what-the-new-engine-of-react" title="React 的新引擎—React Fiber 是什么？">React 的新引擎—React Fiber 是什么<span class=" fw-cl "><span>？</span></span></a></p>
+<p>这个例子会在页面中创建一个输入框<span class=" fw-cl "><span>、</span></span>一个按钮<span class=" fw-cl "><span>、</span></span>一个 BlockList 组件<span class=" fw-cl "><span>。</span></span>BlockList 组件会根据 NUMBER_OF_BLOCK 数值渲染出对应数量的数字显示框<span class=" fw-cl "><span>，</span></span>数字显示框显示点击按钮的次数<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-f706de3ff42df60fbca7606551b643ca.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:19.758064516129032% 0" data-src="https://pic3.zhimg.com/v2-f706de3ff42df60fbca7606551b643ca.png">加载中...</span></figure>
+<p>在这个例子中<span class=" fw-cl "><span>，</span></span>我们可以设置 NUMBER_OF_BLOCK 的值为 100000<span class=" fw-cl "><span>，</span></span>表示渲染 100000 个矩形框<span class=" fw-cl "><span>。</span></span>这时候点击按钮<span class=" fw-cl "><span>，</span></span>触发 setState<span class=" fw-cl "><span>，</span></span>页面开始更新<span class=" fw-cl "><span>。</span></span>此时点击输入框<span class=" fw-cl "><span>，</span></span>输入一些字符串<span class=" fw-cl "><span>，</span></span>比如 <span class="fw-op  "><span>「</span></span>hi<span class=" fw-cl "><span>，</span></span>react<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>可以看到<span class=" fw-cl "><span>：</span></span>页面没有任何响应<span class=" fw-cl "><span>；</span></span>等待 7s 之后<span class=" fw-cl "><span>，</span></span>输入框中突然出现了之前输入的 <span class="fw-op  "><span>「</span></span>hireact<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>同时<span class=" fw-cl "><span>，</span></span>BlockList 组件也更新了<span class=" fw-cl "><span>。</span></span></p>
+<p>显而易见<span class=" fw-cl "><span>，</span></span>这样的用户体验并不好<span class=" fw-cl "><span>。</span></span></p>
+<p>浏览器主线程在这 7s 的 performance 如下图所示<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-fd245cd2cd423aa33aa659e9cc9d28c3.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:27.741935483870968% 0" data-src="https://pic1.zhimg.com/v2-fd245cd2cd423aa33aa659e9cc9d28c3.png">加载中...</span></figure>
+<ul>
+  <li style="">黄色部分<span class=" fw-cl "><span>：</span></span>是 JavaScript 执行时间<span class=" fw-cl "><span>，</span></span>也是 React 占用主线程的时间<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">紫色部分<span class=" fw-cl "><span>：</span></span>是浏览器重新计算 DOM Tree 的时间<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">绿色部分<span class=" fw-cl "><span>：</span></span>是浏览器绘制页面的时间<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>这三种任务<span class=" fw-cl "><span>，</span></span>总共占用浏览器主线程 7s 的时间<span class=" fw-cl "><span>，</span></span>此时间内浏览器无法与用户交互<span class=" fw-cl "><span>。</span></span>主要是黄色部分执行时间较长<span class=" fw-cl "><span>，</span></span>占用了 6s<span class=" fw-cl "><span>，</span></span>即 React 较长时间占用主线程<span class=" fw-cl "><span>，</span></span>导致主线程无法响应用户输入<span class=" fw-cl "><span>。</span></span>这就是一个典型的例子<span class=" fw-cl "><span>。</span></span></p>
+<p>React 核心团队很早之前就预知性能风险的存在<span class=" fw-cl "><span>，</span></span>并且持续探索可解决的方式<span class=" fw-cl "><span>。</span></span>基于浏览器对 requestIdleCallback 和 requestAnimationFrame 这两个 API 的支持<span class=" fw-cl "><span>，</span></span>React 团队实现新的调度策略 —— Fiber reconcile<span class=" fw-cl "><span>。</span></span></p>
+<p>在应用 React Fiber 的场景下<span class=" fw-cl "><span>，</span></span>重复刚才的例子<span class=" fw-cl "><span>，</span></span>不会再出现页面卡顿<span class=" fw-cl "><span>，</span></span>交互自然而顺畅<span class=" fw-cl "><span>。</span></span></p>
+<p>浏览器主线程的 performance 如下图所示<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-4e0927e845c40bbe3ebd712bb76550b7.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:23.790322580645164% 0" data-src="https://pic4.zhimg.com/v2-4e0927e845c40bbe3ebd712bb76550b7.png">加载中...</span></figure>
+<p>可以看到<span class=" fw-cl "><span>：</span></span>在黄色 JavaScript 执行过程中<span class=" fw-cl "><span>，</span></span>也就是 React 占用浏览器主线程期间<span class=" fw-cl "><span>，</span></span>浏览器也在重新计算 DOM Tree<span class=" fw-cl "><span>，</span></span>并且进行重绘<span class=" fw-cl "><span>。</span></span>直观来看<span class=" fw-cl "><span>，</span></span>黄色和紫色等互相交替<span class=" fw-cl "><span>，</span></span>同时页面截图显示<span class=" fw-cl "><span>，</span></span>用户输入得以及时响应<span class=" fw-cl "><span>。</span></span>简单说<span class=" fw-cl "><span>，</span></span>在 React 占用浏览器主线程期间<span class=" fw-cl "><span>，</span></span>浏览器也在与用户交互<span class=" fw-cl "><span>。</span></span>这显然是<span class="fw-op  "><span>「</span></span>更好的性能<span class=" fw-cl "><span>」</span></span>表现<span class=" fw-cl "><span>。</span></span></p>
+<h3>从 Vue 3.0 动静结合的 Dom diff 谈起</h3>
+<p>Vue3.0 提出的动静结合的 DOM diff 思想<span class=" fw-cl "><span>，</span></span>我个人认为是 Vue 近几年在<span class="fw-op  "><span>「</span></span>创新<span class=" fw-cl "><span>」</span></span>上的一个很好体现<span class=" fw-cl "><span>。</span></span>之所以能够做到动静结合的 DOM diff<span class=" fw-cl "><span>，</span></span>或者把这个问题放得更大<span class=" fw-cl "><span>：</span></span>之所以能够做到预编译优化<span class=" fw-cl "><span>，</span></span>是因为 Vue core 可以静态分析 template<span class=" fw-cl "><span>，</span></span>在解析模版时<span class=" fw-cl "><span>，</span></span>整个 parse 的过程是利用正则表达式顺序解析模板<span class=" fw-cl "><span>，</span></span>当解析到开始标签<span class=" fw-cl "><span>、</span></span>闭合标签和文本的时候都会分别执行对应的回调函数<span class=" fw-cl "><span>，</span></span>来达到构造 AST 树的目的<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-251a1e1695edda43c8ea61da4dc73ab8.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:25.949367088607595% 0" data-src="https://pic3.zhimg.com/v2-251a1e1695edda43c8ea61da4dc73ab8.png">加载中...</span></figure>
+<p>这个过程换成代码如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-4852c706dab1cb83b66f006d1928435e.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:19.387755102040817% 0" data-src="https://pic1.zhimg.com/v2-4852c706dab1cb83b66f006d1928435e.png">加载中...</span></figure>
+<p>借助预编译过程<span class=" fw-cl "><span>，</span></span>Vue 可以做到的预编译优化就很强大了<span class=" fw-cl "><span>。</span></span>比如在预编译时标记出模版中可能变化的组件节点<span class=" fw-cl "><span>，</span></span>再次进行渲染前 diff 时就可以跳过<span class="fw-op  "><span>「</span></span>永远不会变化的节点<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>而只需要对比<span class="fw-op  "><span>「</span></span>可能会变化的动态节点<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>这也就是动静结合的 DOM diff 将 diff 成本与模版大小正相关优化到与动态节点正相关的理论依据<span class=" fw-cl "><span>。</span></span></p>
+<p>类似地<span class=" fw-cl "><span>，</span></span>我们也可以标记出来一些<span class="fw-op  "><span>「</span></span>快速通道<span class="fw-op  "><span>（</span></span>fast path<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>比如某个复杂的组件之所以 className 发生变化<span class="fw-op  "><span>（</span></span>这个场景很常见<span class=" fw-cl "><span>，</span></span>我们根据变量<span class=" fw-cl "><span>，</span></span>通过更改 className 来应用不同的样式<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span>针对这种场景<span class=" fw-cl "><span>，</span></span>我们在预编译阶段进行特定的标记<span class=" fw-cl "><span>，</span></span>在重新渲染 diff 时只需要更新新的 className 即可<span class=" fw-cl "><span>。</span></span></p>
+<h4>预编译优化的本质是什么<span class=" fw-cl "><span>？</span></span></h4>
+<p>我关心的是<span class=" fw-cl "><span>：</span></span>React 能否像 Vue 那样进行预编译优化<span class=" fw-cl "><span>？</span></span></p>
+<p>Vue 需要做数据双向绑定<span class=" fw-cl "><span>，</span></span>需要进行数据拦截或代理<span class=" fw-cl "><span>，</span></span>那它就需要在预编译阶段静态分析模版<span class=" fw-cl "><span>，</span></span>分析出视图依赖了哪些数据<span class=" fw-cl "><span>，</span></span>进行响应式处理<span class=" fw-cl "><span>。</span></span>而 React 就是局部重新渲染<span class=" fw-cl "><span>，</span></span>React 拿到的或者说掌管的<span class=" fw-cl "><span>，</span></span>所负责的就是一堆递归 React.createElement 的执行调用<span class=" fw-cl "><span>，</span></span>它无法从模版层面进行静态分析<span class=" fw-cl "><span>。</span></span></p>
+<p>比如这样的 JSX<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;<p><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span> This is a test </span><br>
+ &nbsp;&nbsp;&nbsp;</p><br>
+</code></div><p></p>
+<p>将会被编译为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>React.createElement(<br>
+ &nbsp;"div", null, <br>
+ &nbsp;React.createElement(<br>
+ &nbsp;&nbsp;&nbsp;"p", null, <br>
+ &nbsp;&nbsp;&nbsp;React.createElement(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"span", null, "This is a test"<br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;)<br>
+)</code></p>
+<p>因此 React JSX 过度的灵活性导致运行时可以用于优化的信息不足<span class=" fw-cl "><span>。</span></span>但是<span class=" fw-cl "><span>，</span></span>在 React 框架之外<span class=" fw-cl "><span>，</span></span>我们作为开发者还是可以通过工程化手段达到类似的目的<span class=" fw-cl "><span>，</span></span>因为我们能够接触到 JSX 编译成 React.createElement 的整个过程<span class=" fw-cl "><span>。</span></span>开发者在项目中开发 babel 插件<span class=" fw-cl "><span>，</span></span>实现 JSX 编译成 React.createElement<span class=" fw-cl "><span>，</span></span>那么优化手段就是是从编写 babel 插件开始<span class=" fw-cl "><span>：</span></span></p>
+<p>如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-b93b749a1b7ba817a837b21a30026fe0.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:12.729124236252545% 0" data-src="https://pic2.zhimg.com/v2-b93b749a1b7ba817a837b21a30026fe0.png">加载中...</span></figure>
+<p>那么到底开发者应该怎么做<span class=" fw-cl "><span>，</span></span>实现预编译优化呢<span class=" fw-cl "><span>？</span></span></p>
+<p>为此我挑出了一些具有代表性的案例<span class=" fw-cl "><span>，</span></span>这些案例都是由开发者开发 Babel plugin 实现的 React 预编译手段<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">Hoist constant elements</strong></h5>
+<p>将静态不变的节点在预编译阶段就抽象成函数或者静态变量<span class=" fw-cl "><span>，</span></span>这个和 Vue 框架内所做的一样<span class=" fw-cl "><span>，</span></span>不过需要开发者实现<span class=" fw-cl "><span>，</span></span>这样一来就不需要在每次重新渲染时生成多余实例<span class=" fw-cl "><span>，</span></span>只需要调用 _ref 变量即可<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const _ref = <span>Hello World</span><br>
+<br>
+class MyComponent extends React.Component {<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div classname="{this.props.className}"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{_ref}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<h5><strong style="">remove propTypes in runtime</strong></h5>
+<p>PropTypes 提供了许多验证工具<span class=" fw-cl "><span>，</span></span>用来帮助确定 React 组件中 props 数据的有效性<span class=" fw-cl "><span>。</span></span>但是<span class=" fw-cl "><span>，</span></span>React v15.5 后就被移除了 PropTypes <span class=" fw-cl "><span>，</span></span>因此现在使用 prop-types 库代替<span class=" fw-cl "><span>。</span></span></p>
+<p>propTypes 对于业务开发非常有用<span class=" fw-cl "><span>，</span></span>帮助我们弥补了 JS 数据类型检查的不足<span class=" fw-cl "><span>。</span></span>但是在线上代码中<span class=" fw-cl "><span>，</span></span>propTypes 是多余的<span class=" fw-cl "><span>。</span></span></p>
+<p>因此在运行时代码删除 propTypes 就变的比较有必要了<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">remove inline functions and varaibles</strong></h5>
+<p>第三个优化场景是这样的<span class=" fw-cl "><span>：</span></span>我们知道组件内如果存在函数生成<span class="fw-op  "><span>（</span></span>箭头函数定义<span class=" fw-cl "><span>，</span></span>bind 使用<span class=" fw-cl "><span>）</span></span>或者闭包变量的情况下<span class=" fw-cl "><span>，</span></span>组件每一次刷新<span class=" fw-cl "><span>，</span></span>都会生成一个新的函数或者闭包变量<span class=" fw-cl "><span>。</span></span>我们将这种不必要的函数称为 inline functions<span class=" fw-cl "><span>。</span></span></p>
+<p>比如下面这段代码中<span class=" fw-cl "><span>，</span></span>transformeData 和 onClick 对应的匿名函数<span class=" fw-cl "><span>，</span></span>都会随着组件渲染重新生成一个全新的引用<span class=" fw-cl "><span>。</span></span></p>
+<p><code>export default ({ data, sortComparator, filterPredicate, history }) =&gt; {<br>
+<br>
+ &nbsp;const transformedData = data<br>
+ &nbsp;&nbsp;&nbsp;.filter(filterPredicate)<br>
+ &nbsp;&nbsp;&nbsp;.sort(sortComparator)<br>
+<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button <br="">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;className="back-btn" <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onClick={() =&gt; history.pop()} <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&gt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<ul classname="data-list"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{transformedData.map(({ id, value }) =&gt; (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<item value="{value}"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</item></ul><br>
+ &nbsp;&nbsp;&nbsp;</button></code></div><code><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>反复生成这些 inline functions 或者数据<span class=" fw-cl "><span>，</span></span>这对于 React 运行时性能或多或少会有一点影响<span class=" fw-cl "><span>，</span></span>也带来了 GC 压力<span class=" fw-cl "><span>。</span></span></p>
+<p>我们在工程中<span class=" fw-cl "><span>，</span></span>可以通过插件对 inline functions 或者变量进行内存持久化处理<span class=" fw-cl "><span>。</span></span>最终经过预编译优化后的代码为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>&nbsp;let _anonymousFnComponent<br>
+<br>
+export default ({ data, sortComparator, filterPredicate, history }) =&gt; {<br>
+<br>
+ &nbsp;const transformedData = React.useMemo(<br>
+ &nbsp;&nbsp;&nbsp;() =&gt;<br>
+ &nbsp;&nbsp;&nbsp;data.filter(filterPredicate).sort(sortComparator),<br>
+ &nbsp;&nbsp;&nbsp;[data, data.filter, filterPredicate, sortComparator]<br>
+ &nbsp;)<br>
+<br>
+ &nbsp;return React.createElement(_anonymousFnComponent = _anonymousFnComponent || (() =&gt; {<br>
+<br>
+ &nbsp;&nbsp;&nbsp;const _onClick2 = React.useCallback(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;() =&gt; history.pop(), <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[history, history.pop]<br>
+ &nbsp;&nbsp;&nbsp;)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button classname="back-btn" onclick="{_onClick2}"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<ul classname="data-list"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{transformedData.map(({ id, value }) =&gt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;React.createElement(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//...<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</ul><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button></code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}), null)<br>
+}</code><p></p>
+<p>我们使用了 React 新特性 useMemo 和 useCallback 将这些变量包裹<span class=" fw-cl "><span>。</span></span> useMemo 和 useCallback 都会在组件第一次渲染的时候执行<span class=" fw-cl "><span>，</span></span>之后会在其依赖的变量<span class=" fw-cl "><span>，</span></span>也就是 useMemo 和 useCallback 的第二个参数数组<span class=" fw-cl "><span>，</span></span>数组内的数值发生改变时再次执行<span class=" fw-cl "><span>；</span></span>这两个 hooks 都返回缓存的值<span class=" fw-cl "><span>，</span></span>useMemo 返回缓存的变量<span class=" fw-cl "><span>，</span></span>useCallback 返回缓存的函数<span class=" fw-cl "><span>。</span></span></p>
+<p>我们看代码<span class=" fw-cl "><span>，</span></span>transformeData 在其数据源<span class=" fw-cl "><span>：</span></span>data,data.filter,filterPredicate,sortComparator 发生变化时才会更新<span class=" fw-cl "><span>，</span></span>才会重新生成一份 transformeData<span class=" fw-cl "><span>，</span></span>函数渲染时只要依赖的 data,data.filter,filterPredicate,sortComparator 不变<span class=" fw-cl "><span>，</span></span>不会重新生成 transformeData<span class=" fw-cl "><span>，</span></span>而是使用缓存的值<span class=" fw-cl "><span>。</span></span>onClick 也使用了 useCallback 将函数引用持久化保存<span class=" fw-cl "><span>，</span></span>道理一样<span class=" fw-cl "><span>。</span></span></p>
+<p>这样一来就避免了在组件重新渲染时<span class=" fw-cl "><span>，</span></span>总是生成不必要的 inline functions 和闭包变量的困扰<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">transform to stateless function component</strong></h5>
+<p>我们知道函数式组件虽然未来会比 class 声明的组件性能更好<span class=" fw-cl "><span>，</span></span>并且函数不管是从性能上<span class=" fw-cl "><span>、</span></span>可组合性上还是 TS 契合度上<span class=" fw-cl "><span>，</span></span>都要要优于 class 使用<span class=" fw-cl "><span>。</span></span></p>
+<p>这个例子<span class=" fw-cl "><span>，</span></span>我们将符合条件的 class 声明组件自动在预编译阶段转化为函数式组件<span class=" fw-cl "><span>。</span></span></p>
+<p>我们的目标是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class MyComponent extends React.Component {<br>
+ &nbsp;static propTypes = {<br>
+ &nbsp;&nbsp;&nbsp;className: React.PropTypes.string.isRequired<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div classname="{this.props.className}"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>Hello World</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<p>在预编译阶段优化为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const MyComponent = props =&gt; <br>
+ &nbsp;</code></p><div classname="{props.className}"><code><br>
+ &nbsp;&nbsp;&nbsp;<span>Hello World</span><br>
+ &nbsp;</code></div><code><br>
+<br>
+MyComponent.propTypes = {<br>
+ &nbsp;className: React.PropTypes.string.isRequired<br>
+}</code><p></p>
+<p>在这里我们展开实现一下 Babel plugin 的编写<span class=" fw-cl "><span>，</span></span>其中会涉及到一些 AST 的内容<span class=" fw-cl "><span>，</span></span>读者只需明白思想方向即可<span class=" fw-cl "><span>。</span></span></p>
+<p><code>module.exports = function({ types: t }) {<br>
+ &nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;visitor: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Class(path) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const state = {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;renderMethod: null,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;properties: [],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thisProps: [],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;isPure: true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path.traverse(bodyVisitor, state)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let replacement = []<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;state.thisProps.forEach(function(thisProp) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thisProp.replaceWith(t.identifier('props'))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thisProp.replaceWith(t.identifier('props'))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replacement.push(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t.functionDeclaration(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[t.identifier('props')],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;state.renderMethod.node.body<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;state.properties.forEach(prop =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replacement.push(t.expressionStatement(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t.assignmentExpression('=',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t.MemberExpression(id, prop.node.key),<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;prop.node.value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (t.isExpression(path.node)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replacement.push(t.returnStatement(id))<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replacement = t.callExpression(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t.functionExpression(null, [],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t.blockStatement(replacement)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;),<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path.replaceWithMultiple(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replacement<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const bodyVisitor = {<br>
+ &nbsp;&nbsp;&nbsp;ClassMethod(path) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (path.node.key.name === 'render') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.renderMethod = path<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.isPure = false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path.stop()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;ClassProperty(path) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const name = path.node.key.name<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (path.node.static &amp;&amp; (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name === 'propTypes' ||<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name === 'defaultProps'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.properties.push(path)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.isPure = false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.isPure = false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;MemberExpression(path) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.thisProps.push(path)<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;JSXIdentifier(path) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (path.node.name === 'ref') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.isPure = false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path.stop()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>代码分析<span class=" fw-cl "><span>：</span></span>我们先明确<span class=" fw-cl "><span>，</span></span>什么样的 class 组件<span class=" fw-cl "><span>，</span></span>具备转换成函数式组件的条件<span class=" fw-cl "><span>？</span></span></p>
+<p>首先<span class=" fw-cl "><span>，</span></span>class 组件不能具有 this.state 的引用<span class=" fw-cl "><span>，</span></span>组件不能出现任何生命周期方法<span class=" fw-cl "><span>，</span></span>也不能出现 createRef<span class=" fw-cl "><span>，</span></span>因为这些特性在函数式组件中并不存在<span class=" fw-cl "><span>。</span></span></p>
+<p>满足这样的条件时<span class=" fw-cl "><span>，</span></span>我们在进行 JSX 转换过程进行组件替换<span class=" fw-cl "><span>：</span></span>通过 AST 进行遍历<span class=" fw-cl "><span>，</span></span> 首先在遍历过程中找到符合条件的 class 组件<span class=" fw-cl "><span>，</span></span>是否符合条件我们用 isPure 来进行标记<span class=" fw-cl "><span>，</span></span> 同时在遍历时<span class=" fw-cl "><span>，</span></span>对每一个符合条件的 class 组件<span class=" fw-cl "><span>，</span></span>储存 render 方法<span class=" fw-cl "><span>，</span></span>作为转换函数式组件的返回值<span class=" fw-cl "><span>；</span></span>储存 propTypes 和 defaultProps 静态属性<span class=" fw-cl "><span>，</span></span>之后会挂载在函数组件函数属性上<span class=" fw-cl "><span>；</span></span>同时对 this.props 的用法转为 props, props 作为函数式组件的参数出现 最后在按照上述规则<span class=" fw-cl "><span>，</span></span>修改 AST 树<span class=" fw-cl "><span>，</span></span>新的 AST 树相关组件节点会生成函数式组件<span class=" fw-cl "><span>。</span></span></p>
+<h4>Prepack 对于框架的影响</h4>
+<p>Prepack 同样是 FaceBook 团队的作品<span class=" fw-cl "><span>。</span></span>它让你编写普通的 JavaScript 代码<span class=" fw-cl "><span>，</span></span>它在构建阶段就试图了解代码将做什么<span class=" fw-cl "><span>，</span></span>然后生成等价的代码<span class=" fw-cl "><span>，</span></span>减少了运行时的计算量<span class=" fw-cl "><span>。</span></span></p>
+<p>我们看一个 fibonacci 数列求和的例子<span class=" fw-cl "><span>，</span></span>再经过 prepack 处理之后<span class=" fw-cl "><span>，</span></span>直接输出结果<span class=" fw-cl "><span>，</span></span>运行时就是一个 610 这么一个结果<span class=" fw-cl "><span>。</span></span>这么看 prepack 是一个 JavaScript 的部分求值器<span class="fw-op  "><span>（</span></span>Partial Evaluator<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>可在编译时执行原本在运行时的计算过程<span class=" fw-cl "><span>，</span></span>并通过重写 JavaScript 代码来提高其执行效率<span class=" fw-cl "><span>。</span></span></p>
+<p>我就用 Prepack 结合 React 尝了个鲜<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-bee275c864eacfe8f49f59e318e6e30b.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:24.07108239095315% 0" data-src="https://pic1.zhimg.com/v2-bee275c864eacfe8f49f59e318e6e30b.png">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-f2bc1d993b5f6722644e5565d0836120.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:30.560420315236424% 0" data-src="https://pic3.zhimg.com/v2-f2bc1d993b5f6722644e5565d0836120.png">加载中...</span></figure>
+<p>上图左边部分是我编写的代码<span class=" fw-cl "><span>，</span></span>在不使用 prepack 情况下<span class=" fw-cl "><span>，</span></span>运行时代码如右边所示<span class=" fw-cl "><span>：</span></span>经过编译之后右边的代码仍然是对数组 list 进行 map<span class=" fw-cl "><span>，</span></span>逐条渲染出数组内容<span class=" fw-cl "><span>。</span></span></p>
+<p>经过 preack 优化后<span class=" fw-cl "><span>，</span></span>运行时代码已经非常轻量了<span class=" fw-cl "><span>。</span></span>运行时就减少 map 的计算等<span class=" fw-cl "><span>，</span></span>直接用生成的组件内容作为运行时结果<span class=" fw-cl "><span>。</span></span></p>
+<h3><br></h3><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1eY6XRDt6PKaxpFD0Lp</span></p>
+</body>
+</html>

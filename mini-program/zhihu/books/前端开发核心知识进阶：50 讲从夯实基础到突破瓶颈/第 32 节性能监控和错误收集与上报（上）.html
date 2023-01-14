@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 32 节性能监控和错误收集与上报（上）</h1>
+  <p>性能始终是前端领域非常重要的话题<span class=" fw-cl "><span>，</span></span>它直接决定了产品体验的优劣<span class=" fw-cl "><span>，</span></span>重要性无需赘言<span class=" fw-cl "><span>。</span></span>我们在体验一个产品时<span class=" fw-cl "><span>，</span></span>能够直观感受到其性能<span class=" fw-cl "><span>，</span></span>可是如何量化衡量性能的好坏呢<span class=" fw-cl "><span>？</span></span></p>
+<p>同时<span class=" fw-cl "><span>，</span></span>我们无法保证程序永远不出问题<span class=" fw-cl "><span>，</span></span>如何在程序出现问题时及时获得现场数据<span class=" fw-cl "><span>、</span></span>还原现场<span class=" fw-cl "><span>，</span></span>以做出准确地响应呢<span class=" fw-cl "><span>？</span></span></p>
+<p>离开了实际场景谈这些话题都是<span class="fw-op  "><span>「</span></span>耍流氓<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>性能数据的监控<span class=" fw-cl "><span>、</span></span>错误信息的收集和上报应该都要基于线上真实环境<span class=" fw-cl "><span>。</span></span>这对于我们随时掌控线上产品<span class=" fw-cl "><span>，</span></span>优化应用体验具有重大意义<span class=" fw-cl "><span>。</span></span></p>
+<p>本节课程<span class=" fw-cl "><span>，</span></span>我们就聚焦在性能监控和错误收集与上报系统上<span class=" fw-cl "><span>。</span></span>希望通过学习<span class=" fw-cl "><span>，</span></span>每个人都心中有数<span class=" fw-cl "><span>，</span></span>做到不仅能够分析性能数据<span class=" fw-cl "><span>、</span></span>处理错误<span class=" fw-cl "><span>，</span></span>还能建设一个成熟的配套系统<span class=" fw-cl "><span>。</span></span></p>
+<p>本节课主要知识点<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-77e87ff3f31131eea915011461a63ec1.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:59.33412604042806% 0" data-src="https://pic2.zhimg.com/v2-77e87ff3f31131eea915011461a63ec1.png">加载中...</span></figure>
+<p>接下来<span class=" fw-cl "><span>，</span></span>我们通过 2 节内容来学习这个主题<span class=" fw-cl "><span>。</span></span></p>
+<h3>性能监控指标</h3>
+<p>既然是性能监控<span class=" fw-cl "><span>，</span></span>那我们首先需要明确衡量指标<span class=" fw-cl "><span>。</span></span>一般来说<span class=" fw-cl "><span>，</span></span>业界认可的常用指标有<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">首次绘制<span class="fw-op  "><span>（</span></span>FP<span class=" fw-cl "><span>）</span></span>和首次有内容绘制<span class="fw-op  "><span>（</span></span>FCP<span class=" fw-cl "><span>）</span></span>时间</li>
+  <li style="">首次有意义绘制<span class="fw-op  "><span>（</span></span>FMP<span class=" fw-cl "><span>）</span></span>时间</li>
+  <li style="">首屏时间</li>
+  <li style="">用户可交互<span class="fw-op  "><span>（</span></span>TTI<span class=" fw-cl "><span>）</span></span>时间</li>
+  <li style="">总下载时间</li>
+  <li style="">自定义指标</li>
+</ul>
+<p>接下来分别看看每个指标的含义<span class=" fw-cl "><span>。</span></span></p>
+<blockquote><br></blockquote>
+<p><strong style="">首次绘制<span class="fw-op  "><span>（</span></span>FP<span class=" fw-cl "><span>）</span></span>时间</strong><span class=" fw-cl "><span>：</span></span>对于应用页面<span class=" fw-cl "><span>，</span></span>用户在视觉上首次出现不同于跳转之前的内容时间点<span class=" fw-cl "><span>，</span></span>或者说是页面发生第一次绘制的时间点<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">首次有内容绘制<span class="fw-op  "><span>（</span></span>FCP<span class=" fw-cl "><span>）</span></span>时间</strong><span class=" fw-cl "><span>：</span></span>指浏览器完成渲染 DOM 中第一个内容的时间点<span class=" fw-cl "><span>，</span></span>可能是文本<span class=" fw-cl "><span>、</span></span>图像或者其他任何元素<span class=" fw-cl "><span>，</span></span>此时用户应该在视觉上有直观的感受<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">首次有意义绘制<span class="fw-op  "><span>（</span></span>FMP<span class=" fw-cl "><span>）</span></span>时间</strong><span class=" fw-cl "><span>：</span></span>指页面关键元素渲染时间<span class=" fw-cl "><span>。</span></span>这个概念并没有标准化定义<span class=" fw-cl "><span>，</span></span>因为关键元素可以由开发者自行定义——究竟什么是<span class="fw-op  "><span>「</span></span>有意义<span class=" fw-cl "><span>」</span></span>的内容<span class=" fw-cl "><span>，</span></span>只有开发者或者产品经理自己了解<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">首屏时间</strong><span class=" fw-cl "><span>：</span></span>对于所有网页应用<span class=" fw-cl "><span>，</span></span>这是一个非常重要的指标<span class=" fw-cl "><span>。</span></span>用大白话来说<span class=" fw-cl "><span>，</span></span>就是进入页面之后<span class=" fw-cl "><span>，</span></span>应用渲染完整个手机屏幕<span class="fw-op  "><span>（</span></span>未滚动之前<span class=" fw-cl "><span>）</span></span>内容的时间<span class=" fw-cl "><span>。</span></span>需要注意的是<span class=" fw-cl "><span>，</span></span>业界对于这个指标其实同样并没有确切的定论<span class=" fw-cl "><span>，</span></span>比如这个时间是否包含手机屏幕内图片的渲染完成时间<span class=" fw-cl "><span>。</span></span>　</p>
+<p><strong style="">用户可交互时间</strong><span class=" fw-cl "><span>：</span></span>顾名思义<span class=" fw-cl "><span>，</span></span>也就是用户可以与应用进行交互的时间<span class=" fw-cl "><span>。</span></span>一般来讲<span class=" fw-cl "><span>，</span></span>我们认为是 domready 的时间<span class=" fw-cl "><span>，</span></span>因为我们通常会在这时候绑定事件操作<span class=" fw-cl "><span>。</span></span>如果页面中涉及交互的脚本没有下载完成<span class=" fw-cl "><span>，</span></span>那么当然没有到达所谓的用户可交互时间<span class=" fw-cl "><span>。</span></span>那么如何定义 domready 时间呢<span class=" fw-cl "><span>？</span></span>我推荐参考司徒正美的文章<span class=" fw-cl "><span>：</span></span><a href="https://www.cnblogs.com/rubylouvre/p/4536334.html" title="何谓 domReady">何谓 domReady</a><span class=" fw-cl "><span>。</span></span></p>
+<p>以上时间<span class=" fw-cl "><span>，</span></span>我们可以通过下图对比认识<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-43009a32a1cc6d309a22fda69fbf1859.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:8.861940298507463% 0" data-src="https://pic4.zhimg.com/v2-43009a32a1cc6d309a22fda69fbf1859.png">加载中...</span></figure>
+<p>这是我访问 Medium 移动网站分析得到的时序图<span class=" fw-cl "><span>，</span></span>读者可根据网页加载的不同时段<span class=" fw-cl "><span>，</span></span>体会各个时间节点的变化<span class=" fw-cl "><span>。</span></span>更完整的信息由 Chrome DevTool 给出<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-236a2388e22950646b0df2fa52d1bd21.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:26.715899218071243% 0" data-src="https://pic4.zhimg.com/v2-236a2388e22950646b0df2fa52d1bd21.png">加载中...</span></figure>
+<p>通过 Google Lighthouse 分析得到<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-700597e4cef79576713c0ff44823c9e9.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:13.646532438478747% 0" data-src="https://pic3.zhimg.com/v2-700597e4cef79576713c0ff44823c9e9.png">加载中...</span></figure>
+<p>请注意 First Meaningful Paint 和 First Contentful Paint 以及 Time to Interactive<span class="fw-op  "><span>（</span></span>可交互时间<span class=" fw-cl "><span>）</span></span>被收录其中<span class=" fw-cl "><span>。</span></span></p>
+<p>这里我们先对这些时间节点以及数据有一个感性的认知<span class=" fw-cl "><span>，</span></span>后面将会逐步学习如何统计这些时间<span class=" fw-cl "><span>，</span></span>做出如上图一样的分析系统<span class=" fw-cl "><span>。</span></span>接下来<span class=" fw-cl "><span>，</span></span>我们继续学习一些概念<span class=" fw-cl "><span>。</span></span></p>
+<blockquote><br></blockquote>
+<p><strong style="">总下载时间</strong><span class=" fw-cl "><span>：</span></span>页面所有资源加载完成所需要的时间<span class=" fw-cl "><span>。</span></span>一般可以统计 window.onload 时间<span class=" fw-cl "><span>，</span></span>这样可以统计出同步加载的资源全部加载完的耗时<span class=" fw-cl "><span>。</span></span>如果页面中存在较多异步渲染<span class=" fw-cl "><span>，</span></span>也可以将异步渲染全部完成的时间作为总下载时间<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">自定义指标</strong><span class=" fw-cl "><span>：</span></span>由于应用特点不同<span class=" fw-cl "><span>，</span></span>我们可以根据需求自定义时间<span class=" fw-cl "><span>。</span></span>比如<span class=" fw-cl "><span>，</span></span>一个类似 Instagram 的页面<span class=" fw-cl "><span>，</span></span>页面由图片瀑布流组成<span class=" fw-cl "><span>，</span></span>那么我们可能非常关心屏幕中第一排图片渲染完成的时间<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">这里我们提一下<span class=" fw-cl "><span>，</span></span>DOMContentLoaded 与 load 事件的区别</strong><span class=" fw-cl "><span>。</span></span>其实从这两个事件的命名我们就能体会<span class=" fw-cl "><span>，</span></span>DOMContentLoaded 指的是文档中 DOM 内容加载完毕的时间<span class=" fw-cl "><span>，</span></span>也就是说 HTML 结构已经完整<span class=" fw-cl "><span>。</span></span>但是我们知道<span class=" fw-cl "><span>，</span></span>很多页面包含图片<span class=" fw-cl "><span>、</span></span>特殊字体<span class=" fw-cl "><span>、</span></span>视频<span class=" fw-cl "><span>、</span></span>音频等其他资源<span class=" fw-cl "><span>，</span></span>这些资源由网络请求获取<span class=" fw-cl "><span>，</span></span>DOM 内容加载完毕时<span class=" fw-cl "><span>，</span></span>由于这些资源往往需要额外的网络请求<span class=" fw-cl "><span>，</span></span>还没有请求或者渲染完成<span class=" fw-cl "><span>。</span></span>而当页面上所有资源加载完成后<span class=" fw-cl "><span>，</span></span>load 事件才会被触发<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>在时间线上<span class=" fw-cl "><span>，</span></span>load 事件往往会落后于 DOMContentLoaded 事件<span class=" fw-cl "><span>。</span></span></p>
+<p>如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-22a64566d6db02a4817ce8aeb01e1406.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:14.07258064516129% 0" data-src="https://pic1.zhimg.com/v2-22a64566d6db02a4817ce8aeb01e1406.png">加载中...</span></figure>
+<p>表示页面加载一共请求了 13 个资源<span class=" fw-cl "><span>，</span></span>大小为 309 KB<span class=" fw-cl "><span>，</span></span>DOMContentLoaded 时间为 2.82 s<span class=" fw-cl "><span>，</span></span>load 时间为 2.95 s<span class=" fw-cl "><span>，</span></span>页面完全稳定时间 5.38 s <span class=" fw-cl "><span>。</span></span></p>
+<h3>FMP 的智能获取算法</h3>
+<p>另外结合自定义指标和首次有意义绘制<span class="fw-op  "><span>（</span></span>FMP<span class=" fw-cl "><span>）</span></span>时间<span class=" fw-cl "><span>，</span></span>稍做延伸<span class=" fw-cl "><span>：</span></span>我们知道首次有意义绘制比较主观<span class=" fw-cl "><span>，</span></span>开发者可以自行指定究竟哪些属于有意义的渲染元素<span class=" fw-cl "><span>。</span></span>我们也可以通过 <strong style="">FMP 的智能获取算法</strong>来完成自定义 FMP 时间<span class=" fw-cl "><span>。</span></span>该算法实现过程如下<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">首先</strong><span class=" fw-cl "><span>，</span></span>获取有意义的渲染元素<span class=" fw-cl "><span>，</span></span>一般认为<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">体积占比比较大</li>
+  <li style="">屏幕内可见占比大</li>
+  <li style="">属于资源加载元素<span class="fw-op  "><span>（</span></span>img<span class=" fw-cl "><span>、</span></span>svg<span class=" fw-cl "><span>、</span></span>video<span class=" fw-cl "><span>、</span></span>object<span class=" fw-cl "><span>、</span></span>embed<span class=" fw-cl "><span>、</span></span>canvas<span class=" fw-cl "><span>）</span></span></li>
+  <li style="">主要元素是多个组成的</li>
+</ul>
+<p>具备这几个条件的元素<span class=" fw-cl "><span>，</span></span>更像是有意义的元素<span class=" fw-cl "><span>。</span></span>根据元素对页面视觉的贡献<span class=" fw-cl "><span>，</span></span>我们对元素特点的权重进行划分<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const weightMap = {<br>
+ &nbsp;&nbsp;&nbsp;SVG: 2,<br>
+ &nbsp;&nbsp;&nbsp;IMG: 2,<br>
+ &nbsp;&nbsp;&nbsp;CANVAS: 3,<br>
+ &nbsp;&nbsp;&nbsp;OBJECT: 3,<br>
+ &nbsp;&nbsp;&nbsp;EMBED: 3,<br>
+ &nbsp;&nbsp;&nbsp;VIDEO: 3,<br>
+ &nbsp;&nbsp;&nbsp;OTHER: 1<br>
+}</code></p>
+<p><strong style="">接着</strong><span class=" fw-cl "><span>，</span></span>我们对整个页面进行深度优先遍历搜索<span class=" fw-cl "><span>，</span></span>之后对每一个元素进行分数计算<span class=" fw-cl "><span>，</span></span>具体通过 element.getBoundingClientRect 获取元素的位置和大小<span class=" fw-cl "><span>，</span></span>然后通过计算<span class="fw-op  "><span>「</span></span>width <em>height</em> weight * 元素在 viewport 的面积占比<span class=" fw-cl "><span>」</span></span>的乘积<span class=" fw-cl "><span>，</span></span>确定元素的最终得分<span class=" fw-cl "><span>。</span></span>接着将该元素的子元素得分之和与其得分进行比较<span class=" fw-cl "><span>，</span></span>取较大值<span class=" fw-cl "><span>，</span></span>记录得分元素集<span class=" fw-cl "><span>。</span></span>这个集合是<span class="fw-op  "><span>「</span></span>可视区域内得分最高的元素的集合<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>我们会对这个集合的得分取均值<span class=" fw-cl "><span>，</span></span>然后过滤出在平均分之上的元素集合<span class=" fw-cl "><span>，</span></span>进行时间计算<span class=" fw-cl "><span>。</span></span>这就得到了一个智能的 FMP 时间<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">最终</strong><span class=" fw-cl "><span>，</span></span>代码由 qbright 实现<span class=" fw-cl "><span>：</span></span><a href="https://github.com/qbright/fmp-timing" title="fmp-timing">fmp-timing</a><span class=" fw-cl "><span>，</span></span>感兴趣的读者可以自行了解细节<span class=" fw-cl "><span>。</span></span></p>
+<h3>性能数据获取</h3>
+<p>了解了上述性能指标<span class=" fw-cl "><span>，</span></span>我们来分析一下这些性能指标数据究竟该如何计算获取<span class=" fw-cl "><span>。</span></span></p>
+<h4>window.performance<span class=" fw-cl "><span>：</span></span>强大但有缺点</h4>
+<p>目前最为流行和靠谱的方案是采用 Performance API<span class=" fw-cl "><span>，</span></span>它非常强大<span class=" fw-cl "><span>：</span></span>不仅包含了页面性能的相关数据<span class=" fw-cl "><span>，</span></span>还带有页面资源加载和异步请求的相关数据<span class=" fw-cl "><span>。</span></span></p>
+<p>调用 window.performance.timing 会返回一个对象<span class=" fw-cl "><span>，</span></span>这个对象包含各种页面加载和渲染的时间节点<span class=" fw-cl "><span>。</span></span>如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-effa022610170632066036d645407c21.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:44.2% 0" data-src="https://pic2.zhimg.com/v2-effa022610170632066036d645407c21.png">加载中...</span></figure>
+<p>具体解析<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const window.performance = { <br>
+ &nbsp;&nbsp;&nbsp;memory: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;usedJSHeapSize,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;totalJSHeapSize,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jsHeapSizeLimit<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;navigation: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 页面重定向跳转到当前页面的次数<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;redirectCount,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 以哪种方式进入页面<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 0 正常跳转进入<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 1 window.location.reload() 重新刷新<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 2 通过浏览器历史记录<span class=" fw-cl "><span>，</span></span>以及前进后退进入<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 255 其他方式进入<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;timing: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 等于前一个页面 unload 时间<span class=" fw-cl "><span>，</span></span>如果没有前一个页面<span class=" fw-cl "><span>，</span></span>则等于 fetchStart 时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;navigationStart<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 前一个页面 unload 时间<span class=" fw-cl "><span>，</span></span>如果没有前一个页面或者前一个页面与当前页面不同域<span class=" fw-cl "><span>，</span></span>则值为 0<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unloadEventStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 前一个页面 unload 事件绑定的回调函数执行完毕的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unloadEventEnd,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;redirectStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;redirectEnd,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 检查缓存前<span class=" fw-cl "><span>，</span></span>准备请求第一个资源的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fetchStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 域名查询开始的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;domainLookupStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 域名查询结束的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;domainLookupEnd,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// HTTP<span class="fw-op  "><span>（</span></span>TCP<span class=" fw-cl "><span>）</span></span> 开始建立连接的时间 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;connectStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// HTTP<span class="fw-op  "><span>（</span></span>TCP<span class=" fw-cl "><span>）</span></span>建立连接结束的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;connectEnd,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;secureConnectionStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 连接建立完成后<span class=" fw-cl "><span>，</span></span>请求文档开始的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;requestStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 连接建立完成后<span class=" fw-cl "><span>，</span></span>文档开始返回并收到内容的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;responseStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 最后一个字节返回并收到内容的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;responseEnd,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Document.readyState 值为 loading 的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;domLoading,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Document.readyState 值为 interactive<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;domInteractive,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// DOMContentLoaded 事件开始时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;domContentLoadedEventStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// DOMContentLoaded 事件结束时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;domContentLoadedEventEnd,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Document.readyState 值为 complete 的时间 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;domComplete,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// load 事件开始的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loadEventStart,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// load 事件结束的时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loadEventEnd<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>根据这些时间节点<span class=" fw-cl "><span>，</span></span>我们选择相应的时间两两做差<span class=" fw-cl "><span>，</span></span>便可以计算出一些典型指标<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const calcTime = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let times = {}<br>
+ &nbsp;&nbsp;&nbsp;let t = window.performance.timing<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 重定向时间<br>
+ &nbsp;&nbsp;&nbsp;times.redirectTime = t.redirectEnd - t.redirectStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// DNS 查询耗时<br>
+ &nbsp;&nbsp;&nbsp;times.dnsTime = t.domainLookupEnd - t.domainLookupStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// TCP 建立连接完成握手的时间<br>
+ &nbsp;&nbsp;&nbsp;connect = t.connectEnd - t.connectStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// TTFB 读取页面第一个字节的时间<br>
+ &nbsp;&nbsp;&nbsp;times.ttfbTime = t.responseStart - t.navigationStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// DNS 缓存时间<br>
+ &nbsp;&nbsp;&nbsp;times.appcacheTime = t.domainLookupStart - t.fetchStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 卸载页面的时间<br>
+ &nbsp;&nbsp;&nbsp;times.unloadTime = t.unloadEventEnd - t.unloadEventStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// TCP 连接耗时<br>
+ &nbsp;&nbsp;&nbsp;times.tcpTime = t.connectEnd - t.connectStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// request 请求耗时<br>
+ &nbsp;&nbsp;&nbsp;times.reqTime = t.responseEnd - t.responseStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 解析 DOM 树耗时<br>
+ &nbsp;&nbsp;&nbsp;times.analysisTime = t.domComplete - t.domInteractive<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 白屏时间<br>
+ &nbsp;&nbsp;&nbsp;times.blankTime = t.domLoading - t.fetchStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// domReadyTime 即用户可交互时间<br>
+ &nbsp;&nbsp;&nbsp;times.domReadyTime = t.domContentLoadedEventEnd - t.fetchStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 用户等待页面完全可用的时间<br>
+ &nbsp;&nbsp;&nbsp;times.loadPage = t.loadEventEnd - t.navigationStart<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return times<br>
+}</code></p>
+<p><strong style="">这个 API 非常强大<span class=" fw-cl "><span>，</span></span>但是并不适用所有场景</strong><span class=" fw-cl "><span>。</span></span>比如<span class=" fw-cl "><span>：</span></span>使用 window.performance.timing 所获的数据<span class=" fw-cl "><span>，</span></span>在单页应用中改变 URL 但不刷新页面的情况下<span class="fw-op  "><span>（</span></span>单页应用典型路由方案<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>是不会更新的<span class=" fw-cl "><span>，</span></span>还需要开发者重新设计统计方案<span class=" fw-cl "><span>。</span></span>同时<span class=" fw-cl "><span>，</span></span>可能无法满足一些自定义的数据<span class=" fw-cl "><span>。</span></span>下面我们来分析一下部分无法直接获取的性能指标的计算方法<span class=" fw-cl "><span>。</span></span></p>
+<h4>自定义时间计算</h4>
+<p><strong style="">首屏时间的计算实现方式不尽相同<span class=" fw-cl "><span>，</span></span>开发者可以根据自己的需求来确定首屏时间的计算方式<span class=" fw-cl "><span>。</span></span>我列举几个典型的方案<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>对于<strong style="">网页高度小于屏幕</strong>的网站来说<span class=" fw-cl "><span>，</span></span>统计首屏时间非常简单<span class=" fw-cl "><span>，</span></span>只要在页面底部加上脚本<span class=" fw-cl "><span>，</span></span>完成当前时间的打印即可<span class=" fw-cl "><span>，</span></span>这个时间再通过与 window.performance.timing.navigationStart 时间做差<span class=" fw-cl "><span>，</span></span>即得到首屏渲染耗时<span class=" fw-cl "><span>。</span></span></p>
+<p>但网页高度小于屏幕的站点毕竟是少数<span class=" fw-cl "><span>：</span></span>对于<strong style="">网页高度大于一屏</strong>的页面来说<span class=" fw-cl "><span>，</span></span>只要在估算接近于一屏幕的最后一个元素的位置后<span class=" fw-cl "><span>，</span></span>插入计算脚本即可<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var time = +new Date() - window.performance.timing.navigationStart</code></p>
+<p>显然上述方案是比较理想化的<span class=" fw-cl "><span>，</span></span>我们很难通过自动化工具或者一段集中管理的代码进行统计<span class=" fw-cl "><span>。</span></span>开发者直接在页面 DOM 中插入时间统计<span class=" fw-cl "><span>，</span></span>不仅代码侵入性太强<span class=" fw-cl "><span>，</span></span>而且成本很高<span class=" fw-cl "><span>。</span></span>同时<span class=" fw-cl "><span>，</span></span>这样的计算方式其实并没有考虑首屏图片加载的情况<span class=" fw-cl "><span>，</span></span>也就是说首屏图片未加载完的情况下<span class=" fw-cl "><span>，</span></span>我们也认为加载已经完成<span class=" fw-cl "><span>。</span></span>如果要考虑首屏图片的加载<span class=" fw-cl "><span>，</span></span>建议使用<strong style="">集中化脚本统计首屏时间</strong>的方法<span class=" fw-cl "><span>：</span></span>使用定时器不断检测 img 节点<span class=" fw-cl "><span>，</span></span>判断图片是否在首屏且加载完成<span class=" fw-cl "><span>，</span></span>找到首屏加载最慢的图片加载完成的时间<span class=" fw-cl "><span>，</span></span>从而计算出首屏时间<span class=" fw-cl "><span>。</span></span>如果首屏有没有图片<span class=" fw-cl "><span>，</span></span>就用 domready 时间<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const win = window<br>
+const firstScreenHeight = win.screen.height<br>
+let firstScreenImgs = []<br>
+let isFindLastImg = false<br>
+let allImgLoaded = false<br>
+let collect = []<br>
+<br>
+const t = setInterval(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let i, img<br>
+ &nbsp;&nbsp;&nbsp;if (isFindLastImg) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (firstScreenImgs.length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (i = 0; i &lt; firstScreenImgs.length; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;img = firstScreenImgs[i]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!img.complete) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allImgLoaded = false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allImgLoaded = true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allImgLoaded = true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (allImgLoaded) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;collect.push({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;firstScreenLoaded: startTime - Date.now()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clearInterval(t)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var imgs = body.querySelector('img')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (i = 0; i &lt; imgs.length; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;img = imgs[i]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let imgOffsetTop = getOffsetTop(img)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (imgOffsetTop &gt; firstScreenHeight) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;isFindLastImg = true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else if (imgOffsetTop &lt;= firstScreenHeight <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; !img.hasPushed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;img.hasPushed = 1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;firstScreenImgs.push(img)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}, 0)<br>
+<br>
+const doc = document<br>
+doc.addEventListener('DOMContentLoaded', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;const imgs = body.querySelector('img')<br>
+ &nbsp;&nbsp;&nbsp;if (!imgs.length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;isFindLastImg = true<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+})<br>
+<br>
+win.addEventListener('load', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;allImgLoaded = true<br>
+ &nbsp;&nbsp;&nbsp;isFindLastImg = true<br>
+ &nbsp;&nbsp;&nbsp;if (t) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clearInterval(t)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+})</code></p>
+<p>另外一种方式是不使用定时器<span class=" fw-cl "><span>，</span></span>且默认影响首屏时间的主要因素是图片的加载<span class=" fw-cl "><span>，</span></span>如果没有图片<span class=" fw-cl "><span>，</span></span>纯粹渲染文字是很快的<span class=" fw-cl "><span>，</span></span>因此<span class=" fw-cl "><span>，</span></span>可以通过统计首屏内图片的加载时间获取首屏渲染完成的时间<span class=" fw-cl "><span>。</span></span></p>
+<p><code>(function logFirstScreen() {<br>
+ &nbsp;&nbsp;&nbsp;let images = document.getElementsByTagName('img')<br>
+ &nbsp;&nbsp;&nbsp;let iLen = images.length<br>
+ &nbsp;&nbsp;&nbsp;let curMax = 0<br>
+ &nbsp;&nbsp;&nbsp;let inScreenLen = 0<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 图片的加载回调<br>
+ &nbsp;&nbsp;&nbsp;function imageBack() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.removeEventListener<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp; this.removeEventListener('load', imageBack, !1)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (++curMax === inScreenLen) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 所有在首屏的图片均已加载完成的话<span class=" fw-cl "><span>，</span></span>发送日志<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} &nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;&nbsp;// 对于所有的位于指定区域的图片<span class=" fw-cl "><span>，</span></span>绑定回调事件<br>
+ &nbsp;&nbsp;&nbsp;for (var s = 0; s &lt; iLen; s++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var img = images[s]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var offset = {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;top: 0<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var curImg = img<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (curImg.offsetParent) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;offset.top += curImg.offsetTop<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;curImg = curImg.offsetParent<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 判断图片在不在首屏<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (document.documentElement.clientHeight &lt; offset.top) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 图片还没有加载完成的话<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!img.complete) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inScreenLen++<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;img.addEventListener('load', imageBack, !1)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;// 如果首屏没有图片的话<span class=" fw-cl "><span>，</span></span>直接发送日志<br>
+ &nbsp;&nbsp;&nbsp;if (inScreenLen === 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log()<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;// 发送日志进行统计<br>
+ &nbsp;&nbsp;&nbsp;function log () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window.logInfo.firstScreen = +new Date() - window.performance.timing.navigationStart<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('首屏时间<span class=" fw-cl "><span>：</span></span>', +new Date() - window.performance.timing.navigationStart)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+})()</code></p>
+<p>可见<span class=" fw-cl "><span>，</span></span>除了使用教科书般强大的 Performance API 外<span class=" fw-cl "><span>，</span></span>我们也完全拥有自主权来统计各种页面性能数据<span class=" fw-cl "><span>。</span></span>这就需要开发者根据具体场景和业务需求<span class=" fw-cl "><span>，</span></span>结合社区已有方案<span class=" fw-cl "><span>，</span></span>找到完全适合自己的统计采集方式<span class=" fw-cl "><span>。</span></span></p>
+<p>这节课我们介绍了性能核心指标以及获取方式<span class=" fw-cl "><span>，</span></span>关键在于合理利用强大的 API<span class=" fw-cl "><span>。</span></span>与此同时<span class=" fw-cl "><span>，</span></span>对于<span class="fw-op  "><span>「</span></span>开放性<span class=" fw-cl "><span>」</span></span>数据<span class=" fw-cl "><span>，</span></span>我们需要结合实际<span class=" fw-cl "><span>，</span></span>灵活进行开发<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX12lZRpdxsPoe3kdsgdE9</span></p>
+</body>
+</html>

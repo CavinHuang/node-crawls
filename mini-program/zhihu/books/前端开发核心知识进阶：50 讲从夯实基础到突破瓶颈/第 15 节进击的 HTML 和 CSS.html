@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 15 节进击的 HTML 和 CSS</h1>
+  <p>通过前面的课程介绍<span class=" fw-cl "><span>，</span></span>我们认识到了 JavaScript 语言的飞速发展<span class=" fw-cl "><span>。</span></span>其实 HTML 和 CSS 也不断<span class="fw-op  "><span>「</span></span>要求着<span class=" fw-cl "><span>」</span></span>进步<span class=" fw-cl "><span>，</span></span>本节课程我们就来了解一下发展中的 HTML 和 CSS<span class=" fw-cl "><span>。</span></span>之所以叫做<span class="fw-op  "><span>「</span></span>进击的<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>是因为确实有很多新的特性非常实用且具有变革精神<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-e42a989b04ce0687ade31b8f67c397bf.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:33.43898573692552% 0" data-src="https://pic3.zhimg.com/v2-e42a989b04ce0687ade31b8f67c397bf.png">加载中...</span></figure>
+<p>其中<span class=" fw-cl "><span>，</span></span>除了罗列一些热点面试题目以外<span class=" fw-cl "><span>，</span></span>我们将重点分析 CSS 变量和 CSS Modules<span class=" fw-cl "><span>，</span></span>我认为这两个概念代表了未来的发展方向<span class=" fw-cl "><span>。</span></span>当下来看<span class=" fw-cl "><span>，</span></span>也有必要根据情况<span class=" fw-cl "><span>，</span></span>融合到成熟的项目中<span class=" fw-cl "><span>，</span></span>加以应用<span class=" fw-cl "><span>。</span></span>因此这方面的内容除了基本理论<span class=" fw-cl "><span>，</span></span>我都会给出实战案例和构建流程<span class=" fw-cl "><span>。</span></span></p>
+<h3>进击的 HTML</h3>
+<p>我们再来看看 HTML 的历史和规范常识<span class=" fw-cl "><span>。</span></span>HTML 规范是 W3C 与 WHATWG 合作共同产出的<span class=" fw-cl "><span>，</span></span>HTML5 因此也不例外<span class=" fw-cl "><span>。</span></span>其中<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">W3C 指 World Wide Web Consortium</li>
+  <li style="">WHATWG 指 Web Hypertext Application Technology Working Group</li>
+</ul>
+<p>说好听了是<span class="fw-op  "><span>「</span></span>合作产出<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>但其实更像是<span class="fw-op  "><span>「</span></span>HTML5 有两套规范<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>但话说天下大势合久必分<span class=" fw-cl "><span>，</span></span>分久必合<span class=" fw-cl "><span>，</span></span>如今<span class="fw-op  "><span>（</span></span>就在前几天<span class=" fw-cl "><span>，</span></span>2018.5.29<span class=" fw-cl "><span>）</span></span>它们又表示将会开发单一版本的 HTML 规范<span class=" fw-cl "><span>。</span></span></p>
+<p>那么 HTML5 给开发者提供了哪些便利呢<span class=" fw-cl "><span>？</span></span>简单列举有<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">用于绘画的 canvas 元素</li>
+  <li style="">用于媒介播放的 video 和 audio 元素</li>
+  <li style="">对本地离线存储更好的支持<span class="fw-op  "><span>（</span></span>localStorage<span class=" fw-cl "><span>、</span></span>sessionStorage<span class=" fw-cl "><span>）</span></span></li>
+  <li style="">新的语义化标签<span class="fw-op  "><span>（</span></span>article<span class=" fw-cl "><span>、</span></span>footer<span class=" fw-cl "><span>、</span></span>header<span class=" fw-cl "><span>、</span></span>nav<span class=" fw-cl "><span>、</span></span>section...)</li>
+  <li style="">新的表单控件<span class="fw-op  "><span>（</span></span>calendar<span class=" fw-cl "><span>、</span></span>date<span class=" fw-cl "><span>、</span></span>time<span class=" fw-cl "><span>、</span></span>email<span class=" fw-cl "><span>、</span></span>url<span class=" fw-cl "><span>、</span></span>search...)</li>
+</ul>
+<p>除了这些常规的之外<span class=" fw-cl "><span>，</span></span>还有<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">给汉字加拼音</li>
+</ul>
+<p><code><ruby> <br>
+ &nbsp;&nbsp;&nbsp;前端开发核心知识进阶<br>
+ &nbsp;&nbsp;&nbsp;<rt><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;qianduankaifahexinzhishijinjie<br>
+ &nbsp;&nbsp;&nbsp;</rt> <br>
+</ruby></code></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-e90af5185641faf0b9b721ef7e47abd2.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:19.717741935483872% 0" data-src="https://pic1.zhimg.com/v2-e90af5185641faf0b9b721ef7e47abd2.png">加载中...</span></figure>
+<ul>
+  <li style="">展开收起组件</li>
+</ul>
+<p>简单几行代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><details><code><br>
+ &nbsp;<summary>前端开发核心知识进阶</summary><br>
+前端领域<span class=" fw-cl "><span>，</span></span>入门相对简单<span class=" fw-cl "><span>，</span></span>可是想要<span class="fw-op  "><span>「</span></span>更上一层楼<span class=" fw-cl "><span>」</span></span>却难上加难<span class=" fw-cl "><span>，</span></span>也就是我们常说的<span class="fw-op  "><span>「</span></span>职业天花板较低<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>君不见——市场上高级/资深前端工程师凤毛麟角<span class=" fw-cl "><span>。</span></span>这当然未必完全是坏事<span class=" fw-cl "><span>，</span></span>一旦突破瓶颈<span class=" fw-cl "><span>，</span></span>在技能上脱颖而出<span class=" fw-cl "><span>，</span></span>便是更广阔的空间<span class=" fw-cl "><span>。</span></span>那么<span class=" fw-cl "><span>，</span></span>如何从夯实基础到突破瓶颈<span class=" fw-cl "><span>？</span></span><br>
+</code></details><p></p>
+<p>就可以实现<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-5950f436415e336c6fb4ac97a991bcd9.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:19.758064516129032% 0" data-src="https://pic1.zhimg.com/v2-5950f436415e336c6fb4ac97a991bcd9.png">加载中...</span></figure>
+<p>上图为<span class="fw-op  "><span>「</span></span>收起<span class=" fw-cl "><span>」</span></span>效果<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-c9d0c8aed5a0dfcf8edff8cdcf1ac39c.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:17.701612903225804% 0" data-src="https://pic1.zhimg.com/v2-c9d0c8aed5a0dfcf8edff8cdcf1ac39c.png">加载中...</span></figure>
+<p>上图为<span class="fw-op  "><span>「</span></span>展开<span class=" fw-cl "><span>」</span></span>效果<span class=" fw-cl "><span>。</span></span></p>
+<p>以往要实现这样的内容<span class=" fw-cl "><span>，</span></span>我们都必须依靠 JavaScript 实现<span class=" fw-cl "><span>。</span></span>现在来看<span class=" fw-cl "><span>，</span></span>HTML 也变得更加具有<span class="fw-op  "><span>「</span></span>可交互性<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">原生进度条和度量</li>
+</ul>
+<p>progress 标签显示进度<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-08d0643e4324a01247d6a504728fc0ef.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:16.653225806451612% 0" data-src="https://pic2.zhimg.com/v2-08d0643e4324a01247d6a504728fc0ef.png">加载中...</span></figure>
+<p>值得一提的是<span class=" fw-cl "><span>：</span></span>progress 不适合用来表示度量衡<span class=" fw-cl "><span>，</span></span>如果想表示度量衡<span class=" fw-cl "><span>，</span></span>我们应该使用 meter 标签代替<span class=" fw-cl "><span>。</span></span>这又是什么标签<span class=" fw-cl "><span>？</span></span></p>
+<p>其实 HTML5 新带来的标签多种多样<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以自行了解<span class=" fw-cl "><span>，</span></span>我们这里不再用更多篇幅介绍<span class=" fw-cl "><span>。</span></span></p>
+<h3>不可忽视的 Web components</h3>
+<p>事实上<span class=" fw-cl "><span>，</span></span>Web components 的概念在几年前也已经提出<span class=" fw-cl "><span>，</span></span>貌似一直没有发展的<span class="fw-op  "><span>「</span></span>如火如荼<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>这里我为什么又单独拿出来讲呢<span class=" fw-cl "><span>？</span></span></p>
+<p>我并不想赘述 Web components 的基础概念<span class=" fw-cl "><span>，</span></span>但是我认为<span class=" fw-cl "><span>，</span></span>作为<span class="fw-op  "><span>「</span></span>更高阶<span class=" fw-cl "><span>」</span></span>的前端工程师<span class=" fw-cl "><span>，</span></span>要时刻保持技术视野和信息广度<span class=" fw-cl "><span>。</span></span>在框架带来的<span class="fw-op  "><span>「</span></span>组件化<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>生命周期化<span class=" fw-cl "><span>」</span></span>这些统治级别的概念下<span class=" fw-cl "><span>，</span></span>对比并结合 Web components<span class=" fw-cl "><span>，</span></span>我认为是可以深入研究的一个课题方向<span class=" fw-cl "><span>。</span></span>我总结一下 Web components 的特殊点或者优点<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">原生规范<span class=" fw-cl "><span>，</span></span>无需框架</li>
+</ul>
+<p>这条优点的后半句话是<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>但是继承且具备了框架的优点<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>在新的 Web components 规范中<span class=" fw-cl "><span>，</span></span>我们会发现组件生命周期的概念<span class=" fw-cl "><span>、</span></span>slot 概念<span class=" fw-cl "><span>、</span></span>模版概念<span class="fw-op  "><span>（</span></span>类比 JSX 或者 Vue template<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>再结合本来就已经存在的组件化<span class=" fw-cl "><span>，</span></span>shadow dom<span class=" fw-cl "><span>，</span></span>扩展原生元素的能力<span class=" fw-cl "><span>，</span></span>我认为 Web components 还是具备了较好的发展前景<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">原生使用<span class=" fw-cl "><span>，</span></span>无需编译</li>
+</ul>
+<p>想想现有的一系列框架<span class=" fw-cl "><span>，</span></span>不论是 Vue 还是 React<span class=" fw-cl "><span>，</span></span>都需要进行编译<span class=" fw-cl "><span>。</span></span>而 Web components 因为原生<span class=" fw-cl "><span>，</span></span>会得到浏览器的天然支持<span class=" fw-cl "><span>，</span></span>自然就可以免去编译构建过程<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">真正的 CSS scope</li>
+</ul>
+<p>Web components 实现了真正的 CSS scope<span class=" fw-cl "><span>，</span></span>做到了样式隔离<span class=" fw-cl "><span>。</span></span>这一点读者可以对比我们下面即将介绍的 CSS Modules<span class=" fw-cl "><span>。</span></span>真正的 CSS scope 对于项目的可维护性至关重要<span class=" fw-cl "><span>。</span></span></p>
+<p>进击的 HTML 和 CSS 带来了进击的 Web components 概念<span class=" fw-cl "><span>。</span></span>通过这个案例<span class=" fw-cl "><span>，</span></span>我更想建议读者<span class=" fw-cl "><span>：</span></span>真正的高级工程师<span class=" fw-cl "><span>，</span></span>不仅仅要理解 this<span class=" fw-cl "><span>、</span></span>熟练掌握各种基础<span class="fw-op  "><span>（</span></span>当然这是前提<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>更要有技术嗅觉<span class=" fw-cl "><span>，</span></span>对新的解决方案能够理解<span class=" fw-cl "><span>，</span></span>并进行对比<span class=" fw-cl "><span>，</span></span>面向<span class="fw-op  "><span>「</span></span>未来<span class=" fw-cl "><span>」</span></span>编程<span class=" fw-cl "><span>。</span></span></p>
+<h3>移动端 H5 注意事项总结</h3>
+<p>HTML5 因为其强大先进的能力<span class=" fw-cl "><span>，</span></span>毫无疑问打来了一场开发的变革<span class=" fw-cl "><span>。</span></span>在国内<span class=" fw-cl "><span>，</span></span>体现最明显的就是各种 H5 移动页面<span class=" fw-cl "><span>。</span></span></p>
+<p>因为移动端的碎片化现象<span class=" fw-cl "><span>，</span></span>以及技术落地的成熟度尚浅<span class=" fw-cl "><span>，</span></span>造成了不少问题<span class=" fw-cl "><span>，</span></span>那么移动端开发 H5 有哪些坑以及小技巧呢<span class=" fw-cl "><span>？</span></span></p>
+<p>这里列举一些典型情况<span class=" fw-cl "><span>，</span></span>目的在于梳理和整理<span class=" fw-cl "><span>，</span></span>不再一一详解<span class=" fw-cl "><span>。</span></span>具体信息社区上都可以找到<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以另行学习<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">打电话发短信写邮件的小技巧</li>
+</ul>
+<p>这些技巧都和 a 标签相关<span class=" fw-cl "><span>，</span></span>其中打电话<span class=" fw-cl "><span>：</span></span></p>
+<p><code><a href="tel: 110">打电话给警察局</a></code></p>
+<p>发短信<span class=" fw-cl "><span>：</span></span></p>
+<p><code><a href="sms: 110">发短信给警察局</a></code></p>
+<p>写邮件依赖<span class="fw-op  "><span>「</span></span>mailto<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>：</span></span></p>
+<p><code><a href="mailto: 110@govn.com">发邮件给警察局</a></code></p>
+<p>我们设置可以添加抄送<span class=" fw-cl "><span>：</span></span></p>
+<p><code><a href="mailto: 110@govn.com?cc=baba@family.com">发邮件给警察局<span class=" fw-cl "><span>，</span></span>并抄送给我爸爸</a></code></p>
+<p>除了抄送<span class=" fw-cl "><span>，</span></span>也可以私密发送<span class=" fw-cl "><span>：</span></span></p>
+<p><code><a href="mailto: 110@govn.com?cc=baba@family.com&amp;bcc=mama@family.com">发邮件给警察局<span class=" fw-cl "><span>，</span></span>并抄送给我爸爸<span class=" fw-cl "><span>，</span></span>密送给我妈妈</a></code></p>
+<p>群发也可以<span class=" fw-cl "><span>：</span></span></p>
+<p><code><a href="mailto: 110@govn.com; 120@govn.com">发邮件给警察局<span class=" fw-cl "><span>，</span></span>以及 120 急救</a></code></p>
+<p>既然都支持群发了<span class=" fw-cl "><span>，</span></span>那么定义主题和内容也不在话下<span class=" fw-cl "><span>：</span></span></p>
+<p><code><a href="mailto: 110@govn.com?subject=SOS">发邮件给警察局<span class=" fw-cl "><span>，</span></span>并添加救命主题</a></code></p>
+<p>包含内容用 body 体现<span class=" fw-cl "><span>：</span></span></p>
+<p><code><a href="mailto: 110@govn.com?subject=SOS&amp;body=快来救我">发邮件给警察局<span class=" fw-cl "><span>，</span></span>并添加救命主题和内容</a></code></p>
+<p>内容也是支持插入图片和链接的<span class=" fw-cl "><span>，</span></span>这里不再一一列举<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">移动端 300 毫秒点击延迟以及点击穿透现象</li>
+</ul>
+<p>这是由于历史原因造成的<span class=" fw-cl "><span>，</span></span>一般解决手段为禁止混用 touch 和 click<span class=" fw-cl "><span>，</span></span>或者增加一层<span class="fw-op  "><span>「</span></span>透明<span class=" fw-cl "><span>」</span></span>蒙层<span class=" fw-cl "><span>，</span></span>也可以通过延迟上层元素消失来实现<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">点击元素禁止产生背景或边框</li>
+</ul>
+<p>一般可以使用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>-webkit-tap-highlight-color: rgba(0,0,0,0);</code></p>
+<p>属性进行禁用<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">禁止长按链接与图片弹出菜单</li>
+</ul>
+<p>一般可以使用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>-webkit-touch-callout: none;</code></p>
+<ul>
+  <li style="">禁止用户选中文字</li>
+</ul>
+<p><code>-webkit-user-select:none; <br>
+user-select: none;</code></p>
+<ul>
+  <li style="">取消 input 输入时<span class=" fw-cl "><span>，</span></span>英文首字母的默认大写</li>
+</ul>
+<p><code><input autocapitalize="off" autocorrect="off"></code></p>
+<p>iOS 有效<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">语音和视频自动播放</li>
+</ul>
+<p>自动播放是一个很麻烦的话题<span class=" fw-cl "><span>。</span></span>不同浏览器内核支持自动播放的情况不一样<span class=" fw-cl "><span>，</span></span>甚至 webkit 内核对于自动播放的策略也一直在调整当中<span class=" fw-cl "><span>。</span></span>自动播放有时候也带着条件<span class=" fw-cl "><span>：</span></span>比如设置静音等<span class=" fw-cl "><span>。</span></span></p>
+<p>具体信息更新可以参考<span class=" fw-cl "><span>：</span></span><a href="https://webkit.org/blog/6784/new-video-policies-for-ios/" title="New video Policies for iOS">New video Policies for iOS</a><span class=" fw-cl "><span>。</span></span></p>
+<p>一般我们设置自动播放的回退策略是用户触摸屏幕时进行的播放<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// JS 绑定自动播放<span class="fw-op  "><span>（</span></span>操作 window 时<span class=" fw-cl "><span>，</span></span>播放音乐<span class=" fw-cl "><span>）</span></span><br>
+$(window).on('touchstart', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;video.play()<br>
+})<br>
+<br>
+// 微信环境<br>
+document.addEventListener("WeixinJSBridgeReady", () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;video.play()<br>
+}, false)</code></p>
+<ul>
+  <li style="">视频全屏播放</li>
+</ul>
+<p>为了使视频全屏播放<span class=" fw-cl "><span>，</span></span>我们一般设置<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><div class="customizeRender" data-tag="video" x-webkit-airplay="true" webkit-playsinline="true" preload="auto" autoplay="" src=""></div><p></p>
+<p>但是最终情况还是要受到浏览器引擎实现的影响<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">开启硬件加速</li>
+</ul>
+<p>在做动画时<span class=" fw-cl "><span>，</span></span>为了达到更好的性能效果<span class=" fw-cl "><span>，</span></span>我们往往会选用硬件加速<span class=" fw-cl "><span>。</span></span>一般手段为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>transform: translate3d(0,0,0);</code></p>
+<ul>
+  <li style="">fixed 定位问题</li>
+</ul>
+<p>这个问题主要体现在 iOS 端<span class=" fw-cl "><span>，</span></span>比如软键盘弹出时<span class=" fw-cl "><span>，</span></span>某些情况下<span class=" fw-cl "><span>，</span></span>会影响 fixed 元素定位<span class=" fw-cl "><span>；</span></span>配合使用 transform<span class=" fw-cl "><span>、</span></span>translate 时<span class=" fw-cl "><span>，</span></span>某些情况下<span class=" fw-cl "><span>，</span></span>也会影响 fixed 元素定位<span class=" fw-cl "><span>。</span></span>一般解决方案是模拟 fixed 定位<span class=" fw-cl "><span>，</span></span>或者使用 iScroll 库<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">怎么让 Chrome 支持小于 12px 的文字<span class=" fw-cl "><span>？</span></span></li>
+</ul>
+<p>一般通过<span class=" fw-cl "><span>：</span></span></p>
+<p><code>-webkit-text-size-adjust:none;</code></p>
+<p>实现<span class=" fw-cl "><span>。</span></span></p>
+<h3>HTML5 和 CSS3 其他面试问题整理</h3>
+<p>关于 HTML5 和 CSS3 的面试问题都并不困难<span class=" fw-cl "><span>，</span></span>往往都是属于<span class="fw-op  "><span>「</span></span>是否听说过<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>用过哪些<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>这种知道即可的问题<span class=" fw-cl "><span>，</span></span>不会太有<span class="fw-op  "><span>「</span></span>深度<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>这里我们总结一下关于 HTML5 和 CSS3 新特性的问题<span class=" fw-cl "><span>，</span></span>答案也比较容易找到<span class=" fw-cl "><span>，</span></span>这里仅做梳理<span class=" fw-cl "><span>，</span></span>不再进行展开<span class=" fw-cl "><span>。</span></span>如果有疑问的读者<span class=" fw-cl "><span>，</span></span>欢迎在读者群中讨论<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">link 和 @import 的区别</li>
+  <li style="">CSS3 新增选择符有哪些</li>
+  <li style="">CSS 如何定义权重规则</li>
+  <li style="">如何使用纯 CSS 创建一个三角形</li>
+  <li style="">CSS3 如何写出一个旋转的立方体</li>
+  <li style="">localStorage 和 cookies 的区别是什么</li>
+  <li style="">如何实现浏览器内多个标签页之间的通信</li>
+  <li style="">渐进增强和优雅降级概念区别是什么</li>
+  <li style="">如何实现 CSS3 动画</li>
+</ul>
+<p>这些内容比较基本<span class=" fw-cl "><span>，</span></span>和进阶关系不大<span class=" fw-cl "><span>，</span></span>我们不过多纠结<span class=" fw-cl "><span>。</span></span></p>
+<h3>CSS 变量和主题切换优雅实现</h3>
+<p>CSS 变量或者 CSS 自定义属性一直以来是一个值得关注的方向<span class=" fw-cl "><span>。</span></span>我们前端没必要去<span class="fw-op  "><span>「</span></span>叫嚣<span class=" fw-cl "><span>」</span></span> CSS + HTML 是否图灵完备<span class=" fw-cl "><span>，</span></span>但是 CSS 变量时代确实已经到来<span class=" fw-cl "><span>。</span></span>注意这里所说的不是 CSS 预处理器<span class="fw-op  "><span>（</span></span>类似 Less<span class=" fw-cl "><span>，</span></span>Sass<span class=" fw-cl "><span>）</span></span>中的变量<span class=" fw-cl "><span>，</span></span>而是实实在在的原生支持特性<span class=" fw-cl "><span>。</span></span></p>
+<h4>什么是 CSS 变量</h4>
+<p>什么是 CSS 变量呢<span class=" fw-cl "><span>？</span></span>我们直接来看实例<span class=" fw-cl "><span>，</span></span>有代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>body {<br>
+ &nbsp;background: white;<br>
+ &nbsp;color: #555;<br>
+}<br>
+<br>
+a, a:link {<br>
+ &nbsp;color: #639A67;<br>
+}<br>
+a:hover {<br>
+ &nbsp;color: #205D67;<br>
+}</code></p>
+<p>如果我们借助 CSS 变量<span class=" fw-cl "><span>，</span></span>定义<span class=" fw-cl "><span>：</span></span></p>
+<p><code>:root {<br>
+ &nbsp;--bg: white;<br>
+ &nbsp;--text-color: #555;<br>
+ &nbsp;--link-color: #639A67;<br>
+ &nbsp;--link-hover: #205D67;<br>
+}</code></p>
+<p>之后<span class=" fw-cl "><span>，</span></span>上述代码可以直接简化为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>body {<br>
+ &nbsp;background: var(--bg);<br>
+ &nbsp;color: var(--text-color);<br>
+}<br>
+<br>
+a, a:link {<br>
+ &nbsp;color: var(--link-color);<br>
+}<br>
+a:hover {<br>
+ &nbsp;color: var(--link-hover);<br>
+}</code></p>
+<p>这个很好理解<span class=" fw-cl "><span>，</span></span>在任何语言中<span class=" fw-cl "><span>，</span></span>变量是个好东西<span class=" fw-cl "><span>：</span></span>它可以降低维护成本<span class=" fw-cl "><span>，</span></span>甚至实现更好的性能<span class=" fw-cl "><span>。</span></span></p>
+<p>CSS 变量语法也很简单<span class=" fw-cl "><span>：</span></span>我们使用<code>--变量名</code>的方式定义变量<span class=" fw-cl "><span>，</span></span>使用<code>var(--变量名)</code>的方式消费变量<span class=" fw-cl "><span>。</span></span></p>
+<p>更多 CSS 变量的基础内容可以访问<span class=" fw-cl "><span>：</span></span><a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/Using_CSS_custom_properties" title="使用 CSS 变量">使用 CSS 变量</a><span class=" fw-cl "><span>。</span></span></p>
+<p>值得一提的是<span class=" fw-cl "><span>，</span></span>CSS 变量的兼容性<span class="fw-op  "><span>「</span></span>出乎意料<span class=" fw-cl "><span>」</span></span>的好<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-4553affb4304e7dd3950c32977521934.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:15.734557595993323% 0" data-src="https://pic2.zhimg.com/v2-4553affb4304e7dd3950c32977521934.png">加载中...</span></figure>
+<p>我就在自己的项目中大范围使用了 CSS 变量<span class=" fw-cl "><span>，</span></span>在 html 根节点下<span class=" fw-cl "><span>，</span></span>定义 :root <span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-3ef9717e45379acdba662b1150fcd456.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:45.24193548387097% 0" data-src="https://pic4.zhimg.com/v2-3ef9717e45379acdba662b1150fcd456.png">加载中...</span></figure>
+<p>除了简单应用变量<span class=" fw-cl "><span>，</span></span>我们能玩出哪些更高级的用法呢<span class=" fw-cl "><span>？</span></span></p>
+<h4>使用 CSS 变量实现主题切换</h4>
+<p>一键切换主题<span class=" fw-cl "><span>，</span></span>以往实现方式较为复杂<span class=" fw-cl "><span>。</span></span>借助 CSS 变量<span class=" fw-cl "><span>，</span></span>一切变得容易起来<span class=" fw-cl "><span>。</span></span></p>
+<p>仍然以开头<span class=" fw-cl "><span>：</span></span></p>
+<p><code>:root {<br>
+ &nbsp;--bg: white;<br>
+ &nbsp;--text-color: #555;<br>
+ &nbsp;--link-color: #639A67;<br>
+ &nbsp;--link-hover: #205D67;<br>
+}</code></p>
+<p>为例<span class=" fw-cl "><span>，</span></span>我们再定义一个 .pink-theme 对应粉色主题<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.pink-theme {<br>
+ &nbsp;--bg: hotpink;<br>
+ &nbsp;--text-color: white;<br>
+ &nbsp;--link-color: #B793E6;<br>
+ &nbsp;--link-hover: #3532A7;<br>
+}</code></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>在切换主题时<span class=" fw-cl "><span>，</span></span>就变得和 toggle class 一样简单<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const toggleBtn = document.querySelector('.toggle-theme')<br>
+<br>
+toggleBtn.addEventListener('click', e =&gt; {<br>
+ &nbsp;e.preventDefault()<br>
+<br>
+ &nbsp;if (document.body.classList.contains('pink-theme')) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;// 当前主题为粉色主题<span class=" fw-cl "><span>，</span></span>需要移除 pink-theme class<br>
+ &nbsp;&nbsp;&nbsp;document.body.classList.remove('pink-theme')<br>
+<br>
+ &nbsp;&nbsp;&nbsp;toggle.innerText = '切换正常主题色'<br>
+ &nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;document.body.classList.add('pink-theme')<br>
+ &nbsp;&nbsp;&nbsp;toggle.innerText = '切换为粉色少女主题'<br>
+ &nbsp;}<br>
+})</code></p>
+<p>同时<span class=" fw-cl "><span>，</span></span>我们可以将<span class="fw-op  "><span>「</span></span>进击的 CSS<span class=" fw-cl "><span>」</span></span>和<span class="fw-op  "><span>「</span></span>进击的 HTML<span class=" fw-cl "><span>」</span></span>相结合<span class=" fw-cl "><span>，</span></span>利用 localStorage 实现主题的保存<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const toggleBtn = document.querySelector('.toggle-theme')<br>
+<br>
+if (localStorage.getItem('pinkTheme')) {<br>
+ &nbsp;document.body.classList.add('pink-theme')<br>
+ &nbsp;toggle.innerText = '切换为粉色少女主题'<br>
+}<br>
+<br>
+toggleBtn.addEventListener('click', e =&gt; {<br>
+ &nbsp;e.preventDefault()<br>
+<br>
+ &nbsp;if (document.body.classList.contains('pink-theme')) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;// 当前主题为粉色主题<span class=" fw-cl "><span>，</span></span>需要移除 pink-theme class<br>
+ &nbsp;&nbsp;&nbsp;document.body.classList.remove('pink-theme')<br>
+<br>
+ &nbsp;&nbsp;&nbsp;toggle.innerText = '切换正常主题色'<br>
+ &nbsp;&nbsp;&nbsp;localStorage.removeItem('pinkTheme')<br>
+ &nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;document.body.classList.add('pink-theme')<br>
+ &nbsp;&nbsp;&nbsp;toggle.innerText = '切换为粉色少女主题'<br>
+ &nbsp;&nbsp;&nbsp;localStorage.setItem('pinkTheme', true)<br>
+ &nbsp;}<br>
+})</code></p>
+<p>非常的简单直观<span class=" fw-cl "><span>，</span></span>我认为这将会成为 CSS 发展的一个不可避免的趋势<span class=" fw-cl "><span>。</span></span></p>
+<h3>CSS Modules 理论和实战</h3>
+<p>我做面试官时<span class=" fw-cl "><span>，</span></span>对 CSS 的考察除了基础布局和经验以外<span class=" fw-cl "><span>，</span></span>非常喜欢问 CSS 工程相关的题目<span class=" fw-cl "><span>，</span></span>比如<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>如何维护大型项目的 z-index</p>
+<p>比如<span class=" fw-cl "><span>，</span></span></p>
+<blockquote><br></blockquote>
+<p>如何维护 CSS 选择器和样式之间的冲突</p>
+<p>这个环节我们就来谈谈 CSS Modules<span class=" fw-cl "><span>，</span></span>看看这个方案是否能让<span class="fw-op  "><span>「</span></span>CSS 冲突成为历史<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<h4>什么是 CSS Modules</h4>
+<p>CSS Modules 是指<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>项目中所有 class 名称默认都是局部起作用的<span class=" fw-cl "><span>。</span></span></p>
+<p>其实<span class=" fw-cl "><span>，</span></span>CSS Modules 并不是一个官方规范<span class=" fw-cl "><span>，</span></span>更不是浏览器的机制<span class=" fw-cl "><span>。</span></span>它依赖我们的项目构建过程<span class=" fw-cl "><span>，</span></span>因此实现往往需要借助 Webpack<span class=" fw-cl "><span>。</span></span>借助 Webpack 或者其他构建工具的帮助<span class=" fw-cl "><span>，</span></span>可以将 class 的名字唯一化<span class=" fw-cl "><span>，</span></span>从而实现局部作用<span class=" fw-cl "><span>。</span></span></p>
+<p>这么说可能比较抽象<span class=" fw-cl "><span>，</span></span>我们来看一个例子<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><div class="test"><code>This is a test</code></div><p></p>
+<p>对应的样式表为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.test {<br>
+ &nbsp;color: red;<br>
+}</code></p>
+<p>再经过编译构建之后<span class=" fw-cl "><span>，</span></span>对应的 HTML 和 CSS 分别为<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><div class="_style_test_309571057"><code><br>
+ &nbsp;This is a test<br>
+</code></div><p></p>
+<p><code>._style_test_309571057 {<br>
+ &nbsp;&nbsp;&nbsp;color: red;<br>
+}</code></p>
+<p>其中 class 名是动态生成的<span class=" fw-cl "><span>，</span></span>全项目唯一的<span class=" fw-cl "><span>。</span></span>因此通过命名规范的唯一性<span class=" fw-cl "><span>，</span></span>达到了避免样式冲突的目的<span class=" fw-cl "><span>。</span></span></p>
+<p>仔细想来<span class=" fw-cl "><span>，</span></span>这样的解决方案似乎有一个问题<span class=" fw-cl "><span>：</span></span>如何实现样式复用<span class=" fw-cl "><span>？</span></span>因为生成了全局唯一的 class 名<span class=" fw-cl "><span>，</span></span>那么我们如何像传统方式那样实现样式复用呢<span class=" fw-cl "><span>？</span></span></p>
+<p>从原理上想<span class=" fw-cl "><span>，</span></span>全局唯一的 class 是在构建过程中<span class=" fw-cl "><span>，</span></span>如果能给在构建过程进行标识<span class=" fw-cl "><span>，</span></span>表示该 class 将被复用<span class=" fw-cl "><span>，</span></span>就可以解决问题了<span class=" fw-cl "><span>。</span></span>这样的方式<span class=" fw-cl "><span>，</span></span>就依靠 composes 关键字实现<span class=" fw-cl "><span>。</span></span>我们来看案例<span class=" fw-cl "><span>：</span></span></p>
+<p>样式表 style.css 文件中<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.common {<br>
+ &nbsp;color: red;<br>
+}<br>
+<br>
+.test {<br>
+ &nbsp;composes: common;<br>
+ &nbsp;font-size: 18px;<br>
+}</code></p>
+<p>注意我们使用了 composes 关键字<span class=" fw-cl "><span>，</span></span>在 .test 中关联了 .common 样式<span class=" fw-cl "><span>。</span></span></p>
+<p>对于 HTML 文件<span class=" fw-cl "><span>：</span></span></p>
+<p>import style from "./style.css";</p>
+<p><code></code></p><div class="${style.test}"><code><br>
+ &nbsp;&nbsp;&nbsp;This is a test<br>
+</code></div><p></p>
+<p>进行编译构建后<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><div class="_style__test_0980340 _style__common_404840"><code><br>
+ &nbsp;&nbsp;&nbsp;This is a test<br>
+</code></div><p></p>
+<p>我们看 div 的 class 被加进了 _style__common_404840<span class=" fw-cl "><span>，</span></span>这样就实现了复用样式<span class=" fw-cl "><span>。</span></span></p>
+<p>明白了道理<span class=" fw-cl "><span>，</span></span>我们该如何应用 CSS Modules 呢<span class=" fw-cl "><span>？</span></span></p>
+<h4>CSS Modules 实战</h4>
+<p>实战应用 CSS Modules<span class=" fw-cl "><span>，</span></span>我将会选取 Webpack 构建一个项目<span class=" fw-cl "><span>，</span></span>一步一步进行分析讲解<span class=" fw-cl "><span>。</span></span>因为主题并不是<span class="fw-op  "><span>「</span></span>如何配置 Webpack<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>因此一些 Webpack 基础不再赘述<span class=" fw-cl "><span>，</span></span>同时为了简化问题<span class=" fw-cl "><span>，</span></span>我们不进行其他 Webpack<span class="fw-op  "><span>（</span></span>比如 dev server<span class=" fw-cl "><span>）</span></span>配置<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">Step 1<span class=" fw-cl "><span>：</span></span>创建项目</li>
+</ul>
+<p><code>npm init --y</code></p>
+<p>此时生成 package.json 如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;"name": "css-modules",<br>
+ &nbsp;"version": "1.0.0",<br>
+ &nbsp;"description": "README.md",<br>
+ &nbsp;"main": "index.js",<br>
+ &nbsp;"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;"test": "echo \"Error: no test specified\" &amp;&amp; exit 1"<br>
+ &nbsp;},<br>
+ &nbsp;"keywords": [],<br>
+ &nbsp;"author": "",<br>
+ &nbsp;"license": "ISC"<br>
+}</code></p>
+<ul>
+  <li style="">Step 2<span class=" fw-cl "><span>：</span></span>创建必要文件</li>
+</ul>
+<p><code>mkdir src<br>
+touch index.html</code></p>
+<p>在 ./src 文件夹中<span class=" fw-cl "><span>，</span></span>创建<span class=" fw-cl "><span>：</span></span>index.js<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import bluestyle from './style.css';<br>
+import greenstyle from './app.css';<br>
+<br>
+let html = `<br>
+</code></p><h2 class="${bluestyle.my_css_selector}"><code>I should be displayed in blue.</code></h2><code><br>
+<br><br>
+<h2 class="${greenstyle.my_css_selector}">I should be displayed in green.</h2> <br>
+`;<br>
+document.write(html);</code><p></p>
+<p>以及 style.css<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.my_css_selector {<br>
+ &nbsp;&nbsp;&nbsp;color: blue;<br>
+}</code></p>
+<p>和 app.css<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.my_css_selector {<br>
+ &nbsp;&nbsp;&nbsp;color: green;<br>
+}</code></p>
+<p>在这两个样式文件中<span class=" fw-cl "><span>，</span></span>我们使用了相同的 class 名<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">Step 3<span class=" fw-cl "><span>：</span></span>安装依赖</li>
+</ul>
+<p>接下来我们按照 webpack<span class=" fw-cl "><span>、</span></span>webpack-cli<span class=" fw-cl "><span>、</span></span>babel 全家桶<span class="fw-op  "><span>（</span></span>babel-core<span class=" fw-cl "><span>、</span></span>babel-loader<span class=" fw-cl "><span>、</span></span>abel-preset-env<span class=" fw-cl "><span>）</span></span>和相应的 loaders<span class=" fw-cl "><span>：</span></span>css-loader<span class=" fw-cl "><span>、</span></span>style-loader 以及 extract-text-webpack-plugin 插件<span class=" fw-cl "><span>。</span></span></p>
+<p>这些依赖项具体是做什么的这里不再赘述<span class=" fw-cl "><span>，</span></span>有不了解的读者可以自行 Google 学习<span class=" fw-cl "><span>。</span></span>另外<span class=" fw-cl "><span>，</span></span>强烈建议安装版本遵循<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"babel-core": "^6.26.3",<br>
+"babel-loader": "^7.1.4",<br>
+"babel-preset-env": "^1.6.1",<br>
+"css-loader": "^0.28.11",<br>
+"extract-text-webpack-plugin": "^4.0.0-beta.0",<br>
+"style-loader": "^0.21.0",<br>
+"webpack": "^4.1.0",<br>
+"webpack-cli": "^3.1.1"</code></p>
+<p>否则会出现类似 webpack 版本和 extract-text-webpack-plugin 不兼容等依赖版本问题<span class=" fw-cl "><span>。</span></span></p>
+<p>正常流程下来<span class=" fw-cl "><span>，</span></span>我们 package.json 如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;"name": "css-modules",<br>
+ &nbsp;"version": "1.0.0",<br>
+ &nbsp;"description": "README.md",<br>
+ &nbsp;"main": "index.js",<br>
+ &nbsp;"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;"test": "echo \"Error: no test specified\" &amp;&amp; exit 1"<br>
+ &nbsp;},<br>
+ &nbsp;"keywords": [],<br>
+ &nbsp;"author": "",<br>
+ &nbsp;"license": "ISC",<br>
+ &nbsp;"devDependencies": {<br>
+ &nbsp;&nbsp;&nbsp;"babel-core": "^6.26.3",<br>
+ &nbsp;&nbsp;&nbsp;"babel-loader": "^7.1.4",<br>
+ &nbsp;&nbsp;&nbsp;"babel-preset-env": "^1.6.1",<br>
+ &nbsp;&nbsp;&nbsp;"css-loader": "^0.28.11",<br>
+ &nbsp;&nbsp;&nbsp;"extract-text-webpack-plugin": "^4.0.0-beta.0",<br>
+ &nbsp;&nbsp;&nbsp;"style-loader": "^0.21.0",<br>
+ &nbsp;&nbsp;&nbsp;"webpack": "^4.1.0",<br>
+ &nbsp;&nbsp;&nbsp;"webpack-cli": "^3.1.1"<br>
+ &nbsp;}<br>
+}</code></p>
+<ul>
+  <li style="">Step 4<span class=" fw-cl "><span>：</span></span>编写 webpack 配置</li>
+</ul>
+<p>创建 webpack 配置文件<span class=" fw-cl "><span>：</span></span></p>
+<p><code>touch webpack.config.js</code></p>
+<p>并编写<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var ExtractTextPlugin = require('extract-text-webpack-plugin');<br>
+<br>
+module.exports = {<br>
+ &nbsp;&nbsp;&nbsp;entry: './src',<br>
+ &nbsp;&nbsp;&nbsp;output: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path: __dirname + '/build',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filename: 'bundle.js'<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;module: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rules: [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test: /\.js/,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: 'babel-loader',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;include: __dirname + '/src'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test: /\.css/,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: ExtractTextPlugin.extract("css-loader?modules&amp;importLoaders=1&amp;localIdentName=[name]__[local]__[hash:base64:5]")<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;plugins: [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new ExtractTextPlugin("styles.css")<br>
+ &nbsp;&nbsp;&nbsp;]<br>
+}</code></p>
+<p>我们使用了 extract-text-webpack-plugin 插件<span class=" fw-cl "><span>，</span></span>并定义入口为 ./src 目录<span class=" fw-cl "><span>，</span></span>产出为 <code>__dirname + '/build'</code> 目录<span class=" fw-cl "><span>。</span></span>对后缀名为 css 的文件使用 css-loader 解析<span class=" fw-cl "><span>，</span></span>产出为 styles.css 文件并在 index.html 中使用<span class=" fw-cl "><span>。</span></span></p>
+<p>注意我们看对于 css-loader<span class=" fw-cl "><span>，</span></span>设置了 modules 参数<span class=" fw-cl "><span>，</span></span>进行了 css modules 处理<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">Step 4<span class=" fw-cl "><span>：</span></span>编写 npm script 并运行</li>
+</ul>
+<p>还差一步<span class=" fw-cl "><span>，</span></span>我们将 package.json 中的 script 命令改为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;"start": "webpack --mode development"<br>
+},</code></p>
+<p>便是运行 webpack<span class=" fw-cl "><span>，</span></span>此时 package.json 内容为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;"name": "css-modules",<br>
+ &nbsp;"version": "1.0.0",<br>
+ &nbsp;"description": "README.md",<br>
+ &nbsp;"main": "index.js",<br>
+ &nbsp;"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;"start": "webpack --mode development"<br>
+ &nbsp;},<br>
+ &nbsp;"keywords": [],<br>
+ &nbsp;"author": "",<br>
+ &nbsp;"license": "ISC",<br>
+ &nbsp;"devDependencies": {<br>
+ &nbsp;&nbsp;&nbsp;"babel-core": "^6.26.3",<br>
+ &nbsp;&nbsp;&nbsp;"babel-loader": "^7.1.4",<br>
+ &nbsp;&nbsp;&nbsp;"babel-preset-env": "^1.6.1",<br>
+ &nbsp;&nbsp;&nbsp;"css-loader": "^0.28.11",<br>
+ &nbsp;&nbsp;&nbsp;"extract-text-webpack-plugin": "^4.0.0-beta.0",<br>
+ &nbsp;&nbsp;&nbsp;"style-loader": "^0.21.0",<br>
+ &nbsp;&nbsp;&nbsp;"webpack": "^4.1.0",<br>
+ &nbsp;&nbsp;&nbsp;"webpack-cli": "^3.1.1"<br>
+ &nbsp;}<br>
+}</code></p>
+<p>运行 npm start<span class=" fw-cl "><span>，</span></span>得到产出<span class=" fw-cl "><span>，</span></span>打开页面会发现<span class=" fw-cl "><span>：</span></span></p>
+<p>如图<span class=" fw-cl "><span>，</span></span>已经在编译过程中完成了 css module 处理<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-b9ef9a952f49832c85e62dd267d76d45.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:17.983870967741936% 0" data-src="https://pic4.zhimg.com/v2-b9ef9a952f49832c85e62dd267d76d45.png">加载中...</span></figure>
+<h3>总结</h3>
+<p>本节课程我们既有<span class="fw-op  "><span>「</span></span>大面儿<span class=" fw-cl "><span>」</span></span>上的梳理<span class=" fw-cl "><span>，</span></span>也有关键点的<span class="fw-op  "><span>「</span></span>实战<span class=" fw-cl "><span>」</span></span>深入<span class=" fw-cl "><span>。</span></span>有趣实用的标签和属性<span class=" fw-cl "><span>、</span></span>移动端 H5 注意事项总结<span class=" fw-cl "><span>、</span></span>HTML5 和 CSS3 面试题梳理<span class=" fw-cl "><span>，</span></span>这三块内容旨在将碎片化的知识点以<span class="fw-op  "><span>「</span></span>记事本<span class=" fw-cl "><span>」</span></span>式的排列<span class=" fw-cl "><span>；</span></span>Web components 更多给大家带来对新技术的思考和总结<span class=" fw-cl "><span>；</span></span>CSS 变量<span class=" fw-cl "><span>、</span></span>CSS Module 是我认为最有发展潜力<span class=" fw-cl "><span>、</span></span>最有实用价值<span class=" fw-cl "><span>、</span></span>最能马上落地实现的解决方案<span class=" fw-cl "><span>。</span></span></p>
+<p>HTML 和 CSS 向来被忽视<span class=" fw-cl "><span>，</span></span>但是涉及到项目组织和构建<span class=" fw-cl "><span>，</span></span>涉及到新技术的调研和决断<span class=" fw-cl "><span>，</span></span>我们切不可含糊<span class=" fw-cl "><span>。</span></span></p>
+<h3><br></h3><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX12lZRwZeHPoe3kdsgdE9</span></p>
+</body>
+</html>

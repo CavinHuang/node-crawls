@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 3 节老司机也会在闭包相关知识点翻车</h1>
+  <p>闭包是 JavaScript 中最基本也是最重要的概念之一<span class=" fw-cl "><span>，</span></span>很多开发者都对它<span class="fw-op  "><span>「</span></span>了如指掌<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>可是闭包又绝对不是一个单一的概念<span class=" fw-cl "><span>：</span></span><strong style="">它涉及作用域<span class=" fw-cl "><span>、</span></span>作用域链<span class=" fw-cl "><span>、</span></span>执行上下文<span class=" fw-cl "><span>、</span></span>内存管理等多重知识点<span class=" fw-cl "><span>。</span></span></strong> 不管是新手还是<span class="fw-op  "><span>「</span></span>老司机<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>经常会出现<span class="fw-op  "><span>「</span></span>我觉得我弄懂了闭包<span class=" fw-cl "><span>，</span></span>但是还会在一些场景翻车<span class=" fw-cl "><span>」</span></span>的情况<span class=" fw-cl "><span>。</span></span>这一课我们就对这个话题进行梳理<span class=" fw-cl "><span>，</span></span>并最后以<span class="fw-op  "><span>「</span></span>应试题<span class=" fw-cl "><span>」</span></span>来强化理解闭包<span class=" fw-cl "><span>。</span></span></p>
+<p>先看一下跟闭包相关的知识点<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-69d8c0db11b9c6d126d21c30563f8808.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:36.51933701657459% 0" data-src="https://pic3.zhimg.com/v2-69d8c0db11b9c6d126d21c30563f8808.png">加载中...</span></figure>
+<p>接下来将通过两课的内容来学习这个主题<span class=" fw-cl "><span>。</span></span></p>
+<h3>基本知识</h3>
+<h4>作用域</h4>
+<p>作用域其实就是一套规则<span class=" fw-cl "><span>：</span></span>这个规则<strong style="">用于确定在特定场景下如何查找变量</strong><span class=" fw-cl "><span>。</span></span>任何语言都有作用域的概念<span class=" fw-cl "><span>，</span></span>同一种语言在演进过程中也会不断完善其作用域规则<span class=" fw-cl "><span>。</span></span>比如<span class=" fw-cl "><span>，</span></span>在 JavaScript 中<span class=" fw-cl "><span>，</span></span>ES6 出现之前只有函数作用域和全局作用域之分<span class=" fw-cl "><span>。</span></span></p>
+<h5>函数作用域和全局作用域</h5>
+<p>大家应该非常熟悉<strong style="">函数作用域</strong>了<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;&nbsp;&nbsp;var a = 'bar'<br>
+ &nbsp;&nbsp;&nbsp;console.log(a)<br>
+}<br>
+foo()</code></p>
+<p>执行 <code>foo</code> 函数时<span class=" fw-cl "><span>，</span></span>变量 <code>a</code> 在函数 <code>foo</code> 作用域内<span class=" fw-cl "><span>，</span></span>函数体内可以正常访问<span class=" fw-cl "><span>，</span></span>并输出 <code>bar</code><span class=" fw-cl "><span>。</span></span></p>
+<p>而当<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var b = 'bar'<br>
+function foo() {<br>
+ &nbsp;&nbsp;&nbsp;console.log(b)<br>
+}<br>
+foo()</code></p>
+<p>执行这段代码时<span class=" fw-cl "><span>，</span></span><code>foo</code> 函数在自身函数作用域内并未查找到 <code>b</code> 变量<span class=" fw-cl "><span>，</span></span>但是它会继续向外扩大查找范围<span class=" fw-cl "><span>，</span></span>因此可以在<strong style="">全局作用域</strong>中找到变量 <code>b</code><span class=" fw-cl "><span>，</span></span>输出 <code>bar</code><span class=" fw-cl "><span>。</span></span></p>
+<p>如果我们稍加改动<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function bar() {<br>
+ &nbsp;&nbsp;&nbsp;var b = 'bar'<br>
+}<br>
+function foo() {<br>
+ &nbsp;&nbsp;&nbsp;console.log(b)<br>
+}<br>
+foo()</code></p>
+<p>执行这段代码时<span class=" fw-cl "><span>，</span></span><code>foo</code> 和 <code>bar</code> <strong style="">分属于两个彼此独立的函数作用域</strong><span class=" fw-cl "><span>，</span></span><code>foo</code> 函数无法访问 <code>bar</code> 函数中定义的变量 <code>b</code><span class=" fw-cl "><span>，</span></span>且其作用域链内<span class="fw-op  "><span>（</span></span>上层全局作用域中<span class=" fw-cl "><span>）</span></span>也不存在相应的变量<span class=" fw-cl "><span>，</span></span>因此报错<span class=" fw-cl "><span>：</span></span>Uncaught ReferenceError: b is not defined<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">总结一下</strong><span class=" fw-cl "><span>：</span></span>在 JavaScript 执行一段函数时<span class=" fw-cl "><span>，</span></span>遇见变量读取其值<span class=" fw-cl "><span>，</span></span>这时候会<span class="fw-op  "><span>「</span></span>就近<span class=" fw-cl "><span>」</span></span>先在函数内部找该变量的声明或者赋值情况<span class=" fw-cl "><span>。</span></span>这里涉及<span class="fw-op  "><span>「</span></span>变量声明方式<span class=" fw-cl "><span>」</span></span>以及<span class="fw-op  "><span>「</span></span>变量提升<span class=" fw-cl "><span>」</span></span>的知识点<span class=" fw-cl "><span>，</span></span>我们后面会涉及到<span class=" fw-cl "><span>。</span></span>如果在函数内无法找到该变量<span class=" fw-cl "><span>，</span></span>就要跳出函数作用域<span class=" fw-cl "><span>，</span></span>到更上层作用域中查找<span class=" fw-cl "><span>。</span></span>这里的<span class="fw-op  "><span>「</span></span>更上层作用域<span class=" fw-cl "><span>」</span></span>可能也是一个函数作用域<span class=" fw-cl "><span>，</span></span>例如<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function bar() {<br>
+ &nbsp;&nbsp;&nbsp;var b = 'bar'<br>
+ &nbsp;&nbsp;&nbsp;function foo() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(b)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;foo()<br>
+}<br>
+<br>
+bar()</code></p>
+<p>在 <code>foo</code> 函数执行时<span class=" fw-cl "><span>，</span></span>对于变量 <code>b</code> 的声明或读值情况是在其上层函数 <code>bar</code> 作用域中获取的<span class=" fw-cl "><span>。</span></span></p>
+<p>同时<span class="fw-op  "><span>「</span></span>更上层作用域<span class=" fw-cl "><span>」</span></span>也可以顺着作用域范围向外扩散<span class=" fw-cl "><span>，</span></span>一直找到全局作用域<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var b = 'bar'<br>
+function bar() {<br>
+ &nbsp;&nbsp;&nbsp;function foo() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(b)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;foo()<br>
+}<br>
+<br>
+bar()</code></p>
+<p>我们看到<span class=" fw-cl "><span>，</span></span>变量作用域的查找是一个扩散过程<span class=" fw-cl "><span>，</span></span>就像各个环节相扣的链条<span class=" fw-cl "><span>，</span></span>逐次递进<span class=" fw-cl "><span>，</span></span>这就是<strong style="">作用域链</strong>说法的由来<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">块级作用域和暂时性死区</strong></h5>
+<p>作用域概念不断演进<span class=" fw-cl "><span>，</span></span>ES6 增加了 <code>let</code> 和 <code>const</code> 声明变量的块级作用域<span class=" fw-cl "><span>，</span></span>使得 JavaScript 中作用域范围更加丰富<span class=" fw-cl "><span>。</span></span>块级作用域<span class=" fw-cl "><span>，</span></span>顾名思义<span class=" fw-cl "><span>，</span></span>作用域范围限制在代码块中<span class=" fw-cl "><span>，</span></span>这个概念在其他语言里也普遍存在<span class=" fw-cl "><span>。</span></span>当然这些新特性的添加<span class=" fw-cl "><span>，</span></span>也增加了一定的复杂度<span class=" fw-cl "><span>，</span></span>带来了新的概念<span class=" fw-cl "><span>，</span></span>比如<strong style="">暂时性死区</strong><span class=" fw-cl "><span>。</span></span>这里有必要稍作展开<span class=" fw-cl "><span>：</span></span>说到暂时性死区<span class=" fw-cl "><span>，</span></span>还需要从<span class="fw-op  "><span>「</span></span>变量提升<span class=" fw-cl "><span>」</span></span>说起<span class=" fw-cl "><span>，</span></span>参看以下代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;&nbsp;&nbsp;console.log(bar)<br>
+ &nbsp;&nbsp;&nbsp;var bar = 3<br>
+}<br>
+foo()</code></p>
+<p>会输出<span class=" fw-cl "><span>：</span></span><code>undefined</code><span class=" fw-cl "><span>，</span></span>原因是变量 <code>bar</code> 在函数内进行了提升<span class=" fw-cl "><span>。</span></span>相当于<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;&nbsp;&nbsp;var bar <br>
+ &nbsp;&nbsp;&nbsp;console.log(bar)<br>
+ &nbsp;&nbsp;&nbsp;bar = 3<br>
+}<br>
+foo()</code></p>
+<p>但在使用 <code>let</code> 声明时<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;&nbsp;&nbsp;console.log(bar)<br>
+ &nbsp;&nbsp;&nbsp;let bar = 3<br>
+}<br>
+foo()</code></p>
+<p>会报错<span class=" fw-cl "><span>：</span></span>Uncaught ReferenceError: bar is not defined<span class=" fw-cl "><span>。</span></span></p>
+<p>我们知道使用 <code>let</code> 或 <code>const</code> 声明变量<span class=" fw-cl "><span>，</span></span>会针对这个变量形成一个封闭的块级作用域<span class=" fw-cl "><span>，</span></span><strong style="">在这个块级作用域当中<span class=" fw-cl "><span>，</span></span>如果在声明变量前访问该变量<span class=" fw-cl "><span>，</span></span>就会报</strong> <code><strong style="">referenceError</strong></code> <strong style="">错误</strong><span class=" fw-cl "><span>；</span></span>如果在声明变量后访问<span class=" fw-cl "><span>，</span></span>则可以正常获取变量值<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;&nbsp;&nbsp;let bar = 3<br>
+ &nbsp;&nbsp;&nbsp;console.log(bar)<br>
+}<br>
+foo()</code></p>
+<p>正常输出 3<span class=" fw-cl "><span>。</span></span>因此在相应花括号形成的作用域中<span class=" fw-cl "><span>，</span></span>存在一个<span class="fw-op  "><span>「</span></span>死区<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>起始于函数开头<span class=" fw-cl "><span>，</span></span>终止于相关变量声明的一行<span class=" fw-cl "><span>。</span></span>在这个范围内无法访问 <code>let</code> 或 <code>const</code> 声明的变量<span class=" fw-cl "><span>。</span></span>这个<span class="fw-op  "><span>「</span></span>死区<span class=" fw-cl "><span>」</span></span>的专业名称为<span class=" fw-cl "><span>：</span></span> TDZ<span class="fw-op  "><span>（</span></span>Temporal Dead Zone<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>相关语言规范的介绍读者可参考 <a href="http://www.ecma-international.org/ecma-262/6.0/#sec-let-and-const-declarations" title="ECMAScript® 2015 Language Specification">ECMAScript® 2015 Language Specification</a> <span class=" fw-cl "><span>，</span></span>喜欢刨根问底看规范的读者可以了解一下<span class=" fw-cl "><span>。</span></span></p>
+<p>参考下面图示<span class=" fw-cl "><span>，</span></span>我们加深理解<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-2323256a0537f2d36ad2a92dedef0ec6.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:31.506849315068493% 0" data-src="https://pic2.zhimg.com/v2-2323256a0537f2d36ad2a92dedef0ec6.png">加载中...</span></figure>
+<p>除了自身作用域内的 <code>foo3</code> 以外<span class=" fw-cl "><span>，</span></span><code>bar2</code> 函数可以访问 <code>foo2</code><span class=" fw-cl "><span>、</span></span> <code>foo1</code><span class=" fw-cl "><span>；</span></span>但是 <code>bar1</code> 函数却无法访问 <code>bar2</code> 函数内定义的 <code>foo3</code><span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-2cac796e89d25467dfb01d408bc46fdb.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:19.475806451612904% 0" data-src="https://pic4.zhimg.com/v2-2cac796e89d25467dfb01d408bc46fdb.png">加载中...</span></figure>
+<p>再啰嗦一遍<span class=" fw-cl "><span>，</span></span><code>bar1</code> 函数 <code>let foo3 = 'foo3'</code> 代码执行前<span class=" fw-cl "><span>，</span></span>为<span class="fw-op  "><span>「</span></span>死区<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>访问变量 <code>foo3</code> 会报错<span class=" fw-cl "><span>；</span></span>该行后即可正常访问<span class=" fw-cl "><span>。</span></span></p>
+<p>注意我在上图中勾出的暂时性死区区域<span class=" fw-cl "><span>，</span></span>这里介绍一个比较<span class="fw-op  "><span>「</span></span>极端<span class=" fw-cl "><span>」</span></span>的情况<span class=" fw-cl "><span>：</span></span>函数的参数默认值设置也会受到 TDZ 的影响<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo(arg1 = arg2, arg2) {<br>
+ &nbsp;&nbsp;&nbsp;console.log(`${arg1} ${arg2}`)<br>
+}</code></p>
+<p>在上面 <code>foo</code> 函数中<span class=" fw-cl "><span>，</span></span>如果第一个参数没有传<span class=" fw-cl "><span>，</span></span>将会使用第二个参数作为第一个实参值<span class=" fw-cl "><span>。</span></span>调用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo(arg1 = arg2, arg2) {<br>
+ &nbsp;&nbsp;&nbsp;console.log(`${arg1} ${arg2}`)<br>
+}<br>
+<br>
+foo('arg1', 'arg2')<br>
+// 返回<span class=" fw-cl "><span>：</span></span>arg1 arg2</code></p>
+<p>返回内容正常<span class=" fw-cl "><span>，</span></span>但是当第一个参数缺省时<span class=" fw-cl "><span>，</span></span>执行 <code>arg1 = arg2</code> 会当作暂时性死区处理<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo(arg1 = arg2, arg2) {<br>
+ &nbsp;&nbsp;&nbsp;console.log(`${arg1} ${arg2}`)<br>
+}<br>
+<br>
+foo(undefined, 'arg2')<br>
+<br>
+// Uncaught ReferenceError: arg2 is not defined</code></p>
+<p>因为除了块级作用域以外<span class=" fw-cl "><span>，</span></span>函数参数默认值也会受到 TDZ 影响<span class=" fw-cl "><span>。</span></span></p>
+<p>这里我再<span class="fw-op  "><span>「</span></span>抖个机灵<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>看看下面的代码会输出什么<span class=" fw-cl "><span>？</span></span></p>
+<p><code>function foo(arg1 = arg2, arg2) {<br>
+ &nbsp;&nbsp;&nbsp;console.log(`${arg1} ${arg2}`)<br>
+}<br>
+<br>
+foo(null, 'arg2')</code></p>
+<p>输出<span class=" fw-cl "><span>：</span></span><code>null arg2</code><span class=" fw-cl "><span>，</span></span>这就涉及到 <code>undefined</code> 和 <code>null</code> 的区别了<span class=" fw-cl "><span>。</span></span>在执行 <code>foo(null, 'arg2')</code> 时<span class=" fw-cl "><span>，</span></span>不会认为<span class="fw-op  "><span>「</span></span>函数第一个参数缺省<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>而会直接接受 <code>null</code> 作为第一个参数值<span class=" fw-cl "><span>。</span></span></p>
+<p>这个知识点已经不是本课的主题了<span class=" fw-cl "><span>，</span></span>具体 <code>undefined</code> 和 <code>null</code> 的区别我们会在后续课程中提到<span class=" fw-cl "><span>。</span></span></p>
+<p>既然<span class="fw-op  "><span>「</span></span>已经偏题<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>那我索性再分析一个场景<span class=" fw-cl "><span>，</span></span>顺便引出下面的知识点<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo(arg1) {<br>
+ &nbsp;&nbsp;&nbsp;let arg1<br>
+}<br>
+<br>
+foo('arg1')</code></p>
+<p>猜猜将会输出什么<span class=" fw-cl "><span>？</span></span></p>
+<p>实际上会报错<span class=" fw-cl "><span>：</span></span>Uncaught SyntaxError: Identifier 'arg1' has already been declared<span class=" fw-cl "><span>。</span></span>这同样跟 TDZ 没有关系<span class=" fw-cl "><span>，</span></span>而是因为函数参数名会出现在其<span class="fw-op  "><span>「</span></span>执行上下文/作用域<span class=" fw-cl "><span>」</span></span>当中<span class=" fw-cl "><span>。</span></span></p>
+<p>在函数的第一行<span class=" fw-cl "><span>，</span></span>便已经声明了 <code>arg1</code> 这个变量<span class=" fw-cl "><span>，</span></span>函数体再用 <code>let</code> 声明<span class=" fw-cl "><span>，</span></span>会报错<span class="fw-op  "><span>（</span></span>这是 <code>let</code> 声明变量的特点<span class=" fw-cl "><span>，</span></span>ES6 基础内容<span class=" fw-cl "><span>，</span></span>不再展开<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>类似<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo(arg1) {<br>
+ &nbsp;&nbsp;&nbsp;var arg1<br>
+ &nbsp;&nbsp;&nbsp;let arg1<br>
+}</code></p>
+<p>请看示意图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-2a2b389fe400e6b158cf417120e53b22.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:21.088709677419352% 0" data-src="https://pic2.zhimg.com/v2-2a2b389fe400e6b158cf417120e53b22.png">加载中...</span></figure>
+<p>上面我提到了<span class="fw-op  "><span>「</span></span>执行上下文<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>我们再看看它究竟是什么<span class=" fw-cl "><span>。</span></span></p>
+<h4>执行上下文和调用栈</h4>
+<p>很多读者可能无法准确定义执行上下文和调用栈<span class=" fw-cl "><span>，</span></span>其实<span class=" fw-cl "><span>，</span></span>从我们接触 JavaScript 开始<span class=" fw-cl "><span>，</span></span>这两个概念便常伴左右<span class=" fw-cl "><span>。</span></span>我们写出的每一行代码<span class=" fw-cl "><span>，</span></span>每一个函数都和它们息息相关<span class=" fw-cl "><span>，</span></span>但它们却是<span class="fw-op  "><span>「</span></span>隐形<span class=" fw-cl "><span>」</span></span>的<span class=" fw-cl "><span>，</span></span>藏在代码背后<span class=" fw-cl "><span>，</span></span>出现在 JavaScript 引擎里<span class=" fw-cl "><span>。</span></span>这一小节<span class=" fw-cl "><span>，</span></span>我们来剖析一下这两个熟悉但又经常被忽视的概念<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">执行上下文</strong>就是当前代码的执行环境/作用域<span class=" fw-cl "><span>，</span></span>和前文介绍的作用域链相辅相成<span class=" fw-cl "><span>，</span></span>但又是完全不同的两个概念<span class=" fw-cl "><span>。</span></span>直观上看<span class=" fw-cl "><span>，</span></span>执行上下文包含了作用域链<span class=" fw-cl "><span>，</span></span>同时它们又像是一条河的上下游<span class=" fw-cl "><span>：</span></span>有了作用域链<span class=" fw-cl "><span>，</span></span>才有了执行上下文的一部分<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">代码执行的两个阶段</strong></h5>
+<p>理解这两个概念<span class=" fw-cl "><span>，</span></span>要从 JavaScript 代码的执行过程说起<span class=" fw-cl "><span>，</span></span>这在平时开发中并不会涉及<span class=" fw-cl "><span>，</span></span>但对于我们理解 JavaScript 语言和运行机制非常重要<span class=" fw-cl "><span>，</span></span>请各位细心阅读<span class=" fw-cl "><span>。</span></span><strong style="">JavaScript 执行主要分为两个阶段<span class=" fw-cl "><span>：</span></span></strong></p>
+<ul>
+  <li style="">代码预编译阶段</li>
+  <li style="">代码执行阶段</li>
+</ul>
+<p><strong style="">预编译阶段是前置阶段<span class=" fw-cl "><span>，</span></span>这个时候由编译器将 JavaScript 代码编译成可执行的代码<span class=" fw-cl "><span>。</span></span></strong> 注意<span class=" fw-cl "><span>，</span></span>这里的预编译和传统的编译并不一样<span class=" fw-cl "><span>，</span></span>传统的编译非常复杂<span class=" fw-cl "><span>，</span></span>涉及分词<span class=" fw-cl "><span>、</span></span>解析<span class=" fw-cl "><span>、</span></span>代码生成等过程 <span class=" fw-cl "><span>。</span></span>这里的预编译是 JavaScript 中独特的概念<span class=" fw-cl "><span>，</span></span>虽然 JavaScript 是解释型语言<span class=" fw-cl "><span>，</span></span>编译一行<span class=" fw-cl "><span>，</span></span>执行一行<span class=" fw-cl "><span>。</span></span>但是在代码执行前<span class=" fw-cl "><span>，</span></span>JavaScript 引擎确实会做一些<span class="fw-op  "><span>「</span></span>预先准备工作<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">执行阶段主要任务是执行代码<span class=" fw-cl "><span>，</span></span>执行上下文在这个阶段全部创建完成<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>在通过语法分析<span class=" fw-cl "><span>，</span></span>确认语法无误之后<span class=" fw-cl "><span>，</span></span>JavaScript 代码在预编译阶段对变量的内存空间进行分配<span class=" fw-cl "><span>，</span></span>我们熟悉的变量提升过程便是在此阶段完成的<span class=" fw-cl "><span>。</span></span>如下代码<span class=" fw-cl "><span>：</span></span></p>
+<p>经过预编译过程<span class=" fw-cl "><span>，</span></span>我们应该注意三点<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">预编译阶段进行变量声明<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">预编译阶段变量声明进行提升<span class=" fw-cl "><span>，</span></span>但是值为 undefined<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">预编译阶段所有非表达式的函数声明进行提升<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>请看下面这道题目<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function bar() {<br>
+ &nbsp;&nbsp;&nbsp;console.log('bar1')<br>
+}<br>
+<br>
+var bar = function () {<br>
+ &nbsp;&nbsp;&nbsp;console.log('bar2')<br>
+}<br>
+<br>
+bar()</code></p>
+<p>输出<span class=" fw-cl "><span>：</span></span>bar2<span class=" fw-cl "><span>，</span></span>我们调换顺序<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var bar = function () {<br>
+ &nbsp;&nbsp;&nbsp;console.log('bar2')<br>
+}<br>
+<br>
+function bar() {<br>
+ &nbsp;&nbsp;&nbsp;console.log('bar1')<br>
+}<br>
+<br>
+bar()</code></p>
+<p>仍然输出<span class=" fw-cl "><span>：</span></span><code>bar2</code><span class=" fw-cl "><span>，</span></span>因为在预编译阶段变量 <code>bar</code> 进行声明<span class=" fw-cl "><span>，</span></span>但是不会赋值<span class=" fw-cl "><span>；</span></span>函数 <code>bar</code> 则进行创建并提升<span class=" fw-cl "><span>。</span></span>在代码执行时<span class=" fw-cl "><span>，</span></span>变量 <code>bar</code> 才进行<span class="fw-op  "><span>（</span></span>表达式<span class=" fw-cl "><span>）</span></span>赋值<span class=" fw-cl "><span>，</span></span>值内容是函数体为 <code>console.log('bar2')</code> 的函数<span class=" fw-cl "><span>，</span></span>输出结果 <code>bar2</code><span class=" fw-cl "><span>。</span></span></p>
+<p>请再思考这道题<span class=" fw-cl "><span>：</span></span></p>
+<p><code>foo(10)<br>
+function foo (num) {<br>
+ &nbsp;&nbsp;&nbsp;console.log(foo)<br>
+ &nbsp;&nbsp;&nbsp;foo = num; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;console.log(foo)<br>
+ &nbsp;&nbsp;&nbsp;var foo<br>
+} <br>
+console.log(foo)<br>
+foo = 1<br>
+console.log(foo)</code></p>
+<p>输出<span class=" fw-cl "><span>：</span></span></p>
+<p><code>undefined<br>
+10<br>
+ƒ foo (num) {<br>
+ &nbsp;&nbsp;&nbsp;console.log(foo)<br>
+ &nbsp;&nbsp;&nbsp;foo = num &nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;console.log(foo)<br>
+ &nbsp;&nbsp;&nbsp;var foo<br>
+}<br>
+1</code></p>
+<p>在 <code>foo(10)</code> 执行时<span class=" fw-cl "><span>，</span></span>函数体内进行变量提升后<span class=" fw-cl "><span>，</span></span>函数体内第一行输出 <code>undefined</code><span class=" fw-cl "><span>，</span></span>函数体内第三行输出 <code>foo</code><span class=" fw-cl "><span>。</span></span>接着运行代码<span class=" fw-cl "><span>，</span></span>到了整体第 8 行<span class=" fw-cl "><span>，</span></span><code>console.log(foo)</code> 输出 foo 函数内容<span class="fw-op  "><span>（</span></span>因为 foo 函数内的 <code>foo = num</code><span class=" fw-cl "><span>，</span></span>将 num 赋值给的是函数作用域内的 foo 变量<span class=" fw-cl fw--collapsed"><span>。</span></span><span class=" fw-cl "><span>）</span></span></p>
+<p><br></p>
+<p><strong style="">结论</strong>　作用域在预编译阶段确定<span class=" fw-cl "><span>，</span></span>但是作用域链是在执行上下文的创建阶段完全生成的<span class=" fw-cl "><span>。</span></span>因为函数在调用时<span class=" fw-cl "><span>，</span></span>才会开始创建对应的执行上下文<span class=" fw-cl "><span>。</span></span>执行上下文包括了<span class=" fw-cl "><span>：</span></span>变量对象<span class=" fw-cl "><span>、</span></span>作用域链以及 <code>this</code> 的指向</p>
+<p>如图所示<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-26d1f8de7161751306bdf42af16e79bd.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:17.8% 0" data-src="https://pic1.zhimg.com/v2-26d1f8de7161751306bdf42af16e79bd.png">加载中...</span></figure>
+<p>代码执行的整个过程说起来就像<strong style="">一条生产流水线</strong><span class=" fw-cl "><span>。</span></span>第一道工序是在预编译阶段创建<strong style="">变量对象</strong><span class="fw-op  "><span>（</span></span>Variable Object<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>此时只是创建<span class=" fw-cl "><span>，</span></span>而未赋值<span class=" fw-cl "><span>。</span></span>到了下一道工序代码执行阶段<span class=" fw-cl "><span>，</span></span>变量对象转为<strong style="">激活对象</strong><span class="fw-op  "><span>（</span></span>Active Object<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>即完成 VO → AO<span class=" fw-cl "><span>。</span></span>此时<span class=" fw-cl "><span>，</span></span>作用域链也将被确定<span class=" fw-cl "><span>，</span></span>它由当前执行环境的变量对象和所有外层已经完成的激活对象组成<span class=" fw-cl "><span>。</span></span>这道工序保证了变量和函数的有序访问<span class=" fw-cl "><span>，</span></span>即如果当前作用域中未找到变量<span class=" fw-cl "><span>，</span></span>则继续向上查找直到全局作用域<span class=" fw-cl "><span>。</span></span></p>
+<p>这样的工序在流水线上串成一个整体<span class=" fw-cl "><span>，</span></span>这便是 JavaScript 引擎执行机制的最基本道理<span class=" fw-cl "><span>。</span></span></p>
+<h5>调用栈</h5>
+<p>了解了上面的内容<span class=" fw-cl "><span>，</span></span>函数调用栈便很好理解了<span class=" fw-cl "><span>。</span></span>我们在执行一个函数时<span class=" fw-cl "><span>，</span></span>如果这个函数又调用了另外一个函数<span class=" fw-cl "><span>，</span></span>而这个<span class="fw-op  "><span>「</span></span>另外一个函数<span class=" fw-cl "><span>」</span></span>也调用了<span class="fw-op  "><span>「</span></span>另外一个函数<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>便形成了一系列的调用栈<span class=" fw-cl "><span>。</span></span>如下代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo1() {<br>
+ &nbsp;foo2()<br>
+}<br>
+function foo2() {<br>
+ &nbsp;foo3()<br>
+}<br>
+function foo3() {<br>
+ &nbsp;foo4()<br>
+}<br>
+function foo4() {<br>
+ &nbsp;console.log('foo4')<br>
+}<br>
+foo1()</code></p>
+<p>调用关系<span class=" fw-cl "><span>：</span></span><code>foo1</code> → <code>foo2</code> → <code>foo3</code> → <code>foo4</code><span class=" fw-cl "><span>。</span></span>这个过程是 <code>foo1</code> 先入栈<span class=" fw-cl "><span>，</span></span>紧接着 <code>foo1</code> 调用 <code>foo2</code><span class=" fw-cl "><span>，</span></span><code>foo2</code>入栈<span class=" fw-cl "><span>，</span></span>以此类推<span class=" fw-cl "><span>，</span></span><code>foo3</code><span class=" fw-cl "><span>、</span></span><code>foo4</code><span class=" fw-cl "><span>，</span></span>直到 <code>foo4</code> 执行完 —— <code>foo4</code> 先出栈<span class=" fw-cl "><span>，</span></span><code>foo3</code> 再出栈<span class=" fw-cl "><span>，</span></span>接着是 <code>foo2</code> 出栈<span class=" fw-cl "><span>，</span></span>最后是 <code>foo1</code> 出栈<span class=" fw-cl "><span>。</span></span>这个过程<span class="fw-op  "><span>「</span></span>先进后出<span class=" fw-cl "><span>」</span></span><span class="fw-op  fw--collapsed"><span>（</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>后进先出<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>因此称为<strong style="">调用栈</strong><span class=" fw-cl "><span>。</span></span></p>
+<p>我们故意将 <code>foo4</code> 中的代码写错<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo1() {<br>
+ &nbsp;foo2()<br>
+}<br>
+function foo2() {<br>
+ &nbsp;foo3()<br>
+}<br>
+function foo3() {<br>
+ &nbsp;foo4()<br>
+}<br>
+function foo4() {<br>
+ &nbsp;console.lg('foo4')<br>
+}<br>
+foo1()</code></p>
+<p>得到错误提示如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-9f589e7b3688dab20f70111aa59ca4e9.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:25.128205128205128% 0" data-src="https://pic2.zhimg.com/v2-9f589e7b3688dab20f70111aa59ca4e9.png">加载中...</span></figure>
+<p>或者在 Chrome 中执行代码<span class=" fw-cl "><span>，</span></span>打断点得到<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-6f6b0fb8cb382236c36c5cd0be23932a.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:26.098418277680143% 0" data-src="https://pic4.zhimg.com/v2-6f6b0fb8cb382236c36c5cd0be23932a.png">加载中...</span></figure>
+<p>不管哪种方式<span class=" fw-cl "><span>，</span></span>我们从中都可以借助 JavaScript 引擎<span class=" fw-cl "><span>，</span></span>清晰地看到错误堆栈信息<span class=" fw-cl "><span>，</span></span>也就是函数调用栈关系<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<p><strong style="">注意</strong>　正常来讲<span class=" fw-cl "><span>，</span></span>在函数执行完毕并出栈时<span class=" fw-cl "><span>，</span></span>函数内局部变量在下一个垃圾回收节点会被回收<span class=" fw-cl "><span>，</span></span>该函数对应的执行上下文将会被销毁<span class=" fw-cl "><span>，</span></span>这也正是我们在外界无法访问函数内定义的变量的原因<span class=" fw-cl "><span>。</span></span>也就是说<span class=" fw-cl "><span>，</span></span>只有在函数执行时<span class=" fw-cl "><span>，</span></span>相关函数可以访问该变量<span class=" fw-cl "><span>，</span></span>该变量在预编译阶段进行创建<span class=" fw-cl "><span>，</span></span>在执行阶段进行激活<span class=" fw-cl "><span>，</span></span>在函数执行完毕后<span class=" fw-cl "><span>，</span></span>相关上下文被销毁<span class=" fw-cl "><span>。</span></span></p>
+<h4>闭包</h4>
+<p>介绍了这么多前置概念<span class=" fw-cl "><span>，</span></span>终于到了闭包环节<span class=" fw-cl "><span>。</span></span></p>
+<p>闭包并不是 JavaScript 特有的概念<span class=" fw-cl "><span>，</span></span>社区上对于闭包的定义也并不完全相同<span class=" fw-cl "><span>。</span></span>虽然本质上表达的意思相似<span class=" fw-cl "><span>，</span></span>但是晦涩且多样的定义仍然给初学者带来了困惑<span class=" fw-cl "><span>。</span></span>我自己认为比较容易理解的闭包定义为<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>函数嵌套函数时<span class=" fw-cl "><span>，</span></span>内层函数引用了外层函数作用域下的变量<span class=" fw-cl "><span>，</span></span>并且内层函数在全局环境下可访问<span class=" fw-cl "><span>，</span></span>就形成了闭包<span class=" fw-cl "><span>。</span></span></p>
+<p>我们看一个简单的代码示例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function numGenerator() {<br>
+ &nbsp;&nbsp;&nbsp;let num = 1<br>
+ &nbsp;&nbsp;&nbsp;num++<br>
+ &nbsp;&nbsp;&nbsp;return () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(num)<br>
+ &nbsp;&nbsp;&nbsp;} <br>
+}<br>
+<br>
+var getNum = numGenerator()<br>
+getNum()</code></p>
+<p>这个简单的闭包例子中<span class=" fw-cl "><span>，</span></span><code>numGenerator</code> 创建了一个变量 <code>num</code><span class=" fw-cl "><span>，</span></span>返回打印 <code>num</code> 值的匿名函数<span class=" fw-cl "><span>，</span></span>这个函数引用了变量 <code>num</code><span class=" fw-cl "><span>，</span></span>使得外部可以通过调用 <code>getNum</code> 方法访问到变量 <code>num</code><span class=" fw-cl "><span>，</span></span>因此在 <code>numGenerator</code> 执行完毕后<span class=" fw-cl "><span>，</span></span>即相关调用栈出栈后<span class=" fw-cl "><span>，</span></span>变量 <code>num</code> 不会消失<span class=" fw-cl "><span>，</span></span>仍然有机会被外界访问<span class=" fw-cl "><span>。</span></span></p>
+<p>执行代码<span class=" fw-cl "><span>，</span></span>能清晰地看到 JavaScript 引擎的分析<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-d18be28079653a5c190ceb1422a821b2.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:21.765734265734267% 0" data-src="https://pic4.zhimg.com/v2-d18be28079653a5c190ceb1422a821b2.png">加载中...</span></figure>
+<p><code>num</code> 值被标记为 Closure<span class=" fw-cl "><span>，</span></span>即闭包变量<span class=" fw-cl "><span>。</span></span></p>
+<p>对比前述内容<span class=" fw-cl "><span>，</span></span>我们知道正常情况下外界是无法访问函数内部变量的<span class=" fw-cl "><span>，</span></span>函数执行完之后<span class=" fw-cl "><span>，</span></span>上下文即被销毁<span class=" fw-cl "><span>。</span></span>但是在<span class="fw-op  "><span>（</span></span>外层<span class=" fw-cl "><span>）</span></span>函数中<span class=" fw-cl "><span>，</span></span>如果我们返回了另一个函数<span class=" fw-cl "><span>，</span></span>且这个返回的函数使用了<span class="fw-op  "><span>（</span></span>外层<span class=" fw-cl "><span>）</span></span>函数内的变量<span class=" fw-cl "><span>，</span></span>外界因而便能够通过这个返回的函数获取原<span class="fw-op  "><span>（</span></span>外层<span class=" fw-cl "><span>）</span></span>函数内部的变量值<span class=" fw-cl "><span>。</span></span>这就是闭包的<strong style="">基本原理</strong><span class=" fw-cl "><span>。</span></span></p>
+<p>因此<span class=" fw-cl "><span>，</span></span>直观上来看<span class=" fw-cl "><span>，</span></span>闭包这个概念为 JavaScript 中访问函数内变量提供了途径和便利<span class=" fw-cl "><span>。</span></span>这样做的好处很多<span class=" fw-cl "><span>，</span></span>比如我们可以利用闭包实现<span class="fw-op  "><span>「</span></span>模块化<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>；</span></span>再比如<span class=" fw-cl "><span>，</span></span>翻看 Redux 源码的中间件实现机制<span class=" fw-cl "><span>，</span></span>也会发现<span class="fw-op  "><span>（</span></span>函数式理念<span class=" fw-cl "><span>）</span></span>大量运用了闭包<span class=" fw-cl "><span>。</span></span>这些更加深入的内容我们后续课程都将会涉及<span class=" fw-cl "><span>。</span></span>闭包是前端进阶必备基础<span class=" fw-cl "><span>。</span></span>后面我们还会通过做题的方式<span class=" fw-cl "><span>，</span></span>帮助读者深化理解闭包<span class=" fw-cl "><span>。</span></span></p>
+<h4>内存管理</h4>
+<p>内存管理是计算机科学中的概念<span class=" fw-cl "><span>。</span></span>不论是什么程序语言<span class=" fw-cl "><span>，</span></span>内存管理都是指对内存生命周期的管理<span class=" fw-cl "><span>，</span></span>而内存的生命周期无外乎<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">分配内存空间</li>
+  <li style="">读写内存</li>
+  <li style="">释放内存空间</li>
+</ul>
+<p>我们用代码来举例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var foo = 'bar' // 在堆内存中给变量分配空间<br>
+alert(foo) &nbsp;// 使用内存<br>
+foo = null // 释放内存空间</code></p>
+<h5><strong style="">内存管理基本概念</strong></h5>
+<p>我们知道内存空间可以分为栈空间和堆空间<span class=" fw-cl "><span>，</span></span>其中</p>
+<ul>
+  <li style="">栈空间<span class=" fw-cl "><span>：</span></span>由操作系统自动分配释放<span class=" fw-cl "><span>，</span></span>存放函数的参数值<span class=" fw-cl "><span>，</span></span>局部变量的值等<span class=" fw-cl "><span>，</span></span>其操作方式类似于数据结构中的栈<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">堆空间<span class=" fw-cl "><span>：</span></span>一般由开发者分配释放<span class=" fw-cl "><span>，</span></span>这部分空间就要考虑垃圾回收的问题<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>在 JavaScript 中<span class=" fw-cl "><span>，</span></span>数据类型包括<span class="fw-op  "><span>（</span></span>未包含 ES Next 新数据类型<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">基本数据类型<span class=" fw-cl "><span>，</span></span>如 Undefined<span class=" fw-cl "><span>、</span></span>Null<span class=" fw-cl "><span>、</span></span>Number<span class=" fw-cl "><span>、</span></span>Boolean<span class=" fw-cl "><span>、</span></span>String 等</li>
+  <li style="">引用类型<span class=" fw-cl "><span>，</span></span>如 Object<span class=" fw-cl "><span>、</span></span>Array<span class=" fw-cl "><span>、</span></span>Function 等</li>
+</ul>
+<p>一般情况下<span class=" fw-cl "><span>，</span></span>基本数据类型保存在栈内存当中<span class=" fw-cl "><span>，</span></span>引用类型保存在堆内存当中<span class=" fw-cl "><span>。</span></span>如下代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var a = 11<br>
+var b = 10<br>
+var c = [1, 2, 3]<br>
+var d = { e: 20 }</code></p>
+<p>对应内存分配图示<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-bd20ad644308e96ab749683ac2906912.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:22.3% 0" data-src="https://pic4.zhimg.com/v2-bd20ad644308e96ab749683ac2906912.png">加载中...</span></figure>
+<p><strong style="">对于分配内存和读写内存的行为所有语言都较为一致<span class=" fw-cl "><span>，</span></span>但释放内存空间在不同语言之间有差异<span class=" fw-cl "><span>。</span></span></strong>例如<span class=" fw-cl "><span>，</span></span>JavaScript 依赖宿主浏览器的垃圾回收机制<span class=" fw-cl "><span>，</span></span>一般情况下不用程序员操心<span class=" fw-cl "><span>。</span></span>但这并不表示万事大吉<span class=" fw-cl "><span>，</span></span>某些情况下依然会出现内存泄漏现象<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">内存泄漏</strong>是指内存空间明明已经不再被使用<span class=" fw-cl "><span>，</span></span>但由于某种原因并没有被释放的现象<span class=" fw-cl "><span>。</span></span>这是一个非常<span class="fw-op  "><span>「</span></span>玄学<span class=" fw-cl "><span>」</span></span>的概念<span class=" fw-cl "><span>，</span></span>因为内存空间是否还在使用<span class=" fw-cl "><span>，</span></span>某种程度上是不可判定问题<span class=" fw-cl "><span>，</span></span>或者判定成本很高<span class=" fw-cl "><span>。</span></span>内存泄漏危害却非常直观<span class=" fw-cl "><span>：</span></span>它会直接导致程序运行缓慢<span class=" fw-cl "><span>，</span></span>甚至崩溃<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">内存泄漏场景举例</strong></h5>
+<p>我们来看几个典型引起内存泄漏的例子<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var element = document.getElementById("element")<br>
+element.mark = "marked"<br>
+<br>
+// 移除 element 节点<br>
+function remove() {<br>
+ &nbsp;&nbsp;&nbsp;element.parentNode.removeChild(element)<br>
+}</code></p>
+<p>上面的代码<span class=" fw-cl "><span>，</span></span>我们只是把 <code>id</code> 为 <code>element</code> 的节点移除<span class=" fw-cl "><span>，</span></span>但是变量 <code>element</code> 依然存在<span class=" fw-cl "><span>，</span></span>该节点占有的内存无法被释放<span class=" fw-cl "><span>。</span></span></p>
+<p>请仔细参考下图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-8e3f4c44795f230f8e65199cc08f049e.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:40.88709677419355% 0" data-src="https://pic4.zhimg.com/v2-8e3f4c44795f230f8e65199cc08f049e.png">加载中...</span></figure>
+<p>我们需要在 <code>remove</code> 方法中添加<span class=" fw-cl "><span>：</span></span><code>element = null</code><span class=" fw-cl "><span>，</span></span>这样更为稳妥<span class=" fw-cl "><span>。</span></span></p>
+<p>再来看个示例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var element = document.getElementById('element')<br>
+element.innerHTML = '<button id="button">点击</button>'<br>
+<br>
+var button = document.getElementById('button')<br>
+button.addEventListener('click', function() {<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+})<br>
+<br>
+element.innerHTML = ''</code></p>
+<p>这段代码执行后<span class=" fw-cl "><span>，</span></span>因为 element.innerHTML = ''<span class=" fw-cl "><span>，</span></span><code>button</code> 元素已经从 DOM 中移除了<span class=" fw-cl "><span>，</span></span>但是由于其事件处理句柄还在<span class=" fw-cl "><span>，</span></span>所以依然无法被垃圾回收<span class=" fw-cl "><span>。</span></span>我们还需要增加 removeEventListener<span class=" fw-cl "><span>，</span></span>防止内存泄漏<span class=" fw-cl "><span>。</span></span></p>
+<p>另一个示例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;var name &nbsp;= 'lucas'<br>
+ &nbsp;window.setInterval(function() {<br>
+ &nbsp;&nbsp;&nbsp;console.log(name)<br>
+ &nbsp;}, 1000)<br>
+}<br>
+<br>
+foo()</code></p>
+<p>这段代码由于 window.setInterval 的存在<span class=" fw-cl "><span>，</span></span>导致 <code>name</code> 内存空间始终无法被释放<span class=" fw-cl "><span>，</span></span>如果不是业务要求的话<span class=" fw-cl "><span>，</span></span>一定要记得在合适的时机使用 <code>clearInterval</code> 进行清理<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">浏览器垃圾回收</strong></h5>
+<p>当然<span class=" fw-cl "><span>，</span></span>除了开发者主动保证以外<span class=" fw-cl "><span>，</span></span>大部分的场景浏览器都会依靠<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">标记清除</li>
+  <li style="">引用计数</li>
+</ul>
+<p>两种算法来进行主动垃圾回收<span class=" fw-cl "><span>。</span></span>内容社区上有很多好文章介绍这方面的内容<span class=" fw-cl "><span>，</span></span>我把自己收藏的几篇不错的跟大家分享一下<span class=" fw-cl "><span>，</span></span>这些内容偏浏览器引擎实现<span class=" fw-cl "><span>，</span></span>这里不再过多介绍<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以参考下面内容<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style=""><a href="https://juejin.im/post/5c4409fbf265da616f703d5a" title="通过垃圾回收机制理解 JavaScript 内存管理">通过垃圾回收机制理解 JavaScript 内存管理</a></li>
+  <li style=""><a href="https://mp.weixin.qq.com/s?__biz=MzA5NzkwNDk3MQ==&amp;mid=2650585408&amp;idx=1&amp;sn=4de7b5bbfa969d9587c163e98bc90684&amp;source=41#wechat_redirect" title="如何处理 JavaScript 内存泄漏">如何处理 JavaScript 内存泄漏</a></li>
+  <li style=""><a href="https://segmentfault.com/a/1190000003641343" title="垃圾回收">垃圾回收</a></li>
+  <li style=""><a href="https://segmentfault.com/a/1190000007887891" title="编写内存友好的代码">编写内存友好的代码</a></li>
+  <li style=""><a href="https://mp.weixin.qq.com/s?__biz=MzAxODE2MjM1MA==&amp;mid=2651551451&amp;idx=1&amp;sn=b8447a12eceb467992d432b014d9c026&amp;chksm=8025a11ab752280c7915db4ef726611f645d2fee590d6f0f3f9aeedd55c956454f66f786873a&amp;scene=0#wechat_redirect" title="JavaScript 中 4 种常见的内存泄漏陷阱">JavaScript 中 4 种常见的内存泄漏陷阱</a></li>
+  <li style=""><a href="https://juejin.im/post/5c3dce07e51d4551e960d840" title="记一次网页内存溢出分析及解决实践">记一次网页内存溢出分析及解决实践</a></li>
+</ul>
+<h5><strong style="">内存泄漏和垃圾回收注意事项</strong></h5>
+<p><strong style="">关于内存泄漏和垃圾回收<span class=" fw-cl "><span>，</span></span>要在实战中分析<span class=" fw-cl "><span>，</span></span>不能完全停留在理论层面<span class=" fw-cl "><span>，</span></span>毕竟如今浏览器千变万化且一直在演进当中<span class=" fw-cl "><span>。</span></span></strong> 从以上示例我们可以看出<span class=" fw-cl "><span>，</span></span>借助闭包来绑定数据变量<span class=" fw-cl "><span>，</span></span>可以保护这些数据变量的内存块在闭包存活时<span class=" fw-cl "><span>，</span></span>始终不被垃圾回收机制回收<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>闭包使用不当<span class=" fw-cl "><span>，</span></span>极可能引发内存泄漏<span class=" fw-cl "><span>，</span></span>需要格外注意<span class=" fw-cl "><span>。</span></span>以下代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;&nbsp;&nbsp;let value = 123<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function bar() { alert(value) }<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return bar<br>
+}<br>
+<br>
+let bar = foo()</code></p>
+<p>这种情况下<span class=" fw-cl "><span>，</span></span>变量 value 将会保存在内存中<span class=" fw-cl "><span>，</span></span>如果加上<span class=" fw-cl "><span>：</span></span></p>
+<p><code>bar = null</code></p>
+<p>这样的话<span class=" fw-cl "><span>，</span></span>随着 bar 不再被引用<span class=" fw-cl "><span>，</span></span>value 也会被清除<span class=" fw-cl "><span>。</span></span></p>
+<p>结合浏览器引擎的优化情况<span class=" fw-cl "><span>，</span></span>我们对上述代码进行改动<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;&nbsp;&nbsp;let value = Math.random()<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function bar() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;debugger<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return bar<br>
+}<br>
+<br>
+let bar = foo()<br>
+bar()</code></p>
+<p>在 Chrome 浏览器 V8 最新引擎中<span class=" fw-cl "><span>，</span></span>执行上述代码<span class=" fw-cl "><span>。</span></span>我们在函数 <code>bar</code> 中打断点<span class=" fw-cl "><span>，</span></span>会发现 <code>value</code> 没有被引用<span class=" fw-cl "><span>，</span></span>如下图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-1440011ea6cc0eb895724b39601b607b.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:28.306451612903228% 0" data-src="https://pic4.zhimg.com/v2-1440011ea6cc0eb895724b39601b607b.png">加载中...</span></figure>
+<p>而我们在 <code>bar</code> 函数中加入对 <code>value</code> 的引用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;&nbsp;&nbsp;let value = Math.random()<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function bar() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;debugger<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return bar<br>
+}<br>
+<br>
+let bar = foo()<br>
+bar()</code></p>
+<p>会发现此时引擎中存在闭包变量 value 值<span class=" fw-cl "><span>。</span></span>如下图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-11c442f830ae08e2010289dc2578f048.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:25.282258064516128% 0" data-src="https://pic4.zhimg.com/v2-11c442f830ae08e2010289dc2578f048.png">加载中...</span></figure>
+<p>下面我们来看一个实战<span class=" fw-cl "><span>，</span></span>借助 Chrome devtool<span class=" fw-cl "><span>，</span></span>排查发现内存泄漏的场景<span class=" fw-cl "><span>。</span></span></p>
+<p>代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var array = []<br>
+function createNodes() {<br>
+ &nbsp;&nbsp;&nbsp;let div<br>
+ &nbsp;&nbsp;&nbsp;let i = 100<br>
+ &nbsp;&nbsp;&nbsp;let frag = document.createDocumentFragment()<br>
+ &nbsp;&nbsp;&nbsp;for (; i &gt; 0; i--) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;div = document.createElement("div")<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;div.appendChild(document.createTextNode(i))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;frag.appendChild(div)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;document.body.appendChild(frag)<br>
+}<br>
+function badCode() { <br>
+ &nbsp;&nbsp;&nbsp;array.push([...Array(100000).keys()])<br>
+ &nbsp;&nbsp;&nbsp;createNodes()<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(badCode, 1000)<br>
+}<br>
+<br>
+badCode()</code></p>
+<p>我们递归调用 <code>badCode</code><span class=" fw-cl "><span>，</span></span>这个函数每次向 <code>array</code> 数组中写入新的由 100000 项从 0 到 1 组成的新数组<span class=" fw-cl "><span>，</span></span>在 <code>badCode</code>函数使用完全局变量 <code>array</code> 之后<span class=" fw-cl "><span>，</span></span>并没有手动释放内存<span class=" fw-cl "><span>，</span></span>垃圾回收不会处理 <code>array</code><span class=" fw-cl "><span>，</span></span>导致内存泄漏<span class=" fw-cl "><span>；</span></span>同时<span class=" fw-cl "><span>，</span></span><code>badCode</code>函数调用 <code>createNodes</code> 函数<span class=" fw-cl "><span>，</span></span>每 1s 创建 100 个 div 节点<span class=" fw-cl "><span>。</span></span></p>
+<p>这时候<span class=" fw-cl "><span>，</span></span>打开 Chrome devtool<span class=" fw-cl "><span>，</span></span>我们选中 performance 标签<span class=" fw-cl "><span>，</span></span>拍下快照得到<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-c74c418a0350a63099e63e644abf58b8.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:22.505197505197504% 0" data-src="https://pic3.zhimg.com/v2-c74c418a0350a63099e63e644abf58b8.png">加载中...</span></figure>
+<p>由此可以发现<span class=" fw-cl "><span>，</span></span>JS heap<span class="fw-op  "><span>（</span></span>蓝线<span class=" fw-cl "><span>）</span></span>和 Nodes<span class="fw-op  "><span>（</span></span>绿线<span class=" fw-cl "><span>）</span></span>线<span class=" fw-cl "><span>，</span></span>随着时间线一直在上升<span class=" fw-cl "><span>，</span></span>并没有被垃圾回收<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>可以判定存在较大的内存泄漏风险<span class=" fw-cl "><span>。</span></span>如果我们不知道有问题的代码位置<span class=" fw-cl "><span>，</span></span>具体如何找出风险点<span class=" fw-cl "><span>，</span></span>那需要在 Chrome memory 标签中<span class=" fw-cl "><span>，</span></span>对 JS heap 中每一项<span class=" fw-cl "><span>，</span></span>尤其是 size 较大的前几项展开调查<span class=" fw-cl "><span>。</span></span>如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-b05b8c51acc3dd36c10e796ca026e528.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:22.466734902763562% 0" data-src="https://pic4.zhimg.com/v2-b05b8c51acc3dd36c10e796ca026e528.png">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-3ab30394fdde2a4069f151802aa7b8f5.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:35.478359908883824% 0" data-src="https://pic4.zhimg.com/v2-3ab30394fdde2a4069f151802aa7b8f5.png">加载中...</span></figure>
+<p>明显就是我们定义的 <code>array</code> 不对劲了<span class=" fw-cl "><span>。</span></span></p>
+<p>这一节我们分析了涉及闭包知识的基础概念<span class=" fw-cl "><span>，</span></span>介绍了内存管理和垃圾回收相关机制<span class=" fw-cl "><span>。</span></span>下一节我们将集中学习代码示例<span class=" fw-cl "><span>，</span></span>加强理解<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1XkLPGdKIGeZ6LvFJ5YQ</span></p>
+</body>
+</html>

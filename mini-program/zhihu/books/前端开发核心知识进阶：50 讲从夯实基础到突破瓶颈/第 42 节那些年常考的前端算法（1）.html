@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 42 节那些年常考的前端算法（1）</h1>
+  <p>在上一讲中<span class=" fw-cl "><span>，</span></span>我们全面梳理了重要的数据结构<span class=" fw-cl "><span>，</span></span>并用 JavaScript 对各种数据结构进行了实现和方法模拟<span class=" fw-cl "><span>。</span></span>数据结构常与算法一起出现<span class=" fw-cl "><span>，</span></span>两者相互依存密不可分<span class=" fw-cl "><span>。</span></span>这一讲<span class=" fw-cl "><span>，</span></span>我们来研究一下<span class="fw-op  "><span>「</span></span>那些年常考的前端算法<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>主要内容如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-6b6c32c1a18a2ff0be49724c07a9b36c.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:51.6860465116279% 0" data-src="https://pic4.zhimg.com/v2-6b6c32c1a18a2ff0be49724c07a9b36c.png">加载中...</span></figure>
+<p>我们将通过三讲的内容来剖析算法问题<span class=" fw-cl "><span>。</span></span>本讲先<span class="fw-op  "><span>「</span></span>轻松<span class=" fw-cl "><span>」</span></span>一下<span class=" fw-cl "><span>，</span></span>主要介绍前端和算法的关系<span class=" fw-cl "><span>，</span></span>以及算法中的一些基本概念<span class=" fw-cl "><span>。</span></span></p>
+<h3>前端和算法</h3>
+<p>前端和算法有什么关系呢<span class=" fw-cl "><span>？</span></span>我想先纠正两个常见的错误认知<span class=" fw-cl "><span>。</span></span></p>
+<h4>关于算法的误解</h4>
+<ul>
+  <li style="">前端没有算法<span class=" fw-cl "><span>？</span></span></li>
+</ul>
+<p><span class="fw-op  "><span>「</span></span>前端没有算法<span class=" fw-cl "><span>」</span></span>这种说法往往出自算法岗甚至后端读者<span class=" fw-cl "><span>，</span></span>这种认知是错误的<span class=" fw-cl "><span>。</span></span>前端不仅有算法<span class=" fw-cl "><span>，</span></span>而且算法在前端开发中占据的地位也越来越重要<span class=" fw-cl "><span>。</span></span>我们常提到的 Virtual dom diff<span class=" fw-cl "><span>、</span></span>webpack 实现<span class=" fw-cl "><span>、</span></span>React fiber<span class=" fw-cl "><span>、</span></span>React hooks<span class=" fw-cl "><span>、</span></span>响应式编程<span class=" fw-cl "><span>、</span></span>浏览器引擎工作方式等都有算法的影子<span class=" fw-cl "><span>。</span></span>在业务代码中<span class=" fw-cl "><span>，</span></span>哪怕写一个抽奖游戏<span class=" fw-cl "><span>，</span></span>写一个混淆函数都离不开算法<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">算法重要不重要<span class=" fw-cl "><span>？</span></span></li>
+</ul>
+<p>有读者认为<span class=" fw-cl "><span>，</span></span>前端中算法只是提供了一些偏底层的能力和实现支持<span class=" fw-cl "><span>，</span></span>我在业务开发中真正使用到算法的场景也很有限<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>不仅单纯的前端业务<span class=" fw-cl "><span>，</span></span>哪怕对于后端业务来说<span class=" fw-cl "><span>，</span></span>真正让你<span class="fw-op  "><span>「</span></span>徒手<span class=" fw-cl "><span>」</span></span>实现一段算法的场景也不算多<span class=" fw-cl "><span>。</span></span>但是据此得出算法不重要的说法还是太片面了<span class=" fw-cl "><span>。</span></span>为什么高阶面试中总会问到算法呢<span class=" fw-cl "><span>？</span></span>因为算法很好地反应了候选者编程思维和计算机素养<span class=" fw-cl "><span>；</span></span>另一方面<span class=" fw-cl "><span>，</span></span>如果我们想进阶<span class=" fw-cl "><span>，</span></span>算法也是必须要攻克的一道难关<span class=" fw-cl "><span>。</span></span></p>
+<h4>前端和算法简单举例</h4>
+<p>我就先举一个例子作为引子<span class=" fw-cl "><span>，</span></span>一起先热热身<span class=" fw-cl "><span>，</span></span>看看算法应用在前端开发中的一个小细节<span class=" fw-cl "><span>。</span></span></p>
+<p>想必不少读者写过<span class="fw-op  "><span>「</span></span>抽奖<span class=" fw-cl "><span>」</span></span>代码<span class=" fw-cl "><span>，</span></span>或者<span class="fw-op  "><span>「</span></span>老虎机<span class=" fw-cl "><span>」</span></span>转盘<span class=" fw-cl "><span>。</span></span>其中可能会涉及到一个问题<span class=" fw-cl "><span>，</span></span>就是<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p><span class="fw-op  "><span>「</span></span>如何将一个 JavaScript 数组打乱顺序<span class=" fw-cl fw--collapsed"><span>？</span></span><span class=" fw-cl "><span>」</span></span></p>
+<p>事实上乱序一个数组不仅仅是前端课题<span class=" fw-cl "><span>，</span></span>那么这个问题在前端的背景下<span class=" fw-cl "><span>，</span></span>有哪些特点呢<span class=" fw-cl "><span>？</span></span>可能有读者首先想到使用数组的 sort API<span class=" fw-cl "><span>，</span></span>再结合 Math.random 实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>[12,4,16,3].sort(function() {<br>
+ &nbsp;&nbsp;&nbsp;return .5 - Math.random();<br>
+})</code></p>
+<p>这样的思路非常自然<span class=" fw-cl "><span>，</span></span>但也许你不知道<span class=" fw-cl "><span>：</span></span>这不是真正意义上的完全乱序<span class=" fw-cl "><span>。</span></span></p>
+<p>为此我们进行验证<span class=" fw-cl "><span>，</span></span>对数组</p>
+<p><code>let letters = ['A','B','C','D','E','F','G','H','I','J']</code></p>
+<p>使用 array.sort 方法进行了 10000 次乱序处理<span class=" fw-cl "><span>，</span></span>并对乱序之后得到的新数组中<span class=" fw-cl "><span>，</span></span>每一个字母出现的位置进行统计<span class=" fw-cl "><span>，</span></span>并可视化输出<span class=" fw-cl "><span>：</span></span></p>
+<p><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><table id="results"><tbody><tr><th style="background-color:#ccccff">Results</th><th>slot 0</th><th>slot 1</th><th>slot 2</th><th>slot 3</th><th>slot 4</th><th>slot 5</th><th>slot 6</th><th>slot 7</th><th>slot 8</th><th>slot 9</th></tr><tr><th>A's</th><td class="strongbias">0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><th>B's</th><td>0</td><td class="strongbias">0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><th>C's</th><td>0</td><td>0</td><td class="bias">0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><th>D's</th><td>0</td><td>0</td><td>0</td><td class="bias">0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><th>E's</th><td>0</td><td>0</td><td>0</td><td>0</td><td class="bias">0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><th>F's</th><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="bias">0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><th>G's</th><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="bias">0</td><td>0</td><td>0</td><td>0</td></tr><tr><th>H's</th><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="bias">0</td><td>0</td><td>0</td></tr><tr><th>I's</th><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="strongbias">0</td><td>0</td></tr><tr><th>J's</th><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td class="strongbias">0</td></tr></tbody></table><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="recalculate" onclick="recalc()"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;<script><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const recalc = () => {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const countings = [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{A:0,B:0,C:0,D:0,E:0,F:0,G:0,H:0,I:0,J:0}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let letters=['A','B','C','D','E','F','G','H','I','J'];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let i = 0; i < 10000; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var r = ['A','B','C','D','E','F','G','H','I','J'].sort(function() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return .5 - Math.random()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for(var j = 0; j <= 9; j++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;countings[j][r[j]]++<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for(var i = 0; i <= 9;i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for(var j = 0;j <= 9;j++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;document.getElementById('results').rows[i + 1].cells[j + 1].firstChild.data = countings[i][letters[j]]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;recalc()<br>
+ &nbsp;&nbsp;&nbsp;</script></code><p></p>
+<p>得到结果<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-2171919afd078ae864555da67a5406d0.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:31.532258064516128% 0" data-src="https://pic4.zhimg.com/v2-2171919afd078ae864555da67a5406d0.png">加载中...</span></figure>
+<p>不管点击按钮几次<span class=" fw-cl "><span>，</span></span>你都会发现整体乱序之后的结果绝对不是<span class="fw-op  "><span>「</span></span>完全随机<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>比如<span class=" fw-cl "><span>，</span></span>A 元素大概率出现在数组的头部<span class=" fw-cl "><span>，</span></span>J 元素大概率出现在数组的尾部<span class=" fw-cl "><span>，</span></span>所有元素大概率停留在自己初始位置<span class=" fw-cl "><span>。</span></span></p>
+<p>这是为什么呢<span class=" fw-cl "><span>？</span></span></p>
+<p>究其原因<span class=" fw-cl "><span>，</span></span>在 Chrome v8 引擎源码中<span class=" fw-cl "><span>，</span></span>可以清晰看到<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>v8 在处理 sort 方法时<span class=" fw-cl "><span>，</span></span>使用了插入排序和快排两种方案<span class=" fw-cl "><span>。</span></span>当目标数组长度小于 10<span class="fw-op  "><span>（</span></span>不同版本有差别<span class=" fw-cl "><span>）</span></span>时<span class=" fw-cl "><span>，</span></span>使用插入排序<span class=" fw-cl "><span>；</span></span>反之<span class=" fw-cl "><span>，</span></span>使用快排<span class=" fw-cl "><span>。</span></span></p>
+<p>其实不管用什么排序方法<span class=" fw-cl "><span>，</span></span>大多数排序算法的时间复杂度介于 O(n) 到 O(n2) 之间<span class=" fw-cl "><span>，</span></span>元素之间的比较次数通常情况下要远小于 n(n-1)/2<span class=" fw-cl "><span>，</span></span>也就意味着有一些元素之间根本就没机会相比较<span class="fw-op  "><span>（</span></span>也就没有了随机交换的可能<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>这些 sort 随机排序的算法自然也不能真正随机<span class=" fw-cl "><span>。</span></span></p>
+<p>通俗地说<span class=" fw-cl "><span>，</span></span>其实我们使用 array.sort 进行乱序<span class=" fw-cl "><span>，</span></span>理想的方案或者说纯乱序的方案是<span class=" fw-cl "><span>：</span></span>数组中每两个元素都要进行比较<span class=" fw-cl "><span>，</span></span>这个比较有 50% 的交换位置概率<span class=" fw-cl "><span>。</span></span>如此一来<span class=" fw-cl "><span>，</span></span>总共比较次数一定为 n(n-1)<span class=" fw-cl "><span>。</span></span></p>
+<p>而在 sort 排序算法中<span class=" fw-cl "><span>，</span></span>大多数情况都不会满足这样的条件<span class=" fw-cl "><span>，</span></span>因此当然不是完全随机的结果了<span class=" fw-cl "><span>。</span></span></p>
+<p>那为了满足乱序一个数组的需求<span class=" fw-cl "><span>，</span></span>我们应该怎么做呢<span class=" fw-cl "><span>？</span></span></p>
+<p>Fisher–Yates shuffle 洗牌算法——会是一个更好的选择<span class=" fw-cl "><span>。</span></span>这里<span class=" fw-cl "><span>，</span></span>我们简单借助图形来理解<span class=" fw-cl "><span>，</span></span>非常简单直观<span class=" fw-cl "><span>。</span></span>接下来就会明白为什么这是理论上的完全乱序<span class="fw-op  "><span>（</span></span>图片来源于网络<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>首先我们有一个已经排好序的数组<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-6df17b8f73331a96fe009756e570e007.jpg" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:4.834254143646409% 0" data-src="https://pic1.zhimg.com/v2-6df17b8f73331a96fe009756e570e007.jpg">加载中...</span></figure>
+<p><strong style="">Step1</strong><span class=" fw-cl "><span>：</span></span></p>
+<p>这一步需要做的就是<span class=" fw-cl "><span>，</span></span>从数组末尾开始<span class=" fw-cl "><span>，</span></span>选取最后一个元素<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-a35f351f5ff98e13a79509a3d247b576.jpg" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:11.11111111111111% 0" data-src="https://pic4.zhimg.com/v2-a35f351f5ff98e13a79509a3d247b576.jpg">加载中...</span></figure>
+<p>在数组一共 9 个位置中<span class=" fw-cl "><span>，</span></span>随机产生一个位置<span class=" fw-cl "><span>，</span></span>该位置元素与最后一个元素进行交换<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-dc08b65b9cec4caf264a32cb18832f42.jpg" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:16.219839142091153% 0" data-src="https://pic2.zhimg.com/v2-dc08b65b9cec4caf264a32cb18832f42.jpg">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-94024aee2ee49740cfd55fa873bd0e7b.jpg" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:15.782493368700266% 0" data-src="https://pic3.zhimg.com/v2-94024aee2ee49740cfd55fa873bd0e7b.jpg">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-143b193faf28e8a932dd25a0499162eb.jpg" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:17.654986522911052% 0" data-src="https://pic1.zhimg.com/v2-143b193faf28e8a932dd25a0499162eb.jpg">加载中...</span></figure>
+<p><strong style="">Step2<span class=" fw-cl "><span>：</span></span></strong></p>
+<p>在上一步中<span class=" fw-cl "><span>，</span></span>我们已经把数组末尾元素进行随机置换<span class=" fw-cl "><span>。</span></span></p>
+<p>接下来<span class=" fw-cl "><span>，</span></span>对数组倒数第二个元素动手<span class=" fw-cl "><span>。</span></span>在除去已经排好的最后一个元素位置以外的 8 个位置中<span class=" fw-cl "><span>，</span></span>随机产生一个位置<span class=" fw-cl "><span>，</span></span>该位置元素与倒数第二个元素进行交换<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-0766d0b95be258b486935ed64b9d3f8a.jpg" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:11.277173913043478% 0" data-src="https://pic2.zhimg.com/v2-0766d0b95be258b486935ed64b9d3f8a.jpg">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-0045aa8af3dd115f8de19bc295fb4234.jpg" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:17.027027027027028% 0" data-src="https://pic3.zhimg.com/v2-0045aa8af3dd115f8de19bc295fb4234.jpg">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-8bf4ec47ac2c14b51409aa0d2a298077.jpg" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:11.653116531165312% 0" data-src="https://pic3.zhimg.com/v2-8bf4ec47ac2c14b51409aa0d2a298077.jpg">加载中...</span></figure>
+<p><strong style="">Step3<span class=" fw-cl "><span>：</span></span></strong></p>
+<p>理解了前两步<span class=" fw-cl "><span>，</span></span>接下来就是依次进行<span class=" fw-cl "><span>，</span></span>如此简单<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-d1a295cdaf1fc6251982c89f4c2b1911.jpg" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:11.41304347826087% 0" data-src="https://pic3.zhimg.com/v2-d1a295cdaf1fc6251982c89f4c2b1911.jpg">加载中...</span></figure>
+<p>明白了原理<span class=" fw-cl "><span>，</span></span>代码实现也很简单<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Array.prototype.shuffle = function() {<br>
+ &nbsp;&nbsp;&nbsp;var array = this;<br>
+ &nbsp;&nbsp;&nbsp;var m = array.length,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t, i;<br>
+ &nbsp;&nbsp;&nbsp;while (m) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i = Math.floor(Math.random() * m--);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t = array[m];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array[m] = array[i];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array[i] = t;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return array;<br>
+}</code></p>
+<h3>算法的基本概念</h3>
+<p>在具体讲解各种算法前<span class=" fw-cl "><span>，</span></span>我们有必要先掌握基本概念<span class=" fw-cl "><span>。</span></span>搞定算法<span class=" fw-cl "><span>，</span></span>需要读者优先了解数据结构以及各种结构的相关方法<span class=" fw-cl "><span>，</span></span>这些内容上一讲中已经进行了梳理<span class=" fw-cl "><span>。</span></span>另外一个重要概念就是算法复杂度了<span class=" fw-cl "><span>，</span></span>它是评估一个算法优秀程度的重要考证<span class=" fw-cl "><span>。</span></span>我们常说的时间复杂度和空间复杂度该如何理解呢<span class=" fw-cl "><span>？</span></span></p>
+<h4>时间复杂度</h4>
+<p>我们先看一下时间复杂度的概念<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>一个算法的时间复杂度反映了程序运行从开始到结束所需要的时间<span class=" fw-cl "><span>。</span></span>把算法中基本操作重复执行的次数<span class="fw-op  "><span>（</span></span>频度<span class=" fw-cl "><span>）</span></span>作为算法的时间复杂度<span class=" fw-cl "><span>。</span></span></p>
+<p>但是时间复杂度的计算既可以<span class="fw-op  "><span>「</span></span>有理可依<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>又可以靠<span class="fw-op  "><span>「</span></span>主观感觉<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>通常我们认为<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">没有循环语句<span class=" fw-cl "><span>，</span></span>时间复杂度记作 O(1)<span class=" fw-cl "><span>，</span></span>我们称为常数阶<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">只有一重循环<span class=" fw-cl "><span>，</span></span>那么算法的基本操作的执行频度与问题规模 n 呈线性增大关系<span class=" fw-cl "><span>，</span></span>记作 O<span class="fw-op  "><span>（</span></span>n<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>也叫线性阶<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>那么如何让时间复杂度的计算<span class="fw-op  "><span>「</span></span>有理可依<span class=" fw-cl "><span>」</span></span>呢<span class=" fw-cl "><span>？</span></span>来看几个原则<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">只看循环次数最多的代码</li>
+  <li style="">加法法则<span class=" fw-cl "><span>：</span></span>总复杂度等于量级最大的那段代码的复杂度</li>
+  <li style="">乘法法则<span class=" fw-cl "><span>：</span></span>嵌套代码的复杂度等于嵌套内外复杂度的乘积</li>
+</ul>
+<p>我们来逐一分析<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const cal = n =&gt; { <br>
+ &nbsp;&nbsp;let sum = 0<br>
+ &nbsp;&nbsp;let i = 1<br>
+ &nbsp;&nbsp;for (; i &lt;= n; ++i) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;sum = sum + i<br>
+ &nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;return sum<br>
+ }</code></p>
+<p>执行次数最多的是 for 循环及里面的代码<span class=" fw-cl "><span>，</span></span>执行了 n 次<span class=" fw-cl "><span>，</span></span>应该<span class="fw-op  "><span>「</span></span>只看循环次数最多的代码<span class=" fw-cl "><span>」</span></span>原则<span class=" fw-cl "><span>，</span></span>因此时间复杂度为 O(n)<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const cal = n =&gt; {<br>
+ &nbsp;&nbsp;let sum1 = 0<br>
+ &nbsp;&nbsp;let p = 1<br>
+<br>
+ &nbsp;&nbsp;for (; p &lt; 100; ++p) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;sum1= sum1 + p<br>
+ &nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;let sum2 = 0<br>
+ &nbsp;&nbsp;let q = 1<br>
+ &nbsp;&nbsp;for (; q &lt; n; ++q) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;sum2 = sum2 + q<br>
+ &nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;let sum3 = 0<br>
+ &nbsp;&nbsp;let i = 1<br>
+ &nbsp;&nbsp;let j = 1<br>
+ &nbsp;&nbsp;for (; i &lt;= n; ++i) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;j = 1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;for (; j &lt;= n; ++j) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sum3 = sum3 + &nbsp;i * j<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;return sum1 + sum2 + sum3<br>
+ }</code></p>
+<p>上述代码分别对 sum1<span class=" fw-cl "><span>、</span></span>sum2<span class=" fw-cl "><span>、</span></span>sum3 求和<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">对于 sum1 求和<span class=" fw-cl "><span>，</span></span>循环 100 次<span class=" fw-cl "><span>，</span></span>常数执行时间<span class=" fw-cl "><span>，</span></span>时间复杂度为 O(1)<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">对于 sum2 求和<span class=" fw-cl "><span>，</span></span>循环规模为 n<span class=" fw-cl "><span>，</span></span>时间复杂度为 O(n)<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">对于 sum3 求和<span class=" fw-cl "><span>，</span></span>两层循环<span class=" fw-cl "><span>，</span></span>时间复杂度为 O(n²)<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>因此 O(1) + O(n) + O(n²)<span class=" fw-cl "><span>，</span></span>取三段代码的最大量级<span class=" fw-cl "><span>，</span></span>上面例子最终的时间复杂度为 O(n²)<span class=" fw-cl "><span>。</span></span></p>
+<p>对于代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const cal = n =&gt; {<br>
+ &nbsp;&nbsp;let ret = 0<br>
+ &nbsp;&nbsp;let i = 1<br>
+ &nbsp;&nbsp;for (; i &lt; n; ++i) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;ret = ret + f(i); // 注意 &nbsp;f(i)<br>
+ &nbsp;&nbsp;} <br>
+ } <br>
+<br>
+const f = n =&gt; {<br>
+ &nbsp;let sum = 0<br>
+ &nbsp;let i = 1<br>
+ &nbsp;for (; i &lt; n; ++i) {<br>
+ &nbsp;&nbsp;&nbsp;sum = sum + i<br>
+ &nbsp;} <br>
+ &nbsp;return sum<br>
+ }</code></p>
+<p>方法 cal 循环里面调用 f 方法<span class=" fw-cl "><span>，</span></span>而 f 方法里面也有循环<span class=" fw-cl "><span>，</span></span>这时应用第三个原则——乘法原则<span class=" fw-cl "><span>，</span></span>得到时间复杂度 O(n²)<span class=" fw-cl "><span>。</span></span></p>
+<p>最后我们再看一个对数阶的概念<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const aFun = n =&gt; {<br>
+ &nbsp;let i = 1;<br>
+ &nbsp;while (i &lt;= n) &nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;i = i * 2<br>
+ &nbsp;}<br>
+ &nbsp;return i<br>
+}<br>
+<br>
+const cal = n =&gt; { <br>
+ &nbsp;&nbsp;let sum = 0<br>
+ &nbsp;&nbsp;for (let i = 1; i &lt;= n; ++i) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;sum = sum + aFun(n)<br>
+ &nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;return sum<br>
+ }</code></p>
+<p>这里的不同之处是 aFun 每次循环<span class=" fw-cl "><span>，</span></span>i = i * 2<span class=" fw-cl "><span>，</span></span>那么自然不再是全遍历<span class=" fw-cl "><span>。</span></span>想想高中学过的等比数列<span class=" fw-cl "><span>：</span></span></p>
+<p><code>2^0 * 2^1 * 2^2 * 2^k * 2^x = n</code></p>
+<p>因此<span class=" fw-cl "><span>，</span></span>我们只要知道 x 值是多少<span class=" fw-cl "><span>，</span></span>就知道这行代码执行的次数了<span class=" fw-cl "><span>，</span></span>通过 2x = n 求解 x<span class=" fw-cl "><span>，</span></span>数学中求解得 x = log2n <span class=" fw-cl "><span>。</span></span>即上面代码的时间复杂度为 O(log2n)<span class=" fw-cl "><span>。</span></span></p>
+<p>但是不知道读者有没有发现<span class=" fw-cl "><span>：</span></span>不管是以 2 为底<span class=" fw-cl "><span>，</span></span>还是以 K 为底<span class=" fw-cl "><span>，</span></span>我们似乎都把所有对数阶的时间复杂度都记为 O(logn)<span class=" fw-cl "><span>。</span></span>这又是为什么呢<span class=" fw-cl "><span>？</span></span></p>
+<p>事实上<span class=" fw-cl "><span>，</span></span>基本的数学概念告诉我们<span class=" fw-cl "><span>：</span></span>对数之间是可以互相转换的<span class=" fw-cl "><span>，</span></span>log3n = log32 <em>log2n<span class=" fw-cl "><span>，</span></span>因此 O(log3n) = O(C</em> log2n)<span class=" fw-cl "><span>，</span></span>其中 C=log32 是一个常量<span class=" fw-cl "><span>。</span></span>所以全部以 2 为底<span class=" fw-cl "><span>，</span></span>并没有什么问题<span class=" fw-cl "><span>。</span></span></p>
+<p>总之<span class=" fw-cl "><span>，</span></span>需要读者准确理解<span class=" fw-cl "><span>：</span></span>由于<strong style="">时间复杂度</strong>描述的是<strong style="">算法执行时间与数据规模的增长变化趋势</strong><span class=" fw-cl "><span>，</span></span>因而常量<span class=" fw-cl "><span>、</span></span>低阶<span class=" fw-cl "><span>、</span></span>系数实际上对这种增长趋势不产生决定性影响<span class=" fw-cl "><span>，</span></span>所以在做时间复杂度分析时忽略这些项<span class=" fw-cl "><span>。</span></span></p>
+<h4>最好<span class=" fw-cl "><span>、</span></span>最坏时间复杂度<span class=" fw-cl "><span>，</span></span>平均时间复杂度<span class=" fw-cl "><span>，</span></span>均摊时间复杂度</h4>
+<p>我们来看一段代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const find = (array, x) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let pos = -1<br>
+ &nbsp;&nbsp;&nbsp;let len = array.length<br>
+ &nbsp;&nbsp;&nbsp;for (let i = 0 ; i &lt; n; ++i) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (array[i] === x) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pos = i<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return pos<br>
+}</code></p>
+<p>上面的代码有一层循环<span class=" fw-cl "><span>，</span></span>循环规模和 n 成线性关系<span class=" fw-cl "><span>。</span></span>因此时间复杂度为 O(n)<span class=" fw-cl "><span>，</span></span>我们改动代码为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const find = (array, x) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let pos = -1<br>
+ &nbsp;&nbsp;&nbsp;let len = array.length<br>
+ &nbsp;&nbsp;&nbsp;for (let i = 0 ; i &lt; n; ++i) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (array[i] === x) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pos = i<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return pos<br>
+}</code></p>
+<p>在找到第一个匹配元素后<span class=" fw-cl "><span>，</span></span>循环终止<span class=" fw-cl "><span>，</span></span>那么时间复杂度就不一定是 O(n) 了<span class=" fw-cl "><span>，</span></span>因此就有了最好时间复杂度<span class=" fw-cl "><span>、</span></span>最坏时间复杂度的区别<span class=" fw-cl "><span>。</span></span>针对上述代码最好时间复杂度就是 O(1)<span class=" fw-cl "><span>、</span></span>最坏时间复杂度还是 O(n)<span class=" fw-cl "><span>。</span></span></p>
+<p>最好时间复杂度<span class=" fw-cl "><span>、</span></span>最坏时间复杂度其实都是极端情况<span class=" fw-cl "><span>，</span></span>我们可以从统计学角度给出一个平均时间复杂度<span class=" fw-cl "><span>。</span></span>在上述代码中<span class=" fw-cl "><span>，</span></span>平均时间复杂度的计算方式应该是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>(1/(n+1)) * 1 + (1/(n+1)) * 2 + ... + (1/(n+1)) * n + (1/(n+1)) * n</code></p>
+<p>得到结果为<span class=" fw-cl "><span>：</span></span>n(n+3)/2(n+1)</p>
+<p>因为变量 x 出现在数组中的位置分别有 0 —— n－1 种情况<span class=" fw-cl "><span>，</span></span>对应需要遍历的次数<span class=" fw-cl "><span>；</span></span>除此之外<span class=" fw-cl "><span>，</span></span>还有变量 x 不出现在数组中<span class=" fw-cl "><span>，</span></span>这种情况仍然后遍历完数组<span class=" fw-cl "><span>。</span></span></p>
+<p>上述结果简化之后仍然得到 O(n)<span class=" fw-cl "><span>。</span></span></p>
+<p>我们再来看一段代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let array = new Array(n)<br>
+let count = 0<br>
+function insert(val) {<br>
+ &nbsp;&nbsp;&nbsp;let len = array.length<br>
+ &nbsp;&nbsp;&nbsp;if (count === len) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let sum = 0<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let i = 0; i &lt; len; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sum = sum + array[i]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array[0] = sum<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count = 1<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;array[count] = val<br>
+ &nbsp;&nbsp;&nbsp;++count<br>
+}</code></p>
+<p>这段代码逻辑很简单<span class=" fw-cl "><span>：</span></span>我们实现了一个往数组中插入数据的功能<span class=" fw-cl "><span>。</span></span>但是多了些判断<span class=" fw-cl "><span>：</span></span>当数组满了之后<span class=" fw-cl "><span>，</span></span>即 count === len 时<span class=" fw-cl "><span>，</span></span>采用 for 循环对数组进行求和<span class=" fw-cl "><span>，</span></span>求和完毕之后<span class=" fw-cl "><span>：</span></span>先清空数组<span class=" fw-cl "><span>，</span></span>然后将求和之后的结果放到数组的第一个位置<span class=" fw-cl "><span>，</span></span>最后再将新的数据插入<span class=" fw-cl "><span>。</span></span></p>
+<p>这是一段非常典型的代码<span class=" fw-cl "><span>，</span></span>我们来看它的时间复杂度<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">最好时间复杂度</li>
+</ul>
+<p>数组中有空闲<span class=" fw-cl "><span>，</span></span>count !== len<span class=" fw-cl "><span>，</span></span>直接执行插入操作<span class=" fw-cl "><span>，</span></span>复杂度为 O(1)<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">最好时间复杂度</li>
+</ul>
+<p>数组已满<span class=" fw-cl "><span>，</span></span>count === len<span class=" fw-cl "><span>，</span></span>需要先遍历一遍再求和<span class=" fw-cl "><span>，</span></span>复杂度为 O(n)<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">平均时间复杂度</li>
+</ul>
+<p>假设数组长度为 n<span class=" fw-cl "><span>，</span></span>数组空闲时<span class=" fw-cl "><span>，</span></span>复杂度为 O(1)<span class=" fw-cl "><span>；</span></span>数组已满<span class=" fw-cl "><span>，</span></span>复杂度为 O(n)<span class=" fw-cl "><span>。</span></span>采用平均加权方式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>(1/(n+1)) * 1 + (1/(n+1)) * 1 + ... + (1/(n+1)) * n</code></p>
+<p>公式求和仍为 O(1)<span class=" fw-cl "><span>，</span></span>主观上想<span class=" fw-cl "><span>：</span></span>我们的操作是在进行了 n 个 O(1) 的插入操作后<span class=" fw-cl "><span>，</span></span>此时数组满了<span class=" fw-cl "><span>，</span></span>执行一次 O(n) 的求和和清空操作<span class=" fw-cl "><span>。</span></span>这样一来<span class=" fw-cl "><span>，</span></span>其实前面的 n 个 O (1) 和最后的 1 个 O(n) 其实是可以抵消掉的<span class=" fw-cl "><span>，</span></span>这是一种均摊时间复杂度的概念<span class=" fw-cl "><span>。</span></span></p>
+<p>这种均摊的概念是有实际应用场景的<span class=" fw-cl "><span>。</span></span>例如<span class=" fw-cl "><span>，</span></span>C++ 里的 vector 动态数组的自动扩容机制<span class=" fw-cl "><span>，</span></span>每次往 vector 里 push 值的时候会判断当前 size 是否等于 capacity<span class=" fw-cl "><span>，</span></span>一旦元素超过容器限制<span class=" fw-cl "><span>，</span></span>则再申请扩大一倍的内存空间<span class=" fw-cl "><span>，</span></span>把原来 vector 里的值复制到新的空间里<span class=" fw-cl "><span>，</span></span>触发扩容的这次 push 操作的时间复杂度是 O(n)<span class=" fw-cl "><span>，</span></span>但均摊到前面 n 个元素后<span class=" fw-cl "><span>，</span></span>可以认为时间复杂度是 O(1) 常数<span class=" fw-cl "><span>。</span></span></p>
+<p>最后总结一下<span class=" fw-cl "><span>，</span></span>常见时间复杂度<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">O(1)<span class=" fw-cl "><span>：</span></span>基本运算 +<span class=" fw-cl "><span>、</span></span>-<span class=" fw-cl "><span>、</span></span>*<span class=" fw-cl "><span>、</span></span>/<span class=" fw-cl "><span>、</span></span>%<span class=" fw-cl "><span>、</span></span>寻址</li>
+  <li style="">O(logn)<span class=" fw-cl "><span>：</span></span>二分查找<span class=" fw-cl "><span>，</span></span>跟分治<span class="fw-op  "><span>（</span></span>Divide &amp; Conquer<span class=" fw-cl "><span>）</span></span>相关的基本上都是 logn</li>
+  <li style="">O(n)<span class=" fw-cl "><span>：</span></span>线性查找</li>
+  <li style="">O(nlogn)<span class=" fw-cl "><span>：</span></span>归并排序<span class=" fw-cl "><span>，</span></span>快速排序的期望复杂度<span class=" fw-cl "><span>，</span></span>基于比较排序的算法下界</li>
+  <li style="">O(n²)<span class=" fw-cl "><span>：</span></span>冒泡排序<span class=" fw-cl "><span>，</span></span>插入排序<span class=" fw-cl "><span>，</span></span>朴素最近点对</li>
+  <li style="">O(n³)<span class=" fw-cl "><span>：</span></span>Floyd 最短路<span class=" fw-cl "><span>，</span></span>普通矩阵乘法</li>
+  <li style="">O(2ⁿ)<span class=" fw-cl "><span>：</span></span>枚举全部子集</li>
+  <li style="">O(n!)<span class=" fw-cl "><span>：</span></span>枚举全排列</li>
+</ul>
+<p>O(logn) 近似于是常数的时间复杂度<span class=" fw-cl "><span>，</span></span>当 n 为 $2^{32}$ 的规模时 logn 也只是 32 而已<span class=" fw-cl "><span>；</span></span> 对于顺序执行的语句或者算法<span class=" fw-cl "><span>，</span></span>总的时间复杂度等于其中最大的时间复杂度<span class=" fw-cl "><span>。</span></span>例如<span class=" fw-cl "><span>，</span></span>O(n²) + O(n) 可直接记做 O(n²)<span class=" fw-cl "><span>。</span></span></p>
+<h4>空间复杂度</h4>
+<p>空间复杂度表示算法的存储空间与数据规模之间的增长关系<span class=" fw-cl "><span>。</span></span>常见的空间复杂度<span class=" fw-cl "><span>：</span></span>O(1)<span class=" fw-cl "><span>、</span></span>O(n)<span class=" fw-cl "><span>、</span></span>O(n²)<span class=" fw-cl "><span>，</span></span>像 O(logn)<span class=" fw-cl "><span>、</span></span>O(nlogn) 这样的对数阶复杂度平时都用不到<span class=" fw-cl "><span>。</span></span>有的题目在空间上要求 in-place<span class="fw-op  "><span>（</span></span>原地<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>是指使用 O(1) 空间<span class=" fw-cl "><span>，</span></span>在输入的空间上进行原地操作<span class=" fw-cl "><span>，</span></span>比如字符串反转<span class=" fw-cl "><span>。</span></span>但 in-place 又不完全等同于常数的空间复杂度<span class=" fw-cl "><span>，</span></span>比如数组的快排认为是 in-place 交换<span class=" fw-cl "><span>，</span></span>但其递归产生的堆栈的空间是可以不考虑的<span class=" fw-cl "><span>，</span></span>因此 in-place 相对 O(1) 空间的要求会更宽松一点<span class=" fw-cl "><span>。</span></span></p>
+<p>对于时间复杂度和空间复杂度<span class=" fw-cl "><span>，</span></span>开发者应该有所取舍<span class=" fw-cl "><span>。</span></span>在设计算法时<span class=" fw-cl "><span>，</span></span>可以考虑<span class="fw-op  "><span>「</span></span>牺牲空间复杂度<span class=" fw-cl "><span>，</span></span>换取时间复杂度的优化<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>反之依然<span class=" fw-cl "><span>。</span></span>空间复杂度我们不再过多介绍<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>本讲我们介绍了算法的基本概念<span class=" fw-cl "><span>，</span></span>重点就是时间复杂度和空间复杂度分析<span class=" fw-cl "><span>，</span></span>同时剖出了一个<span class="fw-op  "><span>「</span></span>乱序数组<span class=" fw-cl "><span>」</span></span>算法进行热身<span class=" fw-cl "><span>。</span></span>算法的大门才刚刚打开<span class=" fw-cl "><span>，</span></span>请读者继续保持学习<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1QZKkdGtMBZY3DFb8lX</span></p>
+</body>
+</html>

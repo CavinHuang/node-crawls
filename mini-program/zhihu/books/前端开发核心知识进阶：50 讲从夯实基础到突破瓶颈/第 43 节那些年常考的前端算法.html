@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 43 节那些年常考的前端算法</h1>
+  <p>上一讲我们剖析了算法的一些基本概念<span class=" fw-cl "><span>。</span></span>这一讲将围绕 v8 引申出的算法进行分析<span class=" fw-cl "><span>，</span></span>同时做一些常见<span class=" fw-cl "><span>、</span></span>典型考题<span class=" fw-cl "><span>。</span></span>主要内容如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-6b6c32c1a18a2ff0be49724c07a9b36c.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:51.6860465116279% 0" data-src="https://pic3.zhimg.com/v2-6b6c32c1a18a2ff0be49724c07a9b36c.png">加载中...</span></figure>
+<h3>v8 sort 排序的奥秘和演进</h3>
+<p>前一讲<span class=" fw-cl "><span>，</span></span>我带大家分析了<span class="fw-op  "><span>「</span></span>如何将一个 JavaScript 数组打乱顺序<span class=" fw-cl fw--collapsed"><span>？</span></span><span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>其中提到了 sort 这个 API<span class=" fw-cl "><span>，</span></span>具体有这样的一段描述<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>v8 在处理 sort 方法时<span class=" fw-cl "><span>，</span></span>使用了插入排序和快排两种方案<span class=" fw-cl "><span>。</span></span>当目标数组长度小于 10<span class="fw-op  "><span>（</span></span>不同版本有差别<span class=" fw-cl "><span>）</span></span>时<span class=" fw-cl "><span>，</span></span>使用插入排序<span class=" fw-cl "><span>；</span></span>反之<span class=" fw-cl "><span>，</span></span>使用快排<span class=" fw-cl "><span>。</span></span></p>
+<p>如果细心的读者可能会到 v8 源代码中找寻相关的算法逻辑<span class=" fw-cl "><span>，</span></span>那么你一定会大失所望<span class=" fw-cl "><span>。</span></span>因为根本找不到 10 这样的常量<span class=" fw-cl "><span>，</span></span>更没有插入排序和快排两种方案的切换<span class=" fw-cl "><span>，</span></span>甚至连实现的预言都不是 JavaScript 或者 C++<span class=" fw-cl "><span>，</span></span>这是为什么呢<span class=" fw-cl "><span>？</span></span></p>
+<p>原来<span class=" fw-cl "><span>，</span></span>在新的 v8 版本中<span class="fw-op  "><span>（</span></span>具体 V8 6.9<span class=" fw-cl "><span>）</span></span>已经使用了一种名叫 Torque 的开发语言重构<span class=" fw-cl "><span>，</span></span>并在 7.0 改进了 sort 算法<span class=" fw-cl "><span>。</span></span>也就是说<span class=" fw-cl "><span>，</span></span>现在社区上几乎所有的 V8 排序源码分析都已经过时了<span class=" fw-cl "><span>。</span></span></p>
+<p>Torque 是 v8 团队专门为了开发 v8 引擎而开发的语言<span class=" fw-cl "><span>，</span></span>他的后缀名是 tq<span class=" fw-cl "><span>。</span></span>作为一种高级语言<span class=" fw-cl "><span>，</span></span>Torque 依靠 CodeStubAssembler 编译器来转换为汇编代码<span class=" fw-cl "><span>。</span></span></p>
+<p>在新的版本中<span class=" fw-cl "><span>，</span></span>v8 也采用了一种名叫 Timsort 的全新算法<span class=" fw-cl "><span>，</span></span>这套算法最开始于 2002 被 Tim Peters 在 Python 语言中使用<span class=" fw-cl "><span>。</span></span></p>
+<p>从这个演进过程中<span class=" fw-cl "><span>，</span></span>我们分为三大块来看<span class=" fw-cl "><span>。</span></span></p>
+<h3>快排和插入排序</h3>
+<p>排序算法多种多样<span class=" fw-cl "><span>，</span></span>社区上的分析也比较多<span class=" fw-cl "><span>。</span></span>这里我们挑选 v8 sort 排序中<span class="fw-op  "><span>「</span></span>露脸<span class=" fw-cl "><span>」</span></span>的快速排序和插入排序进行讲解<span class=" fw-cl "><span>。</span></span></p>
+<p>不知道读者是否有这样的困扰<span class=" fw-cl "><span>：</span></span>我们看一遍算法<span class=" fw-cl "><span>，</span></span>理解了<span class=" fw-cl "><span>，</span></span>可是过两天又完全记不得具体讲了什么<span class=" fw-cl "><span>。</span></span>针对于此<span class=" fw-cl "><span>，</span></span>我们应该结合算法的特点<span class=" fw-cl "><span>，</span></span>加以应用<span class=" fw-cl "><span>，</span></span>才能深入记忆<span class=" fw-cl "><span>。</span></span>排序算法同样如此<span class=" fw-cl "><span>，</span></span>对于每一种算法<span class=" fw-cl "><span>，</span></span>我们应该先记住其思想<span class=" fw-cl "><span>，</span></span>再记住其实现<span class=" fw-cl "><span>。</span></span>不过要知道<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>排序没有想象中那么简单<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<h4>快速排序</h4>
+<p><strong style="">快速排序的特点就是分治</strong><span class=" fw-cl "><span>。</span></span>如何体现分治策略呢<span class=" fw-cl "><span>？</span></span>我们首先在数组中选取一个基准点<span class=" fw-cl "><span>，</span></span>叫做 pivot<span class=" fw-cl "><span>，</span></span>根据这个基准点<span class=" fw-cl "><span>：</span></span>把比基准点小的数组值放在基准点左边<span class=" fw-cl "><span>，</span></span>把比基准点大的数组值放在基准点右边<span class=" fw-cl "><span>。</span></span>这样一来<span class=" fw-cl "><span>，</span></span>基于基准点<span class=" fw-cl "><span>，</span></span>左边分区的值都小于基准点<span class=" fw-cl "><span>，</span></span>右边分区的值都大于基准点<span class=" fw-cl "><span>，</span></span>然后针对左边分区和右边分区进行同样的操作<span class=" fw-cl "><span>，</span></span>直到最后排序完成<span class=" fw-cl "><span>。</span></span></p>
+<p>最简单的实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const quickSort = array =&gt; {<br>
+ &nbsp;if (array.length &lt; 2) {<br>
+ &nbsp;&nbsp;&nbsp;return array.slice()<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// 随机找到 pivot<br>
+ &nbsp;let pivot = array[Math.floor(Math.random() * array.length)]<br>
+<br>
+ &nbsp;let left = []<br>
+ &nbsp;let middle = []<br>
+ &nbsp;let right = []<br>
+<br>
+ &nbsp;for (let i = 0; i &lt; array.length; i++) {<br>
+ &nbsp;&nbsp;&nbsp;var value = array[i]<br>
+ &nbsp;&nbsp;&nbsp;if (value &lt; pivot) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;left.push(value)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (value === pivot) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;middle.push(value)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (value &gt; pivot) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;right.push(value)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// 递归进行<br>
+ &nbsp;return quickSort(left).concat(middle, quickSort(right))<br>
+}</code></p>
+<p>这种实现方法有不少优化点<span class=" fw-cl "><span>，</span></span>其中之一就是我们可以在原数组上进行操作<span class=" fw-cl "><span>，</span></span>而不产生一个新的数组<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const quickSort = (array, start, end) =&gt; {<br>
+ &nbsp;start = start === undefined ? 0 : start<br>
+ &nbsp;end = end === undefined ? arr.length - 1 : end;<br>
+<br>
+ &nbsp;if (start &gt;= end) {<br>
+ &nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;let value = array[start]<br>
+<br>
+ &nbsp;let i = start<br>
+ &nbsp;let j = end<br>
+<br>
+ &nbsp;while (i &lt; j) {<br>
+ &nbsp;&nbsp;&nbsp;// 找出右边第一个小于参照数的下标并记录<br>
+ &nbsp;&nbsp;&nbsp;while (i &lt; j &amp;&amp; array[j] &gt;= value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j--<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (i &lt; j) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arr[i++] = arr[j]<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 找出左边第一个大于参照数的下标<span class=" fw-cl "><span>，</span></span>并记录<br>
+ &nbsp;&nbsp;&nbsp;while (i &lt; j &amp;&amp; array[i] &lt; value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i++<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (i &lt; j) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arr[j--] = arr[i]<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;arr[i] = value<br>
+<br>
+ &nbsp;quickSort(array, start, i - 1)<br>
+ &nbsp;quickSort(array, i + 1, end)<br>
+}</code></p>
+<p>调用方式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let arr = [0, 12, 43, 45, 88, 1, 69]<br>
+quickSort(arr, 0, arr.length - 1)<br>
+console.log(arr)</code></p>
+<p>我们该如何理解 in place 的快排算法呢<span class=" fw-cl "><span>？</span></span></p>
+<p>首先使用双指针<span class=" fw-cl "><span>，</span></span>指针开始遍历<span class=" fw-cl "><span>，</span></span>当右边发现一个小于参照数<span class="fw-op  "><span>（</span></span>即 array[start]<span class=" fw-cl "><span>）</span></span>的时候<span class=" fw-cl "><span>，</span></span>就将该值赋值给起始位置<span class=" fw-cl "><span>。</span></span>赋值完之后<span class=" fw-cl "><span>，</span></span>那么右边这个位置就空闲了<span class=" fw-cl "><span>。</span></span>这时在左边发现比参照数大的值时<span class=" fw-cl "><span>，</span></span>就赋值给这个刚刚空闲出来的右边位置<span class=" fw-cl "><span>。</span></span>以此类推<span class=" fw-cl "><span>，</span></span>直到 i 不再小于 j<span class=" fw-cl "><span>。</span></span>经过这一轮操作之后<span class=" fw-cl "><span>，</span></span>所有比参照数小的都到了数组的左边<span class=" fw-cl "><span>，</span></span>所有比参照数大的都到了数组右边<span class=" fw-cl "><span>，</span></span>而数组中间被赋值为参照数<span class=" fw-cl "><span>。</span></span></p>
+<p>我们再来分析另外一个优化点<span class=" fw-cl "><span>。</span></span>之前的课程中提到了尾递归调用优化<span class=" fw-cl "><span>，</span></span>那么上面的快排能否使用尾递归进行优化呢<span class=" fw-cl "><span>？</span></span></p>
+<p>我们进行观察<span class=" fw-cl "><span>，</span></span>上面的实现最后两行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>quickSort(array, start, i - 1)<br>
+quickSort(array, i + 1, end)</code></p>
+<p>如果能形成以下的形式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>return quickSort()</code></p>
+<p>那么就实现了尾递归调用优化<span class=" fw-cl "><span>。</span></span>为此<span class=" fw-cl "><span>，</span></span>我们需要一个 stack 来进行参数信息的传递<span class=" fw-cl "><span>：</span></span></p>
+<p><code>&nbsp;const quickSort = (array, stack) =&gt; {<br>
+ &nbsp;let start = stack[0]<br>
+ &nbsp;let end = stack[1]<br>
+<br>
+ &nbsp;let value = array[start]<br>
+<br>
+ &nbsp;let i = start<br>
+ &nbsp;let j = end<br>
+<br>
+ &nbsp;while (i &lt; j) {<br>
+ &nbsp;&nbsp;&nbsp;while (i &lt; j &amp;&amp; array[j] &gt;= value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j--<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;if (i &lt; j) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array[i++] = array[j]<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;while (i &lt; j &amp;&amp; array[i] &lt; value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i++<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (i &lt; j) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array[j--] = array[i]<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;arr[i] = value<br>
+<br>
+ &nbsp;// 移除已经使用完的下标<br>
+ &nbsp;stack.shift()<br>
+ &nbsp;stack.shift() <br>
+<br>
+ &nbsp;// 存入新的下标<br>
+ &nbsp;if (i + 1 &lt; end) {<br>
+ &nbsp;&nbsp;&nbsp;stack.unshift(i + 1, end)<br>
+ &nbsp;}<br>
+ &nbsp;if (start &lt; i - 1) {<br>
+ &nbsp;&nbsp;&nbsp;stack.unshift(start, i - 1)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;if (stack.length == 0) {<br>
+ &nbsp;&nbsp;&nbsp;return;<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;return quickSort(array, stack)<br>
+}</code></p>
+<p>最后<span class=" fw-cl "><span>，</span></span>关于快速排序的优化点还有一个最重要的方向就是对 pivot 元素的选取<span class=" fw-cl "><span>。</span></span>通过上面的分析<span class=" fw-cl "><span>，</span></span>我们发现快速排序的算法核心在于选择一个 pivot<span class=" fw-cl "><span>，</span></span>将经过比较交换的数组按基准分解为两个数区进行后续递归<span class=" fw-cl "><span>。</span></span></p>
+<p>那么试想<span class=" fw-cl "><span>，</span></span>如果我们对一个已经有序的数组进行排序<span class=" fw-cl "><span>，</span></span>恰好每次选择 pivot 时总是选择第一个或者最后一个元素<span class=" fw-cl "><span>，</span></span>那么每次都会有一个数区是空的<span class=" fw-cl "><span>，</span></span>递归的层数将达到 n<span class=" fw-cl "><span>，</span></span>最后导致算法的时间复杂度退化为 O(n²)<span class=" fw-cl "><span>。</span></span>因此 pivot 的选择非常重要<span class=" fw-cl "><span>。</span></span></p>
+<p>在早期 v8 使用快速排序时<span class=" fw-cl "><span>，</span></span>采用了三数取中<span class="fw-op  "><span>（</span></span>median-of-three<span class=" fw-cl "><span>）</span></span>的 pivot 优化方案<span class=" fw-cl "><span>：</span></span>除了头尾两个元素再额外选择一个元素参与基准元素的竞争<span class=" fw-cl "><span>。</span></span>具体 v8 源代码为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var GetThirdIndex = function(a, from, to) {<br>
+ &nbsp;&nbsp;&nbsp;var t_array = new InternalArray();<br>
+ &nbsp;&nbsp;&nbsp;// Use both 'from' and 'to' to determine the pivot candidates.<br>
+ &nbsp;&nbsp;&nbsp;var increment = 200 + ((to - from) &amp; 15);<br>
+ &nbsp;&nbsp;&nbsp;var j = 0;<br>
+ &nbsp;&nbsp;&nbsp;from += 1;<br>
+ &nbsp;&nbsp;&nbsp;to -= 1;<br>
+ &nbsp;&nbsp;&nbsp;for (var i = from; i &lt; to; i += increment) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;t_array[j] = [i, a[i]];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j++;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;t_array.sort(function(a, b) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return comparefn(a[1], b[1]);<br>
+ &nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;var third_index = t_array[t_array.length &gt;&gt; 1][0];<br>
+ &nbsp;&nbsp;&nbsp;return third_index;<br>
+};<br>
+<br>
+var QuickSort = function QuickSort(a, from, to) {<br>
+ &nbsp;&nbsp;&nbsp;......<br>
+ &nbsp;&nbsp;&nbsp;while (true) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;......<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (to - from &gt; 1000) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;third_index = GetThirdIndex(a, from, to);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;third_index = from + ((to - from) &gt;&gt; 1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;......<br>
+};</code></p>
+<p>由此看出<span class=" fw-cl "><span>，</span></span>这所谓的第三个竞争元素产生方式为<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">当数组长度小于等于 1000 时<span class=" fw-cl "><span>，</span></span>选择折半位置的元素作为目标元素</li>
+  <li style="">当数组长度超过 1000 时<span class=" fw-cl "><span>，</span></span>每隔 200-215 个<span class="fw-op  "><span>（</span></span>非固定<span class=" fw-cl "><span>，</span></span>跟着数组长度而变化<span class=" fw-cl "><span>）</span></span>左右的值<span class=" fw-cl "><span>，</span></span>去选择一个元素来先确定一批候选元素<span class=" fw-cl "><span>。</span></span>接着在这批候选元素中进行一次排序<span class=" fw-cl "><span>，</span></span>将所得的中位值作为目标元素</li>
+</ul>
+<p>三数取中<span class="fw-op  "><span>（</span></span>median-of-three<span class=" fw-cl "><span>）</span></span>当中<span class=" fw-cl "><span>，</span></span>最后选取的是三个元素的中位值作为 pivot<span class=" fw-cl "><span>。</span></span></p>
+<h4>插入排序</h4>
+<p>插入排序我们还是从特点入手<span class=" fw-cl "><span>：</span></span>它先将待排序序列的第一个元素看做一个有序序列<span class=" fw-cl "><span>，</span></span>当然了<span class=" fw-cl "><span>，</span></span>就一个元素<span class=" fw-cl "><span>，</span></span>那么它一定是有序的<span class=" fw-cl "><span>；</span></span>而把第二个元素到最后一个元素当成是未排序序列<span class=" fw-cl "><span>；</span></span>对于未排序的序列进行遍历<span class=" fw-cl "><span>，</span></span>将扫描到的每个元素插入有序序列的适当位置<span class=" fw-cl "><span>，</span></span>保证有序序列依然有序<span class=" fw-cl "><span>，</span></span>那么直到所有数据都完成<span class=" fw-cl "><span>，</span></span>我们也就完成了排序<span class=" fw-cl "><span>。</span></span></p>
+<p>如果待插入的元素与有序序列中的某个元素相等<span class=" fw-cl "><span>，</span></span>那么我们统一先将待插入元素插入到相等元素的后面<span class=" fw-cl "><span>。</span></span></p>
+<p>我们的实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const insertsSort = array =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;const length = arr.length<br>
+ &nbsp;&nbsp;&nbsp;let preIndex<br>
+ &nbsp;&nbsp;&nbsp;let current<br>
+<br>
+ &nbsp;&nbsp;&nbsp;for (let i = 1; i &lt; length; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;preIndex = i - 1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current = array[i]<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (preIndex &gt;= 0 &amp;&amp; array[preIndex] &gt; current) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array[preIndex + 1] = array[preIndex]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;preIndex--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array[preIndex + 1] = current<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return array<br>
+}</code></p>
+<p>那么上述实现的插入排序有优化空间吗<span class=" fw-cl "><span>？</span></span></p>
+<p>这是一定的<span class=" fw-cl "><span>，</span></span>优化空间主要有这么几个方向<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">在遍历未排序序列时<span class=" fw-cl "><span>，</span></span>将当前元素插入到有序序列过程中<span class=" fw-cl "><span>，</span></span>可以使用二分法减少查找次数<span class="fw-op  "><span>（</span></span>因为是向有序序列插入<span class=" fw-cl "><span>）</span></span></li>
+  <li style="">使用链表<span class=" fw-cl "><span>，</span></span>将有序数组转为链表这种数据结构<span class=" fw-cl "><span>，</span></span>那么插入操作的时间复杂度为 O(1)<span class=" fw-cl "><span>，</span></span>查找复杂度变为 O(n)</li>
+  <li style="">使用排序二叉树<span class=" fw-cl "><span>，</span></span>将有序数组转为排序二叉树结构<span class=" fw-cl "><span>，</span></span>然后中序遍历该二叉树<span class=" fw-cl "><span>，</span></span>不过这种方式需要额外空间<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>采用二分法的优化实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const insertSort = array =&gt; array.reduce(insert, [])<br>
+<br>
+const insert = (sortedArray, value) =&gt; {<br>
+ &nbsp;const length = sortedArray.length<br>
+<br>
+ &nbsp;if (length === 0) {<br>
+ &nbsp;&nbsp;&nbsp;sortedArray.push(value)<br>
+ &nbsp;&nbsp;&nbsp;return sortedArray<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;let i = 0<br>
+ &nbsp;let j = length<br>
+ &nbsp;let mid<br>
+<br>
+ &nbsp;// 先判断是否为极端值<br>
+ &nbsp;if (value &lt; sortedArray[i]) {<br>
+ &nbsp;&nbsp;&nbsp;// 直接插入到数组的最头<br>
+ &nbsp;&nbsp;&nbsp;return sortedArray.unshift(value), sortedArray<br>
+ &nbsp;}<br>
+ &nbsp;if (value &gt;= sortedArray[length - 1]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 直接插入到数组的最尾<br>
+ &nbsp;&nbsp;&nbsp;return sortedArray.push(value), sortedArray<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// 开始二分查找<br>
+ &nbsp;while (i &lt; j) {<br>
+ &nbsp;&nbsp;&nbsp;mid = ((j + i) / 2) | 0<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (i == mid) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (value &nbsp;&lt; sortedArray[mid]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j = mid<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (value === sortedArray[mid]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i = mid<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (value &gt; sortedArray[mid]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i = mid<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;let midArray = [value]<br>
+ &nbsp;let lastArray = sortedArray.slice(i + 1)<br>
+<br>
+ &nbsp;sortedArray = sortedArray<br>
+ &nbsp;&nbsp;&nbsp;.slice(0, i + 1)<br>
+ &nbsp;&nbsp;&nbsp;.concat(midArray)<br>
+ &nbsp;&nbsp;&nbsp;.concat(lastArray)<br>
+<br>
+ &nbsp;return sortedArray<br>
+}</code></p>
+<p>到此我们介绍完了两种排序方法<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>光排序就是一门很深的学问<span class=" fw-cl "><span>，</span></span>也涉及到了算法和数据结构的方方面面<span class=" fw-cl "><span>，</span></span>我们将继续通过排序<span class=" fw-cl "><span>，</span></span>了解更多算法内容<span class=" fw-cl "><span>。</span></span></p>
+<h3>排序的稳定性</h3>
+<p>事实上<span class=" fw-cl "><span>，</span></span>除了 v8 引擎<span class=" fw-cl "><span>，</span></span>其他引擎也有不同的 sort 排序规则<span class=" fw-cl "><span>。</span></span>比如 SpiderMoney 早期内部实现了归并排序<span class=" fw-cl "><span>，</span></span>Chakra 的数组排序算法实现的也是快速排序<span class=" fw-cl "><span>。</span></span>Firefox<span class="fw-op  "><span>（</span></span>Firebird<span class=" fw-cl "><span>）</span></span>最初版本实现的数组排序算法是堆排序<span class=" fw-cl "><span>，</span></span>这也是一种不稳定的排序算法<span class=" fw-cl "><span>，</span></span>Mozilla 开发组内部针对这个问题进行了一系列讨论之后<span class=" fw-cl "><span>，</span></span>Firefox3 将归并排序作为了数组排序的新实现<span class=" fw-cl "><span>。</span></span></p>
+<p>我们知道<span class=" fw-cl "><span>，</span></span>快速排序是一种不稳定的排序算法<span class=" fw-cl "><span>，</span></span>而归并排序是一种稳定的排序算法<span class=" fw-cl "><span>。</span></span>什么是排序的稳定性呢<span class=" fw-cl "><span>？</span></span></p>
+<blockquote><br></blockquote>
+<p>简单说<span class=" fw-cl "><span>，</span></span>就是能保证排序前 2 个相等的数其在序列的前后位置顺序和排序后它们两个的前后位置顺序相同<span class=" fw-cl "><span>。</span></span>形式化一下<span class=" fw-cl "><span>，</span></span>如果 array[i] = array[j]<span class=" fw-cl "><span>，</span></span>array[i] 原来在位置前<span class=" fw-cl "><span>，</span></span>排序后 array[i] 还是要在 array[j] 位置前<span class=" fw-cl "><span>。</span></span></p>
+<p>在很多情况下<span class=" fw-cl "><span>，</span></span>不稳定的排序也不会造成影响<span class=" fw-cl "><span>。</span></span>但是在一些场景中<span class=" fw-cl "><span>，</span></span>可能就会<span class="fw-op  "><span>「</span></span>有毒<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>比如对于一个数组对象<span class=" fw-cl "><span>，</span></span>场景是<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>某市的机动车牌照拍卖系统<span class=" fw-cl "><span>，</span></span>最终中标的规则为<span class=" fw-cl "><span>：</span></span>按价格进行倒排序<span class=" fw-cl "><span>；</span></span>相同价格则按照竞标顺位<span class="fw-op  "><span>（</span></span>即价格提交时间<span class=" fw-cl "><span>）</span></span>进行正排序<span class=" fw-cl "><span>。</span></span></p>
+<p>如果采用不稳定排序<span class=" fw-cl "><span>，</span></span>那么结果就有可能不符合预期<span class=" fw-cl "><span>。</span></span></p>
+<p>那么如果一些浏览器引擎实现的排序采用了不稳定排序算法应该怎么办呢<span class=" fw-cl "><span>？</span></span>方案<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>将待排序数组进行预处理<span class=" fw-cl "><span>，</span></span>为每个待排序的对象增加自然序属性<span class=" fw-cl "><span>，</span></span>不与对象的其他属性冲突即可<span class=" fw-cl "><span>。</span></span>自定义排序比较方法 compareFn<span class=" fw-cl "><span>，</span></span>总是将自然序作为前置判断相等时的第二判断维度<span class=" fw-cl "><span>。</span></span></p>
+<p>示例代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const HELPER = Symbol('helper')<br>
+<br>
+const getComparer = compare =&gt; <br>
+ &nbsp;&nbsp;(left, right) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let result = compare(left, right)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result === 0 ? left[HELPER] - right[HELPER] : result<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+const sort = (array, compare) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;array = array.map(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(item, index) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof item === 'object') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;item[HELPER] = index<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return item<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return array.sort(getComparer(compare))<br>
+}</code></p>
+<p>近些年来<span class=" fw-cl "><span>，</span></span>随着浏览器计算能力的进一步提升<span class=" fw-cl "><span>，</span></span>项目正在往富客户端应用方向转变<span class=" fw-cl "><span>，</span></span>前端在项目中扮演的角色也越来越重要<span class=" fw-cl "><span>。</span></span>算法意识是一个不得忽视的话题<span class=" fw-cl "><span>。</span></span></p>
+<h3>Timsort 实现</h3>
+<p>好了<span class=" fw-cl "><span>，</span></span>我们再把话题收回来<span class=" fw-cl "><span>。</span></span>那么 v8 采用的 Timsort 算法到底是什么呢<span class=" fw-cl "><span>？</span></span>Timsort 结合了归并排序和插入排序<span class=" fw-cl "><span>，</span></span>效率更高<span class=" fw-cl "><span>。</span></span>Pyhton 自从 2.3 版<span class=" fw-cl "><span>，</span></span>Java SE7 和 Android 以来也一直采用 Timsort 算法排序<span class=" fw-cl "><span>。</span></span></p>
+<p>我们看一下 JSE7 中对 Timsort 的描述<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>A stable, adaptive, iterative mergesort that requires far fewer than n lg(n) comparisons when running on partially sorted arrays, while offering performance comparable to a traditional mergesort when run on random arrays. Like all proper mergesorts, this sort is stable and runs O(n log n) time (worst case). In the worst case, this sort requires temporary storage space for n/2 object references; in the best case, it requires only a small constant amount of space.</p>
+<p>Timsort 是稳定且自适应的算法<span class=" fw-cl "><span>。</span></span>如果需要排序的数组中存在部分已经排序好的区间<span class=" fw-cl "><span>，</span></span>它的时间复杂度会小于 nlogn<span class=" fw-cl "><span>，</span></span>它的最坏时间复杂度是 O(nlogn<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span>在最坏情况下<span class=" fw-cl "><span>，</span></span>Timsort 算法需要的临时空间是 n/2<span class=" fw-cl "><span>，</span></span>在最好情况下<span class=" fw-cl "><span>，</span></span>它只需要一个很小的常量存储空间<span class=" fw-cl "><span>。</span></span></p>
+<p>Timsort 算法为了减少对升序部分的回溯和对降序部分的性能倒退<span class=" fw-cl "><span>，</span></span>将输入按其升序和降序特点进行了分区<span class=" fw-cl "><span>。</span></span></p>
+<p>那么具体的过程<span class=" fw-cl "><span>：</span></span>排序输入的单位不是一个个单独的数字<span class=" fw-cl "><span>，</span></span>而是一个个分区<span class=" fw-cl "><span>。</span></span>其中每一个分区叫一个 run<span class=" fw-cl "><span>。</span></span>针对这些 run 序列<span class=" fw-cl "><span>，</span></span>每次拿一个 run 出来按规则进行合并<span class=" fw-cl "><span>。</span></span>每次合并会将两个 run 合并成一个 run<span class=" fw-cl "><span>。</span></span>合并的结果保存到栈中<span class=" fw-cl "><span>。</span></span>合并直到消耗掉所有的 run<span class=" fw-cl "><span>，</span></span>这时将栈上剩余的 run 合并到只剩一个 run 为止<span class=" fw-cl "><span>。</span></span>这时这个仅剩的 run 便是排好序的结果<span class=" fw-cl "><span>。</span></span></p>
+<p>这样一来 Timsort 的具体实施规则就是<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">如果数组长度小于某个值<span class=" fw-cl "><span>，</span></span>直接用二分插入排序算法</li>
+  <li style="">找到各个 run<span class=" fw-cl "><span>，</span></span>并入栈</li>
+  <li style="">按规则合并 run</li>
+</ul>
+<p>理解 run 将会是关键<span class=" fw-cl "><span>，</span></span>请看图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-43c1e30692ba973c840fe4476cf2bc6f.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:20.04662004662005% 0" data-src="https://pic2.zhimg.com/v2-43c1e30692ba973c840fe4476cf2bc6f.png">加载中...</span></figure>
+<p>具体实现我参考部分 <a href="https://github.com/bellbind/stepbystep-timsort" title="timsort">timsort</a> 内容<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Array.prototype.timsort = function(comp) {<br>
+ &nbsp;&nbsp;&nbsp;var global_a = this<br>
+ &nbsp;&nbsp;&nbsp;var MIN_MERGE = 32;<br>
+ &nbsp;&nbsp;&nbsp;var MIN_GALLOP = 7<br>
+ &nbsp;&nbsp;&nbsp;var runBase = [];<br>
+ &nbsp;&nbsp;&nbsp;var runLen = [];<br>
+ &nbsp;&nbsp;&nbsp;var stackSize = 0;<br>
+ &nbsp;&nbsp;&nbsp;var compare = comp;<br>
+ &nbsp;&nbsp;&nbsp;sort(this, 0, this.length, compare);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function sort(a, lo, hi, compare) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof compare != "function") {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new Error("Compare is not a function.");<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stackSize = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runBase = [];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runLen = [];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rangeCheck(a.length, lo, hi);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var nRemaining = hi - lo;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (nRemaining &lt; 2) return;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (nRemaining &lt; MIN_MERGE) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var initRunLen = countRunAndMakeAscending(a, lo, hi, compare);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;binarySort(a, lo, hi, lo + initRunLen, compare);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var ts = [];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var minRun = minRunLength(nRemaining);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var runLenVar = countRunAndMakeAscending(a, lo, hi, compare);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (runLenVar &lt; minRun) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var force = nRemaining &lt;= minRun ? nRemaining : minRun;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;binarySort(a, lo, lo + force, lo + runLenVar, compare);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runLenVar = force<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pushRun(lo, runLenVar);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mergeCollapse();<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lo += runLenVar;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nRemaining -= runLenVar<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} while (nRemaining != 0);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mergeForceCollapse()<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function binarySort(a, lo, hi, start, compare) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (start == lo) start++;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (; start &lt; hi; start++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var pivot = a[start];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var left = lo;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var right = start;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (left &lt; right) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var mid = (left + right) &gt;&gt;&gt; 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (compare(pivot, a[mid]) &lt; 0) right = mid;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else left = mid + 1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var n = start - left;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;switch (n) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 2:<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[left + 2] = a[left + 1];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 1:<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[left + 1] = a[left];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(a, left, a, left + 1, n)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[left] = pivot<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function countRunAndMakeAscending(a, lo, hi, compare) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var runHi = lo + 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (compare(a[runHi++], a[lo]) &lt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (runHi &lt; hi &amp;&amp; compare(a[runHi], a[runHi - 1]) &lt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runHi++<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reverseRange(a, lo, runHi)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (runHi &lt; hi &amp;&amp; compare(a[runHi], a[runHi - 1]) &gt;= 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runHi++<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return runHi - lo<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function reverseRange(a, lo, hi) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hi--;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (lo &lt; hi) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var t = a[lo];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[lo++] = a[hi];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[hi--] = t<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function minRunLength(n) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var r = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return n + 1<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function pushRun(runBaseArg, runLenArg) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runBase[stackSize] = runBaseArg;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runLen[stackSize] = runLenArg;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stackSize++<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function mergeCollapse() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (stackSize &gt; 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var n = stackSize - 2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (n &gt; 0 &amp;&amp; runLen[n - 1] &lt;= runLen[n] + runLen[n + 1]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (runLen[n - 1] &lt; runLen[n + 1]) n--;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mergeAt(n)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else if (runLen[n] &lt;= runLen[n + 1]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mergeAt(n)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function mergeForceCollapse() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (stackSize &gt; 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var n = stackSize - 2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (n &gt; 0 &amp;&amp; runLen[n - 1] &lt; runLen[n + 1]) n--;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mergeAt(n)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function mergeAt(i) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var base1 = runBase[i];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var len1 = runLen[i];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var base2 = runBase[i + 1];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var len2 = runLen[i + 1];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runLen[i] = len1 + len2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (i == stackSize - 3) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runBase[i + 1] = runBase[i + 2];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runLen[i + 1] = runLen[i + 2]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stackSize--;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var k = gallopRight(global_a[base2], global_a, base1, len1, 0, compare);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;base1 += k;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;len1 -= k;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len1 == 0) return;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;len2 = gallopLeft(global_a[base1 + len1 - 1], global_a, base2, len2, len2 - 1, compare);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len2 == 0) return;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len1 &lt;= len2) mergeLo(base1, len1, base2, len2);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else mergeHi(base1, len1, base2, len2)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function gallopLeft(key, a, base, len, hint, compare) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var lastOfs = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var ofs = 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (compare(key, a[base + hint]) &gt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var maxOfs = len - hint;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (ofs &lt; maxOfs &amp;&amp; compare(key, a[base + hint + ofs]) &gt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs = ofs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ofs = (ofs &lt;&lt; 1) + 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (ofs &lt;= 0) ofs = maxOfs<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (ofs &gt; maxOfs) ofs = maxOfs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs += hint;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ofs += hint<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var maxOfs = hint + 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (ofs &lt; maxOfs &amp;&amp; compare(key, a[base + hint - ofs]) &lt;= 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs = ofs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ofs = (ofs &lt;&lt; 1) + 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (ofs &lt;= 0) ofs = maxOfs<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (ofs &gt; maxOfs) ofs = maxOfs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var tmp = lastOfs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs = hint - ofs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ofs = hint - tmp<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs++;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (lastOfs &lt; ofs) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var m = lastOfs + ((ofs - lastOfs) &gt;&gt;&gt; 1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (compare(key, a[base + m]) &gt; 0) lastOfs = m + 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else ofs = m<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return ofs<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function gallopRight(key, a, base, len, hint, compare) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var ofs = 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var lastOfs = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (compare(key, a[base + hint]) &lt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var maxOfs = hint + 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (ofs &lt; maxOfs &amp;&amp; compare(key, a[base + hint - ofs]) &lt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs = ofs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ofs = (ofs &lt;&lt; 1) + 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (ofs &lt;= 0) ofs = maxOfs<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (ofs &gt; maxOfs) ofs = maxOfs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var tmp = lastOfs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs = hint - ofs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ofs = hint - tmp<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var maxOfs = len - hint;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (ofs &lt; maxOfs &amp;&amp; compare(key, a[base + hint + ofs]) &gt;= 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs = ofs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ofs = (ofs &lt;&lt; 1) + 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (ofs &lt;= 0) ofs = maxOfs<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (ofs &gt; maxOfs) ofs = maxOfs;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs += hint;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ofs += hint<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastOfs++;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (lastOfs &lt; ofs) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var m = lastOfs + ((ofs - lastOfs) &gt;&gt;&gt; 1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (compare(key, a[base + m]) &lt; 0) ofs = m;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else lastOfs = m + 1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return ofs<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function mergeLo(base1, len1, base2, len2) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var a = global_a;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var tmp = a.slice(base1, base1 + len1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var cursor1 = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var cursor2 = base2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var dest = base1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest++] = a[cursor2++];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len2 == 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(tmp, cursor1, a, dest, len1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len1 == 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(a, cursor2, a, dest, len2);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest + len2] = tmp[cursor1];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var c = compare;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var minGallop = MIN_GALLOP;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;outer: while (true) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var count1 = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var count2 = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (compare(a[cursor2], tmp[cursor1]) &lt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest++] = a[cursor2++];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count2++;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count1 = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len2 == 0) break outer<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest++] = tmp[cursor1++];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count1++;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count2 = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len1 == 1) break outer<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} while ((count1 | count2) &lt; minGallop);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count1 = gallopRight(a[cursor2], tmp, cursor1, len1, 0, c);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (count1 != 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(tmp, cursor1, a, dest, count1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dest += count1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor1 += count1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;len1 -= count1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len1 &lt;= 1) break outer<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest++] = a[cursor2++];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len2 == 0) break outer;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count2 = gallopLeft(tmp[cursor1], a, cursor2, len2, 0, c);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (count2 != 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(a, cursor2, a, dest, count2);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dest += count2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor2 += count2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;len2 -= count2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len2 == 0) break outer<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest++] = tmp[cursor1++];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len1 == 1) break outer;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minGallop--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} while (count1 &gt;= MIN_GALLOP | count2 &gt;= MIN_GALLOP);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (minGallop &lt; 0) minGallop = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minGallop += 2<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.minGallop = minGallop &lt; 1 ? 1 : minGallop;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len1 == 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(a, cursor2, a, dest, len2);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest + len2] = tmp[cursor1]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else if (len1 == 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new Error("IllegalArgumentException. Comparison method violates its general contract!");<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(tmp, cursor1, a, dest, len1)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function mergeHi(base1, len1, base2, len2) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var a = global_a;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var tmp = a.slice(base2, base2 + len2);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var cursor1 = base1 + len1 - 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var cursor2 = len2 - 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var dest = base2 + len2 - 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest--] = a[cursor1--];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len1 == 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(tmp, 0, a, dest - (len2 - 1), len2);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len2 == 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dest -= len1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor1 -= len1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(a, cursor1 + 1, a, dest + 1, len1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest] = tmp[cursor2];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var c = compare;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var minGallop = MIN_GALLOP;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;outer: while (true) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var count1 = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var count2 = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (compare(tmp[cursor2], a[cursor1]) &lt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest--] = a[cursor1--];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count1++;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count2 = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len1 == 0) break outer<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest--] = tmp[cursor2--];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count2++;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count1 = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len2 == 1) break outer<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} while ((count1 | count2) &lt; minGallop);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count1 = len1 - gallopRight(tmp[cursor2], a, base1, len1, len1 - 1, c);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (count1 != 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dest -= count1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor1 -= count1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;len1 -= count1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(a, cursor1 + 1, a, dest + 1, count1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len1 == 0) break outer<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest--] = tmp[cursor2--];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len2 == 1) break outer;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count2 = len2 - gallopLeft(a[cursor1], tmp, 0, len2, len2 - 1, c);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (count2 != 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dest -= count2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor2 -= count2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;len2 -= count2;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(tmp, cursor2 + 1, a, dest + 1, count2);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len2 &lt;= 1) break outer<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest--] = a[cursor1--];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (--len1 == 0) break outer;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minGallop--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} while (count1 &gt;= MIN_GALLOP | count2 &gt;= MIN_GALLOP);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (minGallop &lt; 0) minGallop = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minGallop += 2<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.minGallop = minGallop &lt; 1 ? 1 : minGallop;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (len2 == 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dest -= len1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cursor1 -= len1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(a, cursor1 + 1, a, dest + 1, len1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a[dest] = tmp[cursor2]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else if (len2 == 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new Error("IllegalArgumentException. Comparison method violates its general contract!");<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arraycopy(tmp, 0, a, dest - (len2 - 1), len2)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function rangeCheck(arrayLen, fromIndex, toIndex) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (fromIndex &gt; toIndex) throw new Error("IllegalArgument fromIndex(" + fromIndex + ") &gt; toIndex(" + toIndex + ")");<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (fromIndex &lt; 0) throw new Error("ArrayIndexOutOfBounds " + fromIndex);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (toIndex &gt; arrayLen) throw new Error("ArrayIndexOutOfBounds " + toIndex);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>具体操作较为复杂<span class=" fw-cl "><span>，</span></span>这里建议大家更多的了解这个知识点<span class=" fw-cl "><span>，</span></span>而具体实现一般不作要求<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来看一下 v8 在采用 Timsort 之后<span class=" fw-cl "><span>，</span></span>得到的一些 benchmark<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-679481c0371311e70a147fa2bbda62ba.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:30.909090909090907% 0" data-src="https://pic2.zhimg.com/v2-679481c0371311e70a147fa2bbda62ba.png">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-b90b5d1625019bbcb294bbb398dab0e1.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:30.916666666666664% 0" data-src="https://pic1.zhimg.com/v2-b90b5d1625019bbcb294bbb398dab0e1.png">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-4d54e7c9cc36db38d43864a9945f4888.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:30.113636363636363% 0" data-src="https://pic1.zhimg.com/v2-4d54e7c9cc36db38d43864a9945f4888.png">加载中...</span></figure>
+<p>更多内容<span class=" fw-cl "><span>，</span></span>可以参考 v8 官方博客<span class=" fw-cl "><span>：</span></span><a href="https://v8.dev/blog/array-sort" title="Getting things sorted in V8">Getting things sorted in V8</a></p>
+<h3>实战例题</h3>
+<p>从这里开始<span class=" fw-cl "><span>，</span></span>我们来<span class="fw-op  "><span>「</span></span>刷<span class=" fw-cl "><span>」</span></span>一些实战例题<span class=" fw-cl "><span>。</span></span></p>
+<h4>交换星号</h4>
+<p>题目<span class=" fw-cl "><span>：</span></span>一个字符串中只包含 <em>和数字<span class=" fw-cl "><span>，</span></span>请把</em> 号都放开头<span class=" fw-cl "><span>。</span></span></p>
+<p>思路<span class=" fw-cl "><span>：</span></span>使用两个指针<span class=" fw-cl "><span>，</span></span>从后往前扫字符串<span class=" fw-cl "><span>，</span></span>遇到数字则赋值给后面的指针<span class=" fw-cl "><span>，</span></span>继续往后扫<span class=" fw-cl "><span>，</span></span>遇到 * 则不处理<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const isNumeric = n =&gt; !isNaN(parseFloat(n)) &amp;&amp; isFinite(n);<br>
+<br>
+/**<br>
+ * @param {string}<br>
+ * @return {string}<br>
+ */<br>
+const solution = s =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;const n = s.length<br>
+ &nbsp;&nbsp;&nbsp;let a = s.split('')<br>
+ &nbsp;&nbsp;&nbsp;let j = n - 1<br>
+<br>
+ &nbsp;&nbsp;&nbsp;for (let i = n - 1; i &gt;= 0; --i)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (isNumeric(a[i])) a[j--] = a[i]<br>
+<br>
+ &nbsp;&nbsp;&nbsp;for (; j &gt;= 0; --j) a[j] = '*'<br>
+ &nbsp;&nbsp;&nbsp;return a.join('')<br>
+}</code></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>我们逆序操作数组<span class=" fw-cl "><span>，</span></span>遇见数字则向后置<span class=" fw-cl "><span>，</span></span>遍历完一遍后<span class=" fw-cl "><span>，</span></span>所有的数字都已经在后边了<span class=" fw-cl "><span>，</span></span>同时把前边的数组项用 * 填充<span class=" fw-cl "><span>。</span></span></p>
+<h4>Longest Substring Without Repeating Characters</h4>
+<p>题意<span class=" fw-cl "><span>：</span></span>给定一个字符串<span class=" fw-cl "><span>，</span></span>返回它最长的不包含重复的子串长度<span class=" fw-cl "><span>。</span></span>例如<span class=" fw-cl "><span>，</span></span>输入 abcabcbb 输出 3<span class="fw-op  "><span>（</span></span>对应 abc<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>思路<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">暴力枚举起点和终点<span class=" fw-cl "><span>，</span></span>并判断重复<span class=" fw-cl "><span>，</span></span>时间复杂度是 O(n²)<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">通过双指针<span class=" fw-cl "><span>、</span></span>滑动窗口<span class=" fw-cl "><span>，</span></span>动态维护窗口 [i..j)<span class=" fw-cl "><span>，</span></span>使窗口内字符不重复<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>我们看第二种思路解法<span class=" fw-cl "><span>，</span></span>保证窗口 [i..j) 之间没有重复字符<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">首先 i, j 两个指针均指向字符串头部<span class=" fw-cl "><span>，</span></span>如果没有重复字符<span class=" fw-cl "><span>，</span></span>则 j 不断向右滑动<span class=" fw-cl "><span>，</span></span>直到出现重复字符<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">如果出现了重复的字符<span class=" fw-cl "><span>，</span></span>重复字符出现在第 str[j] 处<span class=" fw-cl "><span>，</span></span>这时候开始移动指针 i<span class=" fw-cl "><span>，</span></span>找到另一个重复的字读出现在 str[i] 处<span class=" fw-cl "><span>，</span></span>那么能保证 [0, i] 以及 [i, j] 子字符串是不重复的<span class=" fw-cl "><span>，</span></span>更新临时结果为 Math.max(result, j - i)<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p><strong style="">时间复杂度 O(n)</strong></p>
+<p>实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const lengthOfLongestSubstring = str =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let result = 0<br>
+ &nbsp;&nbsp;&nbsp;let len = str.length<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 记录当前区间内出现的字符<br>
+ &nbsp;&nbsp;&nbsp;let mapping = {}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;for (let i = 0, j = 0; ; ++i) {<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// j 右移的过程<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (j &lt; len &amp;&amp; !mapping[str[j]])<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mapping[str[j++]] = true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result = Math.max(result, j - i)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (j &gt;= len)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 出现了重复字符<span class=" fw-cl "><span>，</span></span>i 开始进行右移的过程<span class=" fw-cl "><span>，</span></span>同时将移出的字符在 mapping 中重置<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (str[i] != str[j])<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mapping[str[i++]] = false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mapping[str[i]] = false<br>
+<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return result<br>
+};</code></p>
+<p>举这个例子的目的是为了展示滑动窗口的思想<span class=" fw-cl "><span>，</span></span>通过滑动窗口一般能实现 O(n) 的时间复杂度和 O(1) 的空间复杂度<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>这一讲我们主要介绍了几种排序算法和最先进的 Timsort<span class=" fw-cl "><span>，</span></span>相信凭借这些内容<span class=" fw-cl "><span>，</span></span>在前端排序上你可以<span class="fw-op  "><span>「</span></span>鄙视<span class=" fw-cl "><span>」</span></span>面试官了<span class=" fw-cl "><span>。</span></span>当然算法的坑还是很深的<span class=" fw-cl "><span>，</span></span>我们要保持好的心态<span class=" fw-cl "><span>。</span></span>最后部分介绍了两个算法题<span class=" fw-cl "><span>，</span></span>算是抛砖引玉<span class=" fw-cl "><span>，</span></span>下一讲<span class=" fw-cl "><span>，</span></span>让我们针对算法面试<span class=" fw-cl "><span>，</span></span>刷一刷算法<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1eY6XOrI6PKaxpFD0Lp</span></p>
+</body>
+</html>

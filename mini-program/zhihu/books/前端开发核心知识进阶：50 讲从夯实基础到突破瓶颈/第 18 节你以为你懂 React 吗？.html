@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 18 节你以为你懂 React 吗？</h1>
+  <p>这一讲我们来重点解析一下 React<span class=" fw-cl "><span>，</span></span>说 React 是前端中最受瞩目的框架其实并不夸张<span class=" fw-cl "><span>。</span></span>React 推出之后<span class=" fw-cl "><span>，</span></span>很快风靡业界<span class=" fw-cl "><span>，</span></span>并且 React 倡导的多种思想也对其他框架<span class="fw-op  "><span>（</span></span>比如 Vue<span class=" fw-cl "><span>）</span></span>有着广泛影响<span class=" fw-cl "><span>。</span></span></p>
+<p>据我观察<span class=" fw-cl "><span>，</span></span>很多 React 开发者停留在<span class="fw-op  "><span>「</span></span>会使用<span class=" fw-cl "><span>」</span></span>的阶段<span class=" fw-cl "><span>，</span></span>而并没有在细节之处把握 React 精髓<span class=" fw-cl "><span>；</span></span>我们可能对各种生命周期<span class="fw-op  "><span>「</span></span>了如指掌<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>可能对<span class="fw-op  "><span>「</span></span>React 虚拟 DOM diff 算法<span class=" fw-cl "><span>」</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>对答如流<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>可能对<span class="fw-op  "><span>「</span></span>单向数据流<span class=" fw-cl "><span>」</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>如数家珍<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>可是你真的了解 React 吗<span class=" fw-cl "><span>？</span></span></p>
+<p>同时<span class=" fw-cl "><span>，</span></span>现在 React 面试越来越<span class="fw-op  "><span>「</span></span>范式化<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>除了实际动手写码的题目之外<span class=" fw-cl "><span>，</span></span>其他相关面试题毫无新意<span class=" fw-cl "><span>，</span></span>很容易被应试<span class=" fw-cl "><span>，</span></span>很难考察开发者的 React 功底<span class=" fw-cl "><span>。</span></span></p>
+<p>对此<span class=" fw-cl "><span>，</span></span>下面挑选出 React 中一些<span class="fw-op  "><span>「</span></span>不为人知<span class=" fw-cl "><span>」</span></span>却又非常重要的点<span class=" fw-cl "><span>，</span></span>为大家进行解析<span class=" fw-cl "><span>。</span></span>在此过程中<span class=" fw-cl "><span>，</span></span>通过剖析实现<span class=" fw-cl "><span>，</span></span>读者可以更好<span class=" fw-cl "><span>、</span></span>更深入地理解 React<span class=" fw-cl "><span>，</span></span>掌握了这些内容<span class=" fw-cl "><span>，</span></span>有可能在某些方向上比你的 React 面试官更有深度<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-bb65e27fea9f5f42b09dc02095c595d5.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:23.087621696801115% 0" data-src="https://pic4.zhimg.com/v2-bb65e27fea9f5f42b09dc02095c595d5.png">加载中...</span></figure>
+<h3>神奇的 JSX</h3>
+<p>其实 React 的<span class="fw-op  "><span>「</span></span>专利发明<span class=" fw-cl "><span>」</span></span>并不多<span class=" fw-cl "><span>，</span></span>比如虚拟 DOM<span class=" fw-cl "><span>、</span></span>组件化思想并不是 Facebook 原创<span class=" fw-cl "><span>。</span></span>但 JSX 是 React 真正的创造<span class=" fw-cl "><span>，</span></span>我认为这是 React 最<span class="fw-op  "><span>「</span></span>伟大<span class=" fw-cl "><span>」</span></span>的发明<span class=" fw-cl "><span>。</span></span></p>
+<p>JSX 是 React 的骨骼<span class=" fw-cl "><span>，</span></span>它搭起了 React 应用的组件<span class=" fw-cl "><span>，</span></span>是整个项目的组件框架基础<span class=" fw-cl "><span>。</span></span></p>
+<p><span class="fw-op  "><span>「</span></span>不就是 HTML in JS<span class=" fw-cl "><span>」</span></span>吗<span class=" fw-cl "><span>？</span></span>有什么神奇之处呢<span class=" fw-cl "><span>？</span></span>请继续阅读<span class=" fw-cl "><span>。</span></span></p>
+<h4>JSX 就是丑陋的模版</h4>
+<p>直观上看<span class=" fw-cl "><span>，</span></span>JSX 是将 HTML 直接嵌入在了 JS 代码里面<span class=" fw-cl "><span>，</span></span>这是刚开始接触 React 时<span class=" fw-cl "><span>，</span></span>很多人最不能接受的设定<span class=" fw-cl "><span>。</span></span>因为前端开发者被<span class="fw-op  "><span>「</span></span>表现和逻辑层分离<span class=" fw-cl "><span>」</span></span>这种思想<span class="fw-op  "><span>「</span></span>洗脑<span class=" fw-cl "><span>」</span></span>太久了<span class=" fw-cl "><span>：</span></span>表现和逻辑耦合在一起<span class=" fw-cl "><span>，</span></span>在某种程度上是一种混乱和困扰<span class=" fw-cl "><span>。</span></span></p>
+<p>但是从现在发展来看<span class=" fw-cl "><span>，</span></span>JSX 完全符合<span class="fw-op  "><span>「</span></span>真香定律<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>：</span></span>JSX 让前端实现真正意义上的组件化成为了可能<span class=" fw-cl "><span>。</span></span></p>
+<p>可能有读者认为 JSX 很简单<span class=" fw-cl "><span>，</span></span>但是你真的理解它了吗<span class=" fw-cl "><span>？</span></span>试着回答这么几个问题<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>如何在 JSX 中调试代码<span class=" fw-cl "><span>？</span></span></p>
+<p>为什么 JSX 中不能直接使用 if...else</p>
+<p>在回答这些问题之前<span class=" fw-cl "><span>，</span></span>先来看看 JSX 是如何实现条件渲染的<span class=" fw-cl "><span>。</span></span></p>
+<h4>JSX 多种姿势实现条件渲染</h4>
+<p>很常见的一个场景<span class=" fw-cl "><span>：</span></span>渲染一个列表<span class=" fw-cl "><span>。</span></span>但是需要满足<span class=" fw-cl "><span>：</span></span>列表为空数组时<span class=" fw-cl "><span>，</span></span>显示空文案<span class="fw-op  "><span>「</span></span>Sorry<span class=" fw-cl "><span>，</span></span>the list is empty<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>同时列表数据可能通过网络获取<span class=" fw-cl "><span>，</span></span>存在列表没有初始值为 null 的情况<span class=" fw-cl "><span>。</span></span></p>
+<p>JSX 实现这种条件渲染最简洁的手段就是三目运算符<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const list = ({list}) =&gt; {<br>
+ &nbsp;const isNull = !list<br>
+ &nbsp;const isEmpty = !isNull &amp;&amp; !list.length<br>
+<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;isNull<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? null<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;isEmpty <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? <p>Sorry, the list is empty </p><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list.map(item =&gt; <listitem item="{item}">)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</listitem></div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>但是我们多加了几个状态<span class=" fw-cl "><span>：</span></span>加上出现错误时<span class=" fw-cl "><span>，</span></span>正在加载时的逻辑<span class=" fw-cl "><span>，</span></span>三目运算符嵌套地狱可能就要出现了<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const list = ({isLoading, list. error}) =&gt; {<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;condition1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? <component1><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;condition2 <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? <component2><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;condition3<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? <component3><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <component4><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;</component4></component3></component2></component1></code></div><code><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>如何破解这种嵌套呢<span class=" fw-cl "><span>？</span></span>我们常用的手段是抽离出 render function<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const getListContent = (isLoading, list, error) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log(list)<br>
+ &nbsp;&nbsp;&nbsp;console.log(isLoading)<br>
+ &nbsp;&nbsp;&nbsp;console.log(error)<br>
+ &nbsp;&nbsp;// ...<br>
+ &nbsp;&nbsp;return ...<br>
+}<br>
+<br>
+const list = ({isLoading, list, error}) =&gt; {<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getListContent(isLoading, list, error)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>甚至使用 IIFE<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const list = ({isLoading, list, error}) =&gt; {<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(list)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(isLoading)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(error)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (error) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return <span>Something is wrong!</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!error &amp;&amp; isLoading) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return <span>Loading...</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!error &amp;&amp; !isLoading &amp;&amp; !list.length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return <p>Sorry, the list is empty </p><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!error &amp;&amp; !isLoading &amp;&amp; list.length &gt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return <div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list.map(item =&gt; <listitem item="{item}">)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</listitem></div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>这样一来就可以使用 console.log 进行简单调试了<span class=" fw-cl "><span>，</span></span>也可以使用 if...else 进行条件渲染<span class=" fw-cl "><span>。</span></span></p>
+<p>再回到问题的本源<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>为什么不能直接在 JSX 中使用 if...else<span class=" fw-cl "><span>，</span></span>只能借用函数逻辑实现呢<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>？</span></span>实际上<span class=" fw-cl "><span>，</span></span>我们都知道 JSX 会被编译为 React.createElement<span class=" fw-cl "><span>。</span></span>直白来说<span class=" fw-cl "><span>，</span></span>React.createElement 的底层逻辑是无法运行 JavaScript 代码的<span class=" fw-cl "><span>，</span></span>而它只能渲染一个结果<span class=" fw-cl "><span>。</span></span>因此 JSX 中除了 JS 表达式<span class=" fw-cl "><span>，</span></span>不能直接写 JavaScript 语法<span class=" fw-cl "><span>。</span></span>准确来讲<span class=" fw-cl "><span>，</span></span>JSX 只是函数调用和表达式的语法糖<span class=" fw-cl "><span>。</span></span></p>
+<p>React 程序员天天都在使用 JSX<span class=" fw-cl "><span>，</span></span>但并不是所有人都明白其背后原理的<span class=" fw-cl "><span>。</span></span></p>
+<h4>JSX 的强大和灵活</h4>
+<p>虽然 JSX 只是函数调用和表达式的语法糖<span class=" fw-cl "><span>，</span></span>但是 JSX 仍然具有强大而灵活的能力<span class=" fw-cl "><span>。</span></span>React 组件复用最流行的方式都是在 JSX 能力基础之上的<span class=" fw-cl "><span>，</span></span>比如 HoC<span class=" fw-cl "><span>，</span></span>比如 render prop 模式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class WindowWidth extends React.Component {<br>
+ &nbsp;constructor() {<br>
+ &nbsp;&nbsp;&nbsp;super()<br>
+ &nbsp;&nbsp;&nbsp;this.state = {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;width: 0<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;componentDidMount() {<br>
+ &nbsp;&nbsp;&nbsp;this.setState(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;width: window.innerWidth<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window.addEventListener('resize', ({target}) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.setState({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;width: target.innerWidth<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return this.props.children(this.state.width)<br>
+ &nbsp;}<br>
+}<br>
+<br>
+<windowwidth><br>
+ &nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;width =&gt; (width &gt; 800 ? </windowwidth></code></p><div><code>show</code></div><code> : null)<br>
+ &nbsp;}<br>
+<windowwidth></windowwidth></code><p></p>
+<p>甚至<span class=" fw-cl "><span>，</span></span>我们还可以让 JSX 具有 Vue template 的能力<span class=" fw-cl "><span>：</span></span></p>
+<p><code>render() {<br>
+ &nbsp;const visible = true<br>
+<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div v-if="{visible}"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;content <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;)<br>
+}<br>
+<br>
+render() {<br>
+ &nbsp;const list = [1, 2, 3, 4]<br>
+<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;<div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div v-for="{item" in="" list}=""><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{item}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>因为 JSX 总要进行一步编译<span class=" fw-cl "><span>，</span></span>在这个编译过程中我们借助 AST<span class="fw-op  "><span>（</span></span>抽象语法树<span class=" fw-cl "><span>）</span></span>对 v-if<span class=" fw-cl "><span>、</span></span>v-for 进行处理即可<span class=" fw-cl "><span>。</span></span></p>
+<h3>你真的了解异步的 this.setState 吗<span class=" fw-cl "><span>？</span></span></h3>
+<p>绝大多数 React 开发者都知道 this.setState 是异步执行的<span class=" fw-cl "><span>，</span></span>但是我会说<span class="fw-op  "><span>「</span></span>你这个结论是错误的<span class=" fw-cl fw--collapsed"><span>！</span></span><span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>那么 this.setState 到底是异步执行还是同步执行<span class=" fw-cl "><span>？</span></span>这是一个问题......&nbsp;</p>
+<h4>this.setState 全是异步执行吗<span class=" fw-cl "><span>？</span></span></h4>
+<p>this.setSate 这个 API<span class=" fw-cl "><span>，</span></span>官方描述为<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>setState() does not always immediately update the component. It may batch or defer the update until later. This makes reading this.state right after calling setState() a potential pitfall.</p>
+<p>既然用词是 may<span class=" fw-cl "><span>，</span></span>那么说明 this.setState 一定不全是异步执行<span class=" fw-cl "><span>，</span></span>也不全是同步执行的<span class=" fw-cl "><span>。</span></span>所谓的<span class="fw-op  "><span>「</span></span>延迟更新<span class=" fw-cl "><span>」</span></span>并不是针对所有情况<span class=" fw-cl "><span>。</span></span></p>
+<p>实际上<span class=" fw-cl "><span>，</span></span>&nbsp;React 控制的事件处理过程<span class=" fw-cl "><span>，</span></span>setState 不会同步更新 this.state<span class=" fw-cl "><span>。</span></span>而在&nbsp;React 控制之外的情况<span class=" fw-cl "><span>，</span></span> setState 会同步更新 this.state<span class=" fw-cl "><span>。</span></span></p>
+<p>什么是 React 控制内外呢<span class=" fw-cl "><span>？</span></span>举个例子<span class=" fw-cl "><span>：</span></span></p>
+<p><code>onClick() {<br>
+ &nbsp;this.setState({<br>
+ &nbsp;&nbsp;&nbsp;count: this.state.count + 1<br>
+ &nbsp;})<br>
+}<br>
+<br>
+componentDidMount() {<br>
+ &nbsp;document.querySelectorAll('#btn-raw')<br>
+ &nbsp;&nbsp;&nbsp;.addEventListener('click', this.onClick)<br>
+}<br>
+<br>
+render() {<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;<react.fragment><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button id="btn-raw"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click out React<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button><br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{this.onClick}"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click in React<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button><br>
+ &nbsp;&nbsp;&nbsp;</react.fragment><br>
+ &nbsp;)<br>
+}</code></p>
+<p>id 为 btn-raw 的 button 上绑定的事件<span class=" fw-cl "><span>，</span></span>是在 componentDidMount 方法中通过 addEventListener 完成的<span class=" fw-cl "><span>，</span></span>这是脱离于 React 事件之外的<span class=" fw-cl "><span>，</span></span>因此它是同步更新的<span class=" fw-cl "><span>。</span></span>反之<span class=" fw-cl "><span>，</span></span>代码中第二个 button 所绑定的事件处理函数对应的 setState 是异步更新的<span class=" fw-cl "><span>。</span></span></p>
+<p>这样的设计也不难理解<span class=" fw-cl "><span>，</span></span>通过<span class="fw-op  "><span>「</span></span>延迟更新<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>可以达到更好的性能<span class=" fw-cl "><span>。</span></span></p>
+<h4>this.setState promise 化</h4>
+<p>官方提供了这种处理异步更新的方法<span class=" fw-cl "><span>。</span></span>其中之一就是 setState 接受第二个参数<span class=" fw-cl "><span>，</span></span>作为状态更新后的回调<span class=" fw-cl "><span>。</span></span>但这无疑又带来了我们熟悉的 callback hell 问题<span class=" fw-cl "><span>。</span></span></p>
+<p>举一个场景<span class=" fw-cl "><span>，</span></span>我们在开发一个 tabel<span class=" fw-cl "><span>，</span></span>这个 table 类似 excel<span class=" fw-cl "><span>，</span></span>当用户敲下回车键时<span class=" fw-cl "><span>，</span></span>需要将光标移动到下一行<span class=" fw-cl "><span>，</span></span>这是一个 setState 操作<span class=" fw-cl "><span>，</span></span>然后马上进行聚焦<span class=" fw-cl "><span>，</span></span>这又是一个 setState 操作<span class=" fw-cl "><span>。</span></span>如果当前行就是最后一行<span class=" fw-cl "><span>，</span></span>那用户敲下回车时<span class=" fw-cl "><span>，</span></span>需要先创建一个新行<span class=" fw-cl "><span>，</span></span>这是第一个 setState 操作<span class=" fw-cl "><span>，</span></span>同时将光标移动到新的<span class="fw-op  "><span>「</span></span>最后一行<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>这是第二个 setState 操作<span class=" fw-cl "><span>；</span></span>在这个新行中进行聚焦<span class=" fw-cl "><span>，</span></span>这是第三个 setState 操作<span class=" fw-cl "><span>。</span></span>这些 setState 操作依赖于前一个 setState 的完成<span class=" fw-cl "><span>。</span></span></p>
+<p>面对这种场景<span class=" fw-cl "><span>，</span></span>如果我们不想出现回调地狱的场景<span class=" fw-cl "><span>。</span></span>常见的处理方式是利用生命周期方法<span class=" fw-cl "><span>，</span></span>在 componentDidUpdate 中进行相关操作<span class=" fw-cl "><span>。</span></span>第一次 setState 进行完后<span class=" fw-cl "><span>，</span></span>在其触发的 componentDidUpdate 中进行第二次 setState<span class=" fw-cl "><span>，</span></span>依此类推<span class=" fw-cl "><span>。</span></span></p>
+<p>但是这样存在的问题也很明显<span class=" fw-cl "><span>：</span></span>逻辑过于分散<span class=" fw-cl "><span>。</span></span>生命周期方法中有很多很难维护的<span class="fw-op  "><span>「</span></span>莫名其妙操作<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>出现<span class="fw-op  "><span>「</span></span>面向生命周期编程<span class=" fw-cl "><span>」</span></span>的情况<span class=" fw-cl "><span>。</span></span></p>
+<p>回到刚才问题<span class=" fw-cl "><span>，</span></span>解决回调地狱其实是我们前端工程师的拿手好戏了<span class=" fw-cl "><span>，</span></span>最直接的方案就是将 setState Promise 化<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const setStatePromise = (me, state) =&gt; {<br>
+ &nbsp;new Promise(resolve =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;me.setState(state, () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve()<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;})<br>
+}</code></p>
+<p>这只是 patch 做法<span class=" fw-cl "><span>，</span></span>如果修改 React 源码的话<span class=" fw-cl "><span>，</span></span>也不困难<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-12a20b6f54523fb81a98035d6367cc2e.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:44.44444444444444% 0" data-src="https://pic2.zhimg.com/v2-12a20b6f54523fb81a98035d6367cc2e.png">加载中...</span></figure>
+<h3>原生事件 VS React 合成事件</h3>
+<p>对 React 熟悉的读者可能知道<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">React 中的事件机制并不是原生的那一套<span class=" fw-cl "><span>，</span></span>事件没有绑定在原生 DOM 上 <span class=" fw-cl "><span>，</span></span>大多数事件绑定在 document 上<span class="fw-op  "><span>（</span></span>除了少数不会冒泡到 document 的事件<span class=" fw-cl "><span>，</span></span>如 video 等)</li>
+  <li style="">同时<span class=" fw-cl "><span>，</span></span>触发的事件也是对原生事件的包装<span class=" fw-cl "><span>，</span></span>并不是原生 event</li>
+  <li style="">出于性能因素考虑<span class=" fw-cl "><span>，</span></span>合成事件<span class="fw-op  "><span>（</span></span>syntheticEvent<span class=" fw-cl "><span>）</span></span>是被池化的<span class=" fw-cl "><span>。</span></span>这意味着合成事件对象将会被重用<span class=" fw-cl "><span>，</span></span>在调用事件回调之后所有属性将会被废弃<span class=" fw-cl "><span>。</span></span>这样做可以大大节省内存<span class=" fw-cl "><span>，</span></span>而不会频繁的创建和销毁事件对象<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>这样的事件系统设计<span class=" fw-cl "><span>，</span></span>无疑性能更加友好<span class=" fw-cl "><span>，</span></span>但同时也带来了几个潜在现象<span class=" fw-cl "><span>。</span></span></p>
+<h4>现象 1<span class=" fw-cl "><span>：</span></span>异步访问事件对象</h4>
+<p>我们不能以异步的方式访问合成事件对象<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function handleClick(e) {<br>
+ &nbsp;console.log(e)<br>
+<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log(e)<br>
+ &nbsp;}, 0)<br>
+}</code></p>
+<p>上述代码第二个 console.log 总将会输出 undefined<span class=" fw-cl "><span>。</span></span></p>
+<p>为此 React 也贴心的为我们准备了持久化合成事件的方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function handleClick(e) {<br>
+ &nbsp;console.log(e)<br>
+<br>
+ &nbsp;e.persist()<br>
+<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log(e)<br>
+ &nbsp;}, 0)<br>
+}</code></p>
+<h4>现象 2<span class=" fw-cl "><span>：</span></span>如何阻止冒泡</h4>
+<p>在 React 中<span class=" fw-cl "><span>，</span></span>直接使用 e.stopPropagation 不能阻止原生事件冒泡<span class=" fw-cl "><span>，</span></span>因为事件早已经冒泡到了 document 上<span class=" fw-cl "><span>，</span></span>React 此时才能够处理事件句柄<span class=" fw-cl "><span>。</span></span></p>
+<p>如代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>componentDidMount() {<br>
+ &nbsp;document.addEventListener('click', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log('document click')<br>
+ &nbsp;})<br>
+}<br>
+<br>
+handleClick = e =&gt; {<br>
+ &nbsp;console.log('div click')<br>
+ &nbsp;e.stopPropagation()<br>
+}<br>
+<br>
+render() {<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div onclick="{this.handleClick}"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click<br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>执行后会打印出 div click<span class=" fw-cl "><span>，</span></span>之后是 document click<span class=" fw-cl "><span>。</span></span>e.stopPropagation 是没有用的<span class=" fw-cl "><span>。</span></span></p>
+<p>但是 React 的合成事件还给使用原生事件留了一个口子<span class=" fw-cl "><span>，</span></span>通过合成事件上的 nativeEvent 属性<span class=" fw-cl "><span>，</span></span>我们还是可以访问原生事件<span class=" fw-cl "><span>。</span></span>原生事件上的 stopImmediatePropagation 方法<span class=" fw-cl "><span>：</span></span>除了能做到像 stopPropagation 一样阻止事件向父级冒泡之外<span class=" fw-cl "><span>，</span></span>也能阻止当前元素剩余的<span class=" fw-cl "><span>、</span></span>同类型事件的执行<span class="fw-op  "><span>（</span></span>第一个 click 触发时<span class=" fw-cl "><span>，</span></span>调用 e.stopImmediatePropagtion 阻止当前元素第二个 click 事件的触发<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span>因此这一段代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>componentDidMount() {<br>
+ &nbsp;document.addEventListener('click', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log('document click')<br>
+ &nbsp;})<br>
+}<br>
+<br>
+handleClick = e =&gt; {<br>
+ &nbsp;console.log('div click')<br>
+ &nbsp;e.nativeEvent.stopImmediatePropagation()<br>
+}<br>
+<br>
+render() {<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div onclick="{this.handleClick}"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;click<br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>只会打印出 div click<span class=" fw-cl "><span>。</span></span></p>
+<h3>请不要再背诵 Diff 算法了</h3>
+<p>很多开发者在面试中能<span class="fw-op  "><span>「</span></span>背诵<span class=" fw-cl "><span>」</span></span>出 React DOM diff 算法的方式<span class=" fw-cl "><span>，</span></span>熟悉那著名的<span class="fw-op  "><span>「</span></span>三个假设<span class=" fw-cl "><span>」</span></span><span class="fw-op  fw--collapsed"><span>（</span></span>不了解的读者可先自行学习<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>可是你真的懂 Diff 算法吗<span class=" fw-cl "><span>？</span></span>如果我是面试官<span class=" fw-cl "><span>，</span></span>我问几个简单的问题<span class=" fw-cl "><span>，</span></span>你是否还能招架得住<span class=" fw-cl "><span>？</span></span></p>
+<p>我们通过一个侧面来剖析 Diff 算法的细节<span class=" fw-cl "><span>。</span></span></p>
+<h4>Element diff 的那些事儿</h4>
+<p>我们都知道 React 把对比两个树的时间复杂度从 On 立方降低到大 On<span class=" fw-cl "><span>，</span></span>三个假设也都老生常谈了<span class=" fw-cl "><span>。</span></span>但是关于兄弟列表的 diff 细节<span class=" fw-cl "><span>，</span></span>React 叫做 element diff<span class=" fw-cl "><span>，</span></span>我们可以展开一下<span class=" fw-cl "><span>。</span></span></p>
+<p>React 三个假设在对比 element 时<span class=" fw-cl "><span>，</span></span>存在短板<span class=" fw-cl "><span>，</span></span>于是需要开发者给每一个 element 通过提供 key <span class=" fw-cl "><span>，</span></span>这样 react 可以准确地发现新旧集合中的节点中相同节点<span class=" fw-cl "><span>，</span></span>对于相同节点无需进行节点删除和创建<span class=" fw-cl "><span>，</span></span>只需要将旧集合中节点的位置进行移动<span class=" fw-cl "><span>，</span></span>更新为新集合中节点的位置<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-c3817d811221e1ee2b9b1596cc815708.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:25.74503311258278% 0" data-src="https://pic1.zhimg.com/v2-c3817d811221e1ee2b9b1596cc815708.png">加载中...</span></figure>
+<p>组件 1234<span class=" fw-cl "><span>，</span></span>变为 2143<span class=" fw-cl "><span>，</span></span>此时 React 给出的 diff 结果为 2<span class=" fw-cl "><span>，</span></span>4 不做任何操作<span class=" fw-cl "><span>；</span></span>1<span class=" fw-cl "><span>，</span></span>3 进行移动操作即可<span class=" fw-cl "><span>。</span></span></p>
+<p>也就是元素在旧集合中的位置<span class=" fw-cl "><span>，</span></span>相比新集合中的位置更靠后的话<span class=" fw-cl "><span>，</span></span>那么它就不需要移动<span class=" fw-cl "><span>。</span></span>当然这种 diff 听上去就并非完美无缺的<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来看这么一种情况<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-c0f9c6836417db9d63202f2978fe8527.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:27.895595432300162% 0" data-src="https://pic3.zhimg.com/v2-c0f9c6836417db9d63202f2978fe8527.png">加载中...</span></figure>
+<p>实际只需对 4 执行移动操作<span class=" fw-cl "><span>，</span></span>然而由于 4 在旧集合中的位置是最大的<span class=" fw-cl "><span>，</span></span>导致其他节点全部移动<span class=" fw-cl "><span>，</span></span>移动到 4 节点后面<span class=" fw-cl "><span>。</span></span></p>
+<p>这无疑是很愚蠢的<span class=" fw-cl "><span>，</span></span>性能较差<span class=" fw-cl "><span>。</span></span>针对这种情况<span class=" fw-cl "><span>，</span></span>官方建议<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p><span class="fw-op  "><span>「</span></span>在开发过程中<span class=" fw-cl "><span>，</span></span>尽量减少类似将最后一个节点移动到列表首部的操作<span class=" fw-cl fw--collapsed"><span>。</span></span><span class=" fw-cl "><span>」</span></span></p>
+<p>实际上很多类 React 类库<span class="fw-op  "><span>（</span></span>Inferno.js<span class=" fw-cl "><span>，</span></span>Preact.js<span class=" fw-cl "><span>）</span></span>都有了更优的 element diff 移动策略<span class=" fw-cl "><span>。</span></span></p>
+<h4>有 key 就一定<span class="fw-op  "><span>「</span></span>性能最优<span class=" fw-cl "><span>」</span></span>吗<span class=" fw-cl "><span>？</span></span></h4>
+<p>刚才提到<span class=" fw-cl "><span>，</span></span>在进行 element diff 时<span class=" fw-cl "><span>：</span></span>由于 key 的存在<span class=" fw-cl "><span>，</span></span>react 可以准确地判断出该节点在新集合中是否存在<span class=" fw-cl "><span>，</span></span>这极大地提高了 element diff 效率<span class=" fw-cl "><span>。</span></span></p>
+<p>但是加了 key 一定要比没加 key 的性能更高吗<span class=" fw-cl "><span>？</span></span></p>
+<p>我们来看这个场景<span class=" fw-cl "><span>，</span></span>集合 [1,2,3,4] 渲染成 4 组数字<span class=" fw-cl "><span>，</span></span>注意仅仅是数字这么简单<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><div id="1"><code>1</code></div><code><br>
+<div id="2">2</div><br>
+<div id="3">3</div><br>
+<div id="4">4</div></code><p></p>
+<p>当它变为 [2<span class=" fw-cl "><span>，</span></span>1<span class=" fw-cl "><span>，</span></span>4<span class=" fw-cl "><span>，</span></span>5]<span class=" fw-cl "><span>：</span></span>删除了 3<span class=" fw-cl "><span>，</span></span>增加了 5<span class=" fw-cl "><span>，</span></span>按照之前的算法<span class=" fw-cl "><span>，</span></span>我们把 1 放到 2 后面<span class=" fw-cl "><span>，</span></span>删除 3<span class=" fw-cl "><span>，</span></span>再新增 5<span class=" fw-cl "><span>。</span></span>整个操作移动了一次 dom 节点<span class=" fw-cl "><span>，</span></span>删除和新增一共 2 处节点<span class=" fw-cl "><span>。</span></span></p>
+<p>由于 dom 节点的移动操作开销是比较昂贵的<span class=" fw-cl "><span>，</span></span>其实对于这种简单的 node text 更改情况<span class=" fw-cl "><span>，</span></span>我们不需要再进行类似的 element diff 过程<span class=" fw-cl "><span>，</span></span>只需要更改 dom.textContent 即可<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const startTime = performance.now()<br>
+<br>
+$('#1').textContent = 2<br>
+$('#2').textContent = 1<br>
+$('#3').textContent = 4<br>
+$('#4').textContent = 5<br>
+<br>
+console.log('time consumed:' performance.now() - startTime)</code></p>
+<p>这么看<span class=" fw-cl "><span>，</span></span>也许没有 key 的情况下要比有 key 的性能更好<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>这一讲<span class=" fw-cl "><span>，</span></span>我们聚焦 React 当中那些<span class="fw-op  "><span>「</span></span>不为人知<span class=" fw-cl "><span>」</span></span>的设计细节<span class=" fw-cl "><span>，</span></span>这些设计细节却从不同角度体现了 React 的理念和思想<span class=" fw-cl "><span>。</span></span>仔细想来<span class=" fw-cl "><span>，</span></span>也许<span class="fw-op  "><span>「</span></span>我之前理解的 React 还是很肤浅<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>！</span></span>实际上<span class=" fw-cl "><span>，</span></span>任何一个类库或者框架<span class=" fw-cl "><span>，</span></span>我们都不能停留在初级使用上<span class=" fw-cl "><span>，</span></span>而更应该从使用的经验出发<span class=" fw-cl "><span>，</span></span>深入细节<span class=" fw-cl "><span>，</span></span>这样才能更好地理解框架<span class=" fw-cl "><span>，</span></span>也能更快地自我提升<span class=" fw-cl "><span>。</span></span></p>
+<h3><br></h3><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1JD32A8oh1vKmB9FAalv</span></p>
+</body>
+</html>

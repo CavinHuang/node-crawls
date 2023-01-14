@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 39 节揭秘前端设计模式（2）</h1>
+  <p>在上一讲中<span class=" fw-cl "><span>，</span></span>我们介绍了设计模式的一些基本概念<span class=" fw-cl "><span>。</span></span>本讲我们来结合实例<span class=" fw-cl "><span>，</span></span>结合前端开发<span class=" fw-cl "><span>，</span></span>继续讲解这个话题<span class=" fw-cl "><span>。</span></span></p>
+<p>回顾一下设计模式的内容<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+</p>
+<figure><br></figure>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-0401c69f907fcb5b9b2584fde983fa13.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:64.27320490367777% 0" data-src="https://pic2.zhimg.com/v2-0401c69f907fcb5b9b2584fde983fa13.png">加载中...</span></figure>
+<h3>工厂模式在前端中的应用</h3>
+<p>创建型的工厂模式一共分为三种<span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<ul>
+  <li style="">简单工厂模式<span class="fw-op  "><span>（</span></span>Simple Factory<span class=" fw-cl "><span>）</span></span>&nbsp;</li>
+  <li style="">工厂方法模式<span class="fw-op  "><span>（</span></span>Factory Method<span class=" fw-cl "><span>）</span></span>&nbsp;</li>
+  <li style="">抽象工厂模式<span class="fw-op  "><span>（</span></span>Abstract Factory<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>顾名思义<span class=" fw-cl "><span>，</span></span>工厂模式就是隐藏了创建一个实例的复杂度<span class=" fw-cl "><span>，</span></span>只需要提供一个简单的接口调用<span class=" fw-cl "><span>，</span></span>直接完成创建实例的目的<span class=" fw-cl "><span>。</span></span>而这三种工厂模式的区别我认为没有太大必要去细分<span class=" fw-cl "><span>，</span></span>重点还是在于应用<span class=" fw-cl "><span>。</span></span>比如一个非常常见的场景<span class=" fw-cl "><span>，</span></span>就是 jQuery 的选择器<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class jQuery {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;constructor(selector) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;super(selector)</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// &nbsp;....</code><br>
+<code><br>
+}</code><br>
+<br>
+<code><br>
+window.$ = function(selector) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;return new jQuery(selector)</code><br>
+<code><br>
+}</code></p>
+<p>这样的代码非常明显<span class=" fw-cl "><span>，</span></span>我们需要构建一个 jQuery 实例时<span class=" fw-cl "><span>，</span></span>只需要<span class=" fw-cl "><span>：</span></span></p>
+<p><code>$('selector')</code></p>
+<p>因为 <code>$</code> 已经被挂载在 window 上<span class=" fw-cl "><span>，</span></span>而 <code>$</code> 作为一个函数<span class=" fw-cl "><span>，</span></span>它直接返回了 new jQuery(selector)<span class=" fw-cl "><span>，</span></span>开发者不需要再麻烦地使用 <code>new $('selector')</code> 方式<span class=" fw-cl "><span>。</span></span></p>
+<p>除了 jQuery 以外<span class=" fw-cl "><span>，</span></span>React 开发者常用的 React.createElement 也是工厂模式的体现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>React.createElement('span', null, 'Factory Pattern!'),</code></p>
+<p>只要具有组件化思想的类库或者框架<span class=" fw-cl "><span>，</span></span>无一例外都会使用工厂模式去创建组件实例<span class=" fw-cl "><span>，</span></span>除了提到的 React<span class=" fw-cl "><span>、</span></span>jQuery<span class="fw-op  "><span>（</span></span>jQuery UI<span class=" fw-cl "><span>）</span></span> 以外<span class=" fw-cl "><span>，</span></span>Vue<span class=" fw-cl "><span>，</span></span>甚至是更古老的 ExtJS 都不例外<span class=" fw-cl "><span>。</span></span></p>
+<p>我们再来看一个例子<span class=" fw-cl "><span>，</span></span>请读者体会<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Car {</code><br>
+<code><br>
+ &nbsp;constructor(options) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;const {doors = 4, state = 'new', color = 'black'} = options</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.doors = doors</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.state = state</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.color = color</code><br>
+<code><br>
+ &nbsp;}</code><br>
+<code><br>
+}</code><br>
+<br>
+<code><br>
+class Truck {</code><br>
+<code><br>
+ &nbsp;constructor(options) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;const {wheelSize = 'medium', state = 'used', color = 'silver'} = options</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.wheelSize = wheelSize</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.state = state</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.color = color</code><br>
+<code><br>
+ &nbsp;}</code><br>
+<code><br>
+}</code><br>
+<br>
+<br>
+<code><br>
+class VehicleFactory {</code><br>
+<code><br>
+ &nbsp;createVehicle(options) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;switch (options.type) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'car':</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.vehicleTarget = Car</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'truck':</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.vehicleTarget = Truck</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.vehicleTarget = Car</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;return new this.vehicleTarget(options)</code><br>
+<code><br>
+ &nbsp;}</code><br>
+<code><br>
+}</code><br>
+<br>
+<code><br>
+let factory = new VehicleFactory()</code><br>
+<br>
+<code><br>
+let instance1 = factory.createVehicle({</code><br>
+<code><br>
+ &nbsp;type: 'car',</code><br>
+<code><br>
+ &nbsp;color: 'yellow',</code><br>
+<code><br>
+ &nbsp;doors: 4</code><br>
+<code><br>
+})</code><br>
+<br>
+<code><br>
+let instance2 = factory.createVehicle({</code><br>
+<code><br>
+ &nbsp;type: 'truck',</code><br>
+<code><br>
+ &nbsp;state: 'new',</code><br>
+<code><br>
+ &nbsp;wheelSize: 'small'</code><br>
+<code><br>
+})</code></p>
+<p>尝试<span class=" fw-cl "><span>：</span></span></p>
+<p><code>instance1 instanceof Car</code><br>
+<code><br>
+instance2 instanceof Truck</code></p>
+<p>都会返回 true<span class=" fw-cl "><span>。</span></span>理解了这个例子<span class=" fw-cl "><span>，</span></span>其实你也就明白了建造者模式<span class=" fw-cl "><span>。</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>什么<span class=" fw-cl "><span>？</span></span>我还不知道建造者模式是什么<span class=" fw-cl fw--collapsed"><span>！</span></span><span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>没错<span class=" fw-cl "><span>，</span></span>设计模式就是这样<span class=" fw-cl "><span>，</span></span>重要的不是死记硬背每种模式的概念<span class=" fw-cl "><span>，</span></span>而是在实际中应用<span class=" fw-cl "><span>，</span></span>其实不经意之间<span class=" fw-cl "><span>，</span></span>你一直在使用设计模式<span class=" fw-cl "><span>。</span></span></p>
+<h3>单例模式在前端中的应用</h3>
+<p>单例模式非常简单<span class=" fw-cl "><span>，</span></span>通俗来说就是某个类只能有一个是实例<span class=" fw-cl "><span>。</span></span>那么他的应用场景也就非常直观<span class=" fw-cl "><span>：</span></span>引用第三方库<span class=" fw-cl "><span>，</span></span>全局唯一的对象或者状态管理<span class=" fw-cl "><span>，</span></span>全局唯一的插件等<span class=" fw-cl "><span>。</span></span>在之前的课程中<span class=" fw-cl "><span>，</span></span>我们通过闭包实现了单例模式<span class=" fw-cl "><span>，</span></span>这里再次用 ES6 实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Singleton {</code><br>
+<code><br>
+ &nbsp;constructor() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;if (!Singleton.instance) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Singleton.instance = this;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;return Singleton.instance;</code><br>
+<code><br>
+ &nbsp;}</code><br>
+<code><br>
+}</code></p>
+<h3>建造者模式在前端中的应用</h3>
+<p>前面我们提到了建造者模式<span class=" fw-cl "><span>，</span></span>这里再深入地进行了解<span class=" fw-cl "><span>。</span></span>建造者的精髓在于<span class="fw-op  "><span>「</span></span>分步骤分情况构建一个复杂的对象<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>比如我们想实现一个 pizza 类<span class=" fw-cl "><span>，</span></span>用于生成 pizza 实例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Pizza {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;constructor(size, chesse = true, tomato = false, lettuce = false) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+}</code></p>
+<p>构建一个 pizza 需要在初始化时传入需要的参数<span class=" fw-cl "><span>，</span></span>如果这个 pizza 类变得复杂<span class=" fw-cl "><span>，</span></span>比如需要声明是否添加 mushroom<span class=" fw-cl "><span>、</span></span>oliver<span class=" fw-cl "><span>、</span></span>poulet 等<span class=" fw-cl "><span>，</span></span>那么参数就会非常失控<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Pizza {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;constructor(size, mushroom = true, oliver= true, poulet = false, chesse = true, tomato = false, lettuce = false) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+}</code></p>
+<p>使用建造者模式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Pizza {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;constructor(size) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.size = size</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;addMushroom() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.mushroom = true</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;addOliver() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.oliver = true</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;addPoulet() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.poulet = true</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;addChesse() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.chesse = true</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;addTomato() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tomato = true</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;addLettuce() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.lettuce = true</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;build() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return new Pizza(this)</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+}</code></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>使用就会更加优雅<span class=" fw-cl "><span>：</span></span></p>
+<p><code>new Pizza(32)</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;.addOliver()</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;.addTomato()</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;.build()</code></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>你可以认为参数以对象的形式传入<span class=" fw-cl "><span>，</span></span>就能解决参数过多以及参数顺序问题<span class=" fw-cl "><span>。</span></span>可是往往构造一个对象并不只是参数的问题<span class=" fw-cl "><span>。</span></span>比如构建一个复杂的 DOM 结构<span class=" fw-cl "><span>，</span></span>而针对于此 jQuery 利用建造者模式简化了构建 DOM 的过程<span class=" fw-cl "><span>：</span></span></p>
+<p>我们可以通过多种方式构造 DOM <span class=" fw-cl "><span>：</span></span></p>
+<p><code>$( "</code></p>
+<p><code>bar" );</code></p>
+<p><br></p>
+<p><code>$( "</code></p>
+<p><code>foo </code><code><em>bar</em></code><code>").appendTo("body" );</code></p>
+<p><br></p>
+<p><code>var newParagraph = $( "</code></p>
+<p><code>" ).text( "Hello world" );</code></p>
+<p><code>$( "" )</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.attr({ "type": "text", "id":"sample"});</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.appendTo("#container");</code></p>
+<p>对应 jQuery.prototype 源码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>&nbsp;&nbsp;// HANDLE: $(html) -&gt; $(array)</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;if ( match[1] ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context = context instanceof jQuery ? context[0] : context;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;doc = ( context ? context.ownerDocument || context : document );</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//如果传入的是单个字符串<span class=" fw-cl "><span>，</span></span>并且是单个标记</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//只需执行 createElement 并跳过其余部分</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ret = rsingleTag.exec( selector );</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if ( ret ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if ( jQuery.isPlainObject( context ) ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;selector = [ document.createElement( ret[1] ) ];</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jQuery.fn.attr.call( selector, context, true );</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;selector = [ doc.createElement( ret[1] ) ];</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ret = jQuery.buildFragment( [ match[1] ], [ doc ] );</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;selector = ( ret.cacheable ? jQuery.clone(ret.fragment) </code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: ret.fragment ).childNodes;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return jQuery.merge( this, selector );</code></p>
+<h3>外观模式在前端中的应用</h3>
+<p>外观模式的精髓在于对接口进行二次封装<span class=" fw-cl "><span>，</span></span>隐藏其内部的复杂度<span class=" fw-cl "><span>。</span></span>这种设计在前端开发中也非常常见<span class=" fw-cl "><span>，</span></span>比如跨浏览器兼容性的封装<span class=" fw-cl "><span>，</span></span>比如事件<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var addMyEvent = function( el,ev,fn ){</code><br>
+<code><br>
+ &nbsp;if( el.addEventListener ){//存在 DOM2 级方法<span class=" fw-cl "><span>，</span></span>则使用并传入事件类型<span class=" fw-cl "><span>、</span></span>事件处理程序函数和第 3 个参数 false<span class="fw-op  "><span>（</span></span>表示冒泡阶段<span class=" fw-cl "><span>）</span></span></code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;el.addEventListener( ev,fn, false );</code><br>
+<code><br>
+ &nbsp;}else if(el.attachEvent){ // 为兼容 IE8 及更早浏览器<span class=" fw-cl "><span>，</span></span>注意事件类型必须加上"on"前缀</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;el.attachEvent( "on" + ev, fn );</code><br>
+<code><br>
+ &nbsp;}else{</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;el["on" + ev] = fn;//其他方法都无效<span class=" fw-cl "><span>，</span></span>默认采用 DOM0 级方法<span class=" fw-cl "><span>，</span></span>使用方括号语法将属性名指定为事件处理程序</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+};</code></p>
+<p>再比如 <code>$(document).ready</code> 的用法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>bindReady: function() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;...</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;if ( document.addEventListener ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Use the handy event callback</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;document.addEventListener( "DOMContentLoaded", DOMContentLoaded, false );</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// A fallback to window.onload, that will always work</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window.addEventListener( "load", jQuery.ready, false );</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// If IE event model is used</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;} else if ( document.attachEvent ) {</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;document.attachEvent( "onreadystatechange", DOMContentLoaded );</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// A fallback to window.onload, that will always work</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window.attachEvent( "onload", jQuery.ready );</code></p>
+<p>再看一个例子<span class=" fw-cl "><span>，</span></span>外观模式和模块化的结合<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var module = (function() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;var _private = {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i: 5,</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get: function() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log( "current value:" + this.i);</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set: function( val ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.i = val;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;run: function() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log( "running" );</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jump: function(){</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log( "jumping" );</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;};</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;return {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;facade: function( args ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_private.set(args.val);</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_private.get();</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if ( args.run ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_private.run();</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;};</code><br>
+<code><br>
+}());</code><br>
+<br>
+<br>
+<code><br>
+// Outputs: "current value: 10" and "running"</code><br>
+<code><br>
+module.facade( {run: true, val: 10} );</code></p>
+<p>在这个例子中<span class=" fw-cl "><span>，</span></span>开发者只需要调用 module.facade( {run: true, val: 10} )<span class=" fw-cl "><span>，</span></span>调用后会触发模块当中私有方法<span class=" fw-cl "><span>，</span></span>实现对数值的改写<span class=" fw-cl "><span>，</span></span>我们并不需要明白 module 内部实现<span class=" fw-cl "><span>，</span></span>只需要关心其封装即可<span class=" fw-cl "><span>。</span></span></p>
+<h3>适配器模式在前端中的应用</h3>
+<p>适配器模式在于适配两个及以上类接口不兼容的问题<span class=" fw-cl "><span>，</span></span>和外观模式的核心思路类似<span class=" fw-cl "><span>。</span></span>在 jQuery 中也广泛应用<span class=" fw-cl "><span>，</span></span>我们知道 opacity 属性在不同浏览器中的表现方式不同<span class=" fw-cl "><span>。</span></span></p>
+<p>在 Chrome 4+<span class=" fw-cl "><span>、</span></span>FF2+<span class=" fw-cl "><span>、</span></span>Saf3.1+<span class=" fw-cl "><span>、</span></span>Opera 9+<span class=" fw-cl "><span>、</span></span>IE9<span class=" fw-cl "><span>、</span></span>iOS 3.2+<span class=" fw-cl "><span>、</span></span>Android 2.1+ 中<span class=" fw-cl "><span>：</span></span></p>
+<p><code>opacity: 0.9</code></p>
+<p>是常见用法<span class=" fw-cl "><span>，</span></span>但是在 IE6-8<span class=" fw-cl "><span>，</span></span>却是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>filter: alpha(opacity=90)</code></p>
+<p>jQuery 利用适配器模式<span class=" fw-cl "><span>，</span></span>对这种差异进行了抹平<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// 读</code><br>
+<code><br>
+$( ".container" ).css( { opacity: .5 } );</code><br>
+<br>
+<code><br>
+// 取</code><br>
+<code><br>
+let opacity = $( ".container" ).css( { opacity: .5 } );</code></p>
+<p>其内部实现为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>get: function( elem, computed ) {</code><br>
+<code><br>
+ &nbsp;// IE uses filters for opacity</code><br>
+<code><br>
+ &nbsp;return ropacity.test( (</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;computed &amp;&amp; elem.currentStyle ?</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elem.currentStyle.filter : elem.style.filter) || "" ) ?</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;( parseFloat( RegExp.$1 ) / 100 ) + "" :</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;computed ? "1" : "";</code><br>
+<code><br>
+},</code><br>
+<br>
+<code><br>
+set: function( elem, value ) {</code><br>
+<code><br>
+ &nbsp;var style = elem.style,</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;currentStyle = elem.currentStyle,</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;opacity = jQuery.isNumeric( value ) ?</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"alpha(opacity=" + value * 100 + ")" : "",</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;filter = currentStyle &amp;&amp; currentStyle.filter || style.filter || "";</code><br>
+<br>
+<code><br>
+ &nbsp;// IE has trouble with opacity if it does not have layout</code><br>
+<code><br>
+ &nbsp;// Force it by setting the zoom level</code><br>
+<code><br>
+ &nbsp;style.zoom = 1;</code><br>
+<br>
+<code><br>
+ &nbsp;// if setting opacity to 1, and no other filters</code><br>
+<code><br>
+ &nbsp;//exist - attempt to remove filter attribute #6652</code><br>
+<code><br>
+ &nbsp;if ( value &gt;= 1 &amp;&amp; jQuery.trim( filter.replace( ralpha, "" ) ) === "" ) {</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// Setting style.filter to null, "" &amp; " " still leave</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// "filter:" in the cssText if "filter:" is present at all,</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// clearType is disabled, we want to avoid this style.removeAttribute</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// is IE Only, but so apparently is this code path...</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;style.removeAttribute( "filter" );</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// if there there is no filter style applied in a css rule, we are done</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;if ( currentStyle &amp;&amp; !currentStyle.filter ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;// otherwise, set new filter values</code><br>
+<code><br>
+ &nbsp;style.filter = ralpha.test( filter ) ?</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;filter.replace( ralpha, opacity ) :</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;filter + " " + opacity;</code><br>
+<code><br>
+}</code><br>
+<code><br>
+};</code></p>
+<h3>享元模式在前端中的应用</h3>
+<p>我个人认为享元模式非常重要<span class=" fw-cl "><span>，</span></span>他是用于性能优化的一种常见模式<span class=" fw-cl "><span>。</span></span>它依靠<span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<ul>
+  <li style="">主减少创建对象实例的数量&nbsp;</li>
+  <li style="">运用共享技术来有效支持大量细粒度的对象</li>
+</ul>
+<p>这两种方式减少内存占用<span class=" fw-cl "><span>，</span></span>以提高性能<span class=" fw-cl "><span>。</span></span>在 JavaScript 中<span class=" fw-cl "><span>，</span></span>浏览器特别是移动端的浏览器所占有的内存并不算多<span class=" fw-cl "><span>，</span></span>因此合理利用享元模式<span class=" fw-cl "><span>，</span></span>达到节省内存的目的<span class=" fw-cl "><span>，</span></span>就成了一件非常有意义的优化<span class=" fw-cl "><span>。</span></span></p>
+<p>在 Java 中有一个关键字<span class=" fw-cl "><span>：</span></span>implements<span class=" fw-cl "><span>，</span></span>它用于接入接口 interfaces<span class=" fw-cl "><span>，</span></span>这在 JavaScript 语言中并不存在<span class=" fw-cl "><span>，</span></span>但是我们仍然可以模拟一个<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Function.prototype.implementsFor = function( parentClassOrObject ){</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;if ( parentClassOrObject.constructor === Function )</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;{</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Normal Inheritance</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prototype = new parentClassOrObject();</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prototype.constructor = this;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prototype.parent = parentClassOrObject.prototype;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;else</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;{</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Pure Virtual Inheritance</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prototype = parentClassOrObject;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prototype.constructor = this;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prototype.parent = parentClassOrObject;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;return this;</code><br>
+<code><br>
+};</code></p>
+<p>我们看<span class=" fw-cl "><span>：</span></span>implementsFor 作用于一个构造函数<span class=" fw-cl "><span>，</span></span>它接受一个父类<span class="fw-op  "><span>（</span></span>function<span class=" fw-cl "><span>）</span></span>或者一个 object<span class=" fw-cl "><span>，</span></span>并继承该父类构造函数<span class="fw-op  "><span>（</span></span>function<span class=" fw-cl "><span>）</span></span>或者指定的 object<span class=" fw-cl "><span>。</span></span>上段代码并不难理解<span class=" fw-cl "><span>，</span></span>我们看一个应用实例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// Flyweight object</code><br>
+<code><br>
+var CoffeeOrder = {</code><br>
+<br>
+<code><br>
+ &nbsp;// Interfaces</code><br>
+<code><br>
+ &nbsp;serveCoffee:function(context){},</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;getFlavor:function(){}</code><br>
+<br>
+<code><br>
+};</code><br>
+<br>
+<br>
+<code><br>
+// ConcreteFlyweight object that creates ConcreteFlyweight</code><br>
+<code><br>
+// Implements CoffeeOrder</code><br>
+<code><br>
+function CoffeeFlavor( newFlavor ){</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;var flavor = newFlavor;</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// If an interface has been defined for a feature</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// implement the feature</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;if( typeof this.getFlavor === "function" ){</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.getFlavor = function() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return flavor;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;if( typeof this.serveCoffee === "function" ){</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.serveCoffee = function( context ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log("Serving Coffee flavor "</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ flavor</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ " to table number "</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ context.getTable());</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<br>
+<code><br>
+}</code><br>
+<br>
+<br>
+<code><br>
+// Implement interface for CoffeeOrder</code><br>
+<code><br>
+CoffeeFlavor.implementsFor( CoffeeOrder );</code><br>
+<br>
+<br>
+<code><br>
+// Handle table numbers for a coffee order</code><br>
+<code><br>
+function CoffeeOrderContext( tableNumber ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;return{</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getTable: function() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return tableNumber;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;};</code><br>
+<code><br>
+}</code><br>
+<br>
+<code><br>
+function CoffeeFlavorFactory() {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;var flavors = {},</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;length = 0;</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;return {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getCoffeeFlavor: function (flavorName) {</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var flavor = flavors[flavorName];</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof flavor === "undefined") {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;flavor = new CoffeeFlavor(flavorName);</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;flavors[flavorName] = flavor;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;length++;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return flavor;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getTotalCoffeeFlavorsMade: function () {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return length;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;};</code><br>
+<code><br>
+}</code><br>
+<br>
+<code><br>
+// Sample usage:</code><br>
+<code><br>
+// testFlyweight()</code><br>
+<br>
+<code><br>
+function testFlyweight(){</code><br>
+<br>
+<br>
+<code><br>
+ &nbsp;// The flavors ordered.</code><br>
+<code><br>
+ &nbsp;var flavors = [],</code><br>
+<br>
+<code><br>
+ &nbsp;// The tables for the orders.</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;tables = [],</code><br>
+<br>
+<code><br>
+ &nbsp;// Number of orders made</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;ordersMade = 0,</code><br>
+<br>
+<code><br>
+ &nbsp;// The CoffeeFlavorFactory instance</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;flavorFactory = new CoffeeFlavorFactory();</code><br>
+<br>
+<code><br>
+ &nbsp;function takeOrders( flavorIn, table) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;flavors.push( flavorFactory.getCoffeeFlavor( flavorIn ) );</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;tables.push( new CoffeeOrderContext( table ) );</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;ordersMade++;</code><br>
+<code><br>
+ &nbsp;}</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Cappuccino", 2);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Cappuccino", 2);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Frappe", 1);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Frappe", 1);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Xpresso", 1);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Frappe", 897);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Cappuccino", 97);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Cappuccino", 97);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Frappe", 3);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Xpresso", 3);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Cappuccino", 3);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Xpresso", 96);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Frappe", 552);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Cappuccino", 121);</code><br>
+<code><br>
+ &nbsp;&nbsp;takeOrders("Xpresso", 121);</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;for (var i = 0; i &lt; ordersMade; ++i) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;flavors[i].serveCoffee(tables[i]);</code><br>
+<code><br>
+ &nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;console.log(" ");</code><br>
+<code><br>
+ &nbsp;&nbsp;console.log("total CoffeeFlavor objects made: " + flavorFactory.getTotalCoffeeFlavorsMade());</code><br>
+<code><br>
+}</code></p>
+<p>这个例子中<span class=" fw-cl "><span>，</span></span>CoffeeFlavor 接入了 CoffeeOrder 的接口<span class=" fw-cl "><span>。</span></span>接口的概念也许对于传统的 JavaScript 开发者有些陌生<span class=" fw-cl "><span>，</span></span>我们再来看一个更加具有表现力的例子<span class=" fw-cl "><span>：</span></span>在图书管理系统中<span class=" fw-cl "><span>，</span></span>每本书都有以下特性<span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<ul>
+  <li style="">ID&nbsp;</li>
+  <li style="">Title&nbsp;</li>
+  <li style="">Author&nbsp;</li>
+  <li style="">Genre&nbsp;</li>
+  <li style="">Page count&nbsp;</li>
+  <li style="">Publisher ID&nbsp;</li>
+  <li style="">ISBN</li>
+</ul>
+<p>同时我们需要以下属性来追踪每一本书时<span class=" fw-cl "><span>，</span></span>记录它是否可用<span class=" fw-cl "><span>、</span></span>归还时间等<span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<ul>
+  <li style="">checkoutDate&nbsp;</li>
+  <li style="">checkoutMember&nbsp;</li>
+  <li style="">dueReturnDate&nbsp;</li>
+  <li style="">availability</li>
+</ul>
+<p>那么 Book 这个类看上去就像<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var Book = function( id, title, author, genre, pageCount,publisherID, ISBN, checkoutDate, checkoutMember, dueReturnDate,availability ){</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;this.id = id;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.title = title;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.author = author;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.genre = genre;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.pageCount = pageCount;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.publisherID = publisherID;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.ISBN = ISBN;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.checkoutDate = checkoutDate;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.checkoutMember = checkoutMember;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.dueReturnDate = dueReturnDate;</code><br>
+<code><br>
+ &nbsp;&nbsp;this.availability = availability;</code><br>
+<br>
+<code><br>
+};</code><br>
+<br>
+<code><br>
+Book.prototype = {</code><br>
+<br>
+<code><br>
+ &nbsp;getTitle: function () {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;return this.title;</code><br>
+<code><br>
+ &nbsp;},</code><br>
+<br>
+<code><br>
+ &nbsp;getAuthor: function () {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;return this.author;</code><br>
+<code><br>
+ &nbsp;},</code><br>
+<br>
+<code><br>
+ &nbsp;getISBN: function (){</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;return this.ISBN;</code><br>
+<code><br>
+ &nbsp;},</code><br>
+<br>
+<code><br>
+ &nbsp;// For brevity, other getters are not shown</code><br>
+<code><br>
+ &nbsp;updateCheckoutStatus: function( bookID, newStatus, checkoutDate, checkoutMember, newReturnDate ){</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.id = bookID;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.availability = newStatus;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.checkoutDate = checkoutDate;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.checkoutMember = checkoutMember;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.dueReturnDate = newReturnDate;</code><br>
+<br>
+<code><br>
+ &nbsp;},</code><br>
+<br>
+<code><br>
+ &nbsp;extendCheckoutPeriod: function( bookID, newReturnDate ){</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.id = bookID;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.dueReturnDate = newReturnDate;</code><br>
+<br>
+<code><br>
+ &nbsp;},</code><br>
+<br>
+<code><br>
+ &nbsp;isPastDue: function(bookID){</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;var currentDate = new Date();</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;return currentDate.getTime() &gt; Date.parse( this.dueReturnDate );</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;}</code><br>
+<code><br>
+};</code></p>
+<p>这么看上去并没有什么问题<span class=" fw-cl "><span>，</span></span>但是当图书增多时<span class=" fw-cl "><span>，</span></span>对于系统的压力会逐渐增多<span class=" fw-cl "><span>。</span></span>为此我们将书的属性分为两种<span class=" fw-cl "><span>：</span></span>本身固有的和外在特性<span class=" fw-cl "><span>。</span></span>本身固有的属性包括 title<span class=" fw-cl "><span>、</span></span>author 等<span class=" fw-cl "><span>，</span></span>外在特性包括 checkoutMember<span class=" fw-cl "><span>、</span></span>dueReturnDate 等<span class=" fw-cl "><span>。</span></span>这样一来<span class=" fw-cl "><span>，</span></span>我们简化书的构造函数为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var Book = function ( title, author, genre, pageCount, publisherID, ISBN ) {</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.title = title;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.author = author;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.genre = genre;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.pageCount = pageCount;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.publisherID = publisherID;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;this.ISBN = ISBN;</code><br>
+<br>
+<code><br>
+};</code></p>
+<p>我们将外在特性删去<span class=" fw-cl "><span>，</span></span>check-outs 等信息将会被移动到一个新的类中<span class=" fw-cl "><span>，</span></span>一个新的工厂函数也将出现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// Book Factory singleton</code><br>
+<code><br>
+var BookFactory = (function () {</code><br>
+<code><br>
+ &nbsp;var existingBooks = {}, existingBook;</code><br>
+<br>
+<code><br>
+ &nbsp;return {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;createBook: function ( title, author, genre, pageCount, publisherID, ISBN ) {</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Find out if a particular book meta-data combination has been created before</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// !! or (bang bang) forces a boolean to be returned</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;existingBook = existingBooks[ISBN];</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if ( !!existingBook ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return existingBook;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// if not, let's create a new instance of the book and store it</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var book = new Book( title, author, genre, pageCount, publisherID, ISBN );</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;existingBooks[ISBN] = book;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return book;</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;};</code><br>
+<br>
+<code><br>
+})();</code></p>
+<p>在这个工厂函数中<span class=" fw-cl "><span>，</span></span>我们将会检查当前需要创建的书籍是否已经存在<span class=" fw-cl "><span>，</span></span>如果存在直接返回书实例<span class=" fw-cl "><span>；</span></span>否则进行调用 Book 构造函数进行创建<span class=" fw-cl "><span>。</span></span>这保证了所有的书都是唯一的<span class=" fw-cl "><span>，</span></span>而不存在重复<span class=" fw-cl "><span>。</span></span></p>
+<p>对于书的外在特性<span class=" fw-cl "><span>，</span></span>我们创建 BookRecordManager 来维护每一本书的状态<span class=" fw-cl "><span>，</span></span>并通过 bookId 与每一个本书进行关系创建<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var BookRecordManager = (function () {</code><br>
+<br>
+<code><br>
+ &nbsp;var bookRecordDatabase = {};</code><br>
+<br>
+<code><br>
+ &nbsp;return {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;// add a new book into the library system</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;addBookRecord: function ( id, title, author, genre, pageCount, publisherID, ISBN, checkoutDate, checkoutMember, dueReturnDate, availability ) {</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var book = BookFactory.createBook( title, author, genre, pageCount, publisherID, ISBN );</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bookRecordDatabase[id] = {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;checkoutMember: checkoutMember,</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;checkoutDate: checkoutDate,</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dueReturnDate: dueReturnDate,</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;availability: availability,</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;book: book</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;},</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;updateCheckoutStatus: function ( bookID, newStatus, checkoutDate, checkoutMember, newReturnDate ) {</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var record = bookRecordDatabase[bookID];</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;record.availability = newStatus;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;record.checkoutDate = checkoutDate;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;record.checkoutMember = checkoutMember;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;record.dueReturnDate = newReturnDate;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;},</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;extendCheckoutPeriod: function ( bookID, newReturnDate ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bookRecordDatabase[bookID].dueReturnDate = newReturnDate;</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;},</code><br>
+<br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;isPastDue: function ( bookID ) {</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var currentDate = new Date();</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return currentDate.getTime() &gt; Date.parse( bookRecordDatabase[bookID].dueReturnDate );</code><br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;}</code><br>
+<code><br>
+ &nbsp;};</code><br>
+<br>
+<code><br>
+})();</code></p>
+<p>其实变动也比较明显<span class=" fw-cl "><span>，</span></span>书目所有的外在特性都被从书本身的特性中抽离<span class=" fw-cl "><span>，</span></span>现在被移动到 BookManager 的 BookDatabase 当中<span class=" fw-cl "><span>。</span></span>对于书借入/借出的操作也移动到了 BookRecordManager 当中<span class=" fw-cl "><span>，</span></span>因为这些方法需要直接操作书的外在特性<span class=" fw-cl "><span>。</span></span>如此一来<span class=" fw-cl "><span>，</span></span>比一本书拥有多项属性的大 object 模式更加高效<span class=" fw-cl "><span>，</span></span>也更利于维护<span class=" fw-cl "><span>。</span></span></p>
+<p>关于性能可以具体来看<span class=" fw-cl "><span>：</span></span>如果有 30 本同样一本书的 copy<span class=" fw-cl "><span>，</span></span>现有的模式下只存储了一个实例<span class=" fw-cl "><span>；</span></span>同时对于书状态转移的函数<span class=" fw-cl "><span>，</span></span>我们维护在 BookManager 当中<span class=" fw-cl "><span>，</span></span>而不再出现在对象<span class="fw-op  "><span>（</span></span>原型<span class=" fw-cl "><span>）</span></span>上<span class=" fw-cl "><span>，</span></span>如果这些函数出现在每一个书实例当中<span class=" fw-cl "><span>，</span></span>将会是更大的开销<span class=" fw-cl "><span>。</span></span></p>
+<p>享元模式在前端还有更多的应用<span class=" fw-cl "><span>，</span></span>比如事件代理就是一个很典型的体现<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<p><br>
+&nbsp;</p>
+<p><code>More Info (Address)</code><br>
+ <br>
+<code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is more information</code><br>
+ <br>
+&nbsp;</p>
+<p><code>Even More Info (Map)</code><br>
+ <br>
+&nbsp;</p>
+<h3>总结</h3>
+<p>这节课程讲解了<span class=" fw-cl "><span>：</span></span>工厂模式<span class=" fw-cl "><span>、</span></span>单例模式<span class=" fw-cl "><span>、</span></span>建造者模式<span class=" fw-cl "><span>、</span></span>外观模式<span class=" fw-cl "><span>、</span></span>适配器模式<span class=" fw-cl "><span>、</span></span>享元模式<span class=" fw-cl "><span>、</span></span>代理模式<span class=" fw-cl "><span>、</span></span>装饰者模式<span class=" fw-cl "><span>、</span></span>职责链模式<span class=" fw-cl "><span>、</span></span>策略模式等在前端中的实现和应用<span class=" fw-cl "><span>。</span></span>同时<span class=" fw-cl "><span>，</span></span>包括原型模式<span class=" fw-cl "><span>、</span></span>观察者模式<span class=" fw-cl "><span>、</span></span>迭代器模式在内<span class=" fw-cl "><span>，</span></span>这些模式都非常贴近 JavaScript 原有语法<span class=" fw-cl "><span>，</span></span>因此不再过多赘述<span class=" fw-cl "><span>。</span></span></p>
+<p>实际上<span class=" fw-cl "><span>，</span></span>设计模式很简单<span class=" fw-cl "><span>，</span></span>我们应该做到的是需要应用时<span class="fw-op  "><span>「</span></span>胸中有数<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>能够想到设计模式实现<span class=" fw-cl "><span>，</span></span>而不需要一味死记硬背<span class=" fw-cl "><span>。</span></span>&nbsp;</p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1yLrx00ytjAgXwzFk9NJ</span></p>
+</body>
+</html>

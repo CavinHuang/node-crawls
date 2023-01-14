@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 31 节代码规范工具及背后技术设计（下）</h1>
+  <p>上一节课<span class=" fw-cl "><span>，</span></span>我们主要介绍了代码规范工具<span class=" fw-cl "><span>，</span></span>了解了它们的配置<span class=" fw-cl "><span>、</span></span>使用方式<span class=" fw-cl "><span>。</span></span>这一节<span class=" fw-cl "><span>，</span></span>我们将深入原理<span class=" fw-cl "><span>，</span></span>并根据其实现和扩展能力<span class=" fw-cl "><span>，</span></span>开发更加灵活的工具集<span class=" fw-cl "><span>。</span></span></p>
+<p>在此之前<span class=" fw-cl "><span>，</span></span>我们先回顾一下<span class="fw-op  "><span>「</span></span>代码规范<span class=" fw-cl "><span>」</span></span>主题的知识点<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-0e82a8d157452401bdce4e0756e4b464.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:24.593023255813954% 0" data-src="https://pic1.zhimg.com/v2-0e82a8d157452401bdce4e0756e4b464.png">加载中...</span></figure>
+<h3>工具背后的技术原理和设计</h3>
+<p>这一小节<span class=" fw-cl "><span>，</span></span>我们挑选实现更为复杂精妙的 ESLint 来分析<span class=" fw-cl "><span>。</span></span>大家都清楚 ESLint 是基于静态语法分析<span class="fw-op  "><span>（</span></span>AST<span class=" fw-cl "><span>）</span></span>进行工作的<span class=" fw-cl "><span>，</span></span>AST 已经不是一个新鲜话题<span class=" fw-cl "><span>，</span></span>我们在 webpack 章节就有介绍<span class=" fw-cl "><span>。</span></span>ESLint 使用 Espree 来解析 JavaScript 语句<span class=" fw-cl "><span>，</span></span>生成 AST<span class=" fw-cl "><span>。</span></span>有了完整的解析树<span class=" fw-cl "><span>，</span></span>我们就可以基于解析树对代码进行检测和修改<span class=" fw-cl "><span>。</span></span></p>
+<p>ESLint 的灵魂是每一条 rule<span class=" fw-cl "><span>，</span></span>每条规则都是独立且插件化的<span class=" fw-cl "><span>，</span></span>我们挑一个比较简单的<span class="fw-op  "><span>「</span></span>禁止块级注释规则<span class=" fw-cl "><span>」</span></span>源码来分析<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = {<br>
+ &nbsp;meta: {<br>
+ &nbsp;&nbsp;&nbsp;docs: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;description: '禁止块级注释',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;category: 'Stylistic Issues',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;recommended: true &nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;},<br>
+ &nbsp;create (context) {<br>
+ &nbsp;&nbsp;&nbsp;const sourceCode = context.getSourceCode()<br>
+ &nbsp;&nbsp;&nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Program () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const comments = sourceCode.getAllComments()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const blockComments = comments.filter(({ type }) =&gt; type === 'Block')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;blockComments.length &amp;&amp; context.report({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;message: 'No block comments'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>从中我们看出<span class=" fw-cl "><span>，</span></span>一条规则就是一个 node 模块<span class=" fw-cl "><span>，</span></span>它由 meta 和 create 组成<span class=" fw-cl "><span>。</span></span>meta 包含了该条规则的文档描述<span class=" fw-cl "><span>，</span></span>相对简单<span class=" fw-cl "><span>。</span></span>而 create 接受一个 context 参数<span class=" fw-cl "><span>，</span></span>返回一个对象<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;meta: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;description: '禁止块级注释',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;category: 'Stylistic Issues',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;recommended: true <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;create (context) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return {<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>从 context 对象上我们可以取得当前执行扫描到的代码<span class=" fw-cl "><span>，</span></span>并通过选择器获取当前需要的内容<span class=" fw-cl "><span>。</span></span>如上代码<span class=" fw-cl "><span>，</span></span>我们获取代码的所有 comments<span class="fw-op  "><span>（</span></span>sourceCode.getAllComments()<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>如果 blockComments 长度大于 0<span class=" fw-cl "><span>，</span></span>则 report No block comments 信息<span class=" fw-cl "><span>。</span></span></p>
+<p>我们再来看一个 no-console rule 的实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"use strict";<br>
+<br>
+module.exports = {<br>
+ &nbsp;&nbsp;&nbsp;meta: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: "suggestion",<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;description: "disallow the use of `console`",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;category: "Possible Errors",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;recommended: false,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;url: "https://eslint.org/docs/rules/no-console"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;schema: [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: "object",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;properties: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: "array",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;items: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: "string"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;minItems: 1,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;uniqueItems: true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;additionalProperties: false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;messages: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unexpected: "Unexpected console statement."<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;create(context) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const options = context.options[0] || {};<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const allowed = options.allow || [];<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* Checks whether the given reference is 'console' or not.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param {eslint-scope.Reference} reference - The reference to check.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @returns {boolean} `true` if the reference is 'console'.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function isConsole(reference) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const id = reference.identifier;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return id &amp;&amp; id.name === "console";<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* Checks whether the property name of the given MemberExpression node<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* is allowed by options or not.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param {ASTNode} node - The MemberExpression node to check.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @returns {boolean} `true` if the property name of the node is allowed.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function isAllowed(node) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const propertyName = astUtils.getStaticPropertyName(node);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return propertyName &amp;&amp; allowed.indexOf(propertyName) !== -1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* Checks whether the given reference is a member access which is not<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* allowed by options or not.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param {eslint-scope.Reference} reference - The reference to check.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @returns {boolean} `true` if the reference is a member access which<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is not allowed by options.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function isMemberAccessExceptAllowed(reference) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const node = reference.identifier;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const parent = node.parent;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parent.type === "MemberExpression" &amp;&amp;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parent.object === node &amp;&amp;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!isAllowed(parent)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* Reports the given reference as a violation.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param {eslint-scope.Reference} reference - The reference to report.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @returns {void}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function report(reference) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const node = reference.identifier.parent;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context.report({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loc: node.loc,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;messageId: "unexpected"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Program:exit"() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const scope = context.getScope();<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const consoleVar = astUtils.getVariableByName(scope, "console");<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const shadowed = consoleVar &amp;&amp; consoleVar.defs.length &gt; 0;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/*<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* 'scope.through' includes all references to undefined<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* variables. If the variable 'console' is not defined, it uses<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* 'scope.through'.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const references = consoleVar<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? consoleVar.references<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: scope.through.filter(isConsole);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!shadowed) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;references<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.filter(isMemberAccessExceptAllowed)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.forEach(report);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+};</code></p>
+<p>代码中通过 astUtils.getVariableByName(scope, "console") 以及 isConsole 函数来判别 console 语句的出现<span class=" fw-cl "><span>，</span></span>通过 allowed.indexOf(propertyName) !== -1 来过滤白名单<span class=" fw-cl "><span>。</span></span></p>
+<p>实现非常简单<span class=" fw-cl "><span>，</span></span>了解了这些<span class=" fw-cl "><span>，</span></span>相信你也能写出 no-alert<span class=" fw-cl "><span>，</span></span>no-debugger 的规则内容<span class=" fw-cl "><span>。</span></span></p>
+<p>我们再来看一下 no-duplicate-case 规则<span class=" fw-cl "><span>，</span></span>它监测 switch...case 中是否存在相同的 case 分支<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = {<br>
+ &nbsp;&nbsp;&nbsp;meta: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: "problem",<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;description: "disallow duplicate case labels",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;category: "Possible Errors",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;recommended: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;url: "https://eslint.org/docs/rules/no-duplicate-case"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;schema: [],<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;messages: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unexpected: "Duplicate case label."<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;create(context) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const sourceCode = context.getSourceCode();<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SwitchStatement(node) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const mapping = {};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.cases.forEach(switchCase =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const key = sourceCode.getText(switchCase.test);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (mapping[key]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context.report({ node: switchCase, messageId: "unexpected" });<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mapping[key] = switchCase;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+};</code></p>
+<p>代码非常简单<span class=" fw-cl "><span>，</span></span>只是初始化时使用一个空的 mapping<span class=" fw-cl "><span>，</span></span>每次添加 case 是进行对 mapping 的扩充<span class=" fw-cl "><span>，</span></span>如果存在相同的 case 则 report<span class=" fw-cl "><span>。</span></span></p>
+<p>虽然 ESLint 背后的技术内容比较复杂<span class=" fw-cl "><span>，</span></span>但是基于 AST 技术<span class=" fw-cl "><span>，</span></span>它已经给开发者提供了较为成熟的 APIs<span class=" fw-cl "><span>。</span></span>写一条自己的规则并不是很难<span class=" fw-cl "><span>，</span></span>只需要开发者找到相关的 AST 选择器<span class=" fw-cl "><span>，</span></span>比如上面代码中的 getAllComments()<span class=" fw-cl "><span>，</span></span>更多的选择器可以参考<span class=" fw-cl "><span>：</span></span><a href="https://eslint.org/docs/developer-guide/selectors" title="Selectors - ESLint - Pluggable JavaScript linter">Selectors - ESLint - Pluggable JavaScript linter</a><span class=" fw-cl "><span>。</span></span>熟练掌握选择器<span class=" fw-cl "><span>，</span></span>将是我们开发插件扩展的关键<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>更复杂的场景远不止这么简单<span class=" fw-cl "><span>，</span></span>比如<span class=" fw-cl "><span>，</span></span>多条规则是如何串联起来生效的<span class=" fw-cl "><span>？</span></span></p>
+<h4>多条规则串联生效</h4>
+<p>事实上<span class=" fw-cl "><span>，</span></span> <strong style="">规则可以从多个源来定义<span class=" fw-cl "><span>，</span></span>比如代码的注释当中<span class=" fw-cl "><span>，</span></span>或者配置文件当中<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>ESLint 首先收集到所有规则配置源<span class=" fw-cl "><span>，</span></span>将所有规则归并之后<span class=" fw-cl "><span>，</span></span>进行多重遍历<span class=" fw-cl "><span>：</span></span>遍历由源码生成的 AST<span class=" fw-cl "><span>，</span></span>将语法节点传入队列当中<span class=" fw-cl "><span>；</span></span>之后遍历所有应用规则<span class=" fw-cl "><span>，</span></span>采用事件发布订阅模式<span class="fw-op  "><span>（</span></span>类似 webpack tapable<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>为所有规则的选择器添加监听事件<span class=" fw-cl "><span>；</span></span>在触发事件时执行<span class=" fw-cl "><span>，</span></span>如果发现有问题<span class=" fw-cl "><span>，</span></span>会将 report message 记录下来<span class=" fw-cl "><span>。</span></span>最终记录下来的问题信息将会被输出<span class=" fw-cl "><span>。</span></span></p>
+<p>具体 ESLint 的源码如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function runRules(sourceCode, configuredRules, ruleMapper, parserOptions, parserName, settings, filename) {<br>
+ &nbsp;&nbsp;&nbsp;const emitter = createEmitter();<br>
+ &nbsp;&nbsp;&nbsp;const nodeQueue = [];<br>
+ &nbsp;&nbsp;&nbsp;let currentNode = sourceCode.ast;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;Traverser.traverse(sourceCode.ast, {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enter(node, parent) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.parent = parent;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nodeQueue.push({ isEntering: true, node });<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;leave(node) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nodeQueue.push({ isEntering: false, node });<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;visitorKeys: sourceCode.visitorKeys<br>
+ &nbsp;&nbsp;&nbsp;});<br>
+<br>
+<br>
+ &nbsp;&nbsp;&nbsp;const lintingProblems = [];<br>
+<br>
+ &nbsp;&nbsp;&nbsp;Object.keys(configuredRules).forEach(ruleId =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const severity = ConfigOps.getRuleSeverity(configuredRules[ruleId]);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (severity === 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const rule = ruleMapper(ruleId);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const messageIds = rule.meta &amp;&amp; rule.meta.messages;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let reportTranslator = null;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const ruleContext = Object.freeze(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.assign(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.create(sharedTraversalContext),<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id: ruleId,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;options: getRuleOptions(configuredRules[ruleId]),<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;report(...args) {<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (reportTranslator === null) {...}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const problem = reportTranslator(...args);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (problem.fix &amp;&amp; rule.meta &amp;&amp; !rule.meta.fixable) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new Error("Fixable rules should export a `meta.fixable` property.");<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lintingProblems.push(problem);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const ruleListeners = createRuleListeners(rule, ruleContext);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// add all the selectors from the rule as listeners<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.keys(ruleListeners).forEach(selector =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;emitter.on();<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;});<br>
+<br>
+ &nbsp;&nbsp;&nbsp;const eventGenerator = new CodePathAnalyzer(new NodeEventGenerator(emitter));<br>
+<br>
+ &nbsp;&nbsp;&nbsp;nodeQueue.forEach(traversalInfo =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentNode = traversalInfo.node;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (traversalInfo.isEntering) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eventGenerator.enterNode(currentNode);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eventGenerator.leaveNode(currentNode);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;});<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return lintingProblems;<br>
+}</code></p>
+<p>请再思考<span class=" fw-cl "><span>，</span></span>我们的程序中免不了有各种条件语句<span class=" fw-cl "><span>、</span></span>循环语句<span class=" fw-cl "><span>，</span></span>因此 <strong style="">代码的执行是非顺序的</strong><span class=" fw-cl "><span>。</span></span>相关规则比如<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>检测定义但未使用变量<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>switch-case 中避免执行多条 case 语句<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>这些规则的实现<span class=" fw-cl "><span>，</span></span>就涉及 ESLint 更高级的 code path analysis 概念等<span class=" fw-cl "><span>。</span></span>ESLint 将 code path 抽象为 5 个事件<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">onCodePathStart</li>
+  <li style="">onCodePathEnd</li>
+  <li style="">onCodePathSegmentStart</li>
+  <li style="">onCodePathSegmentEnd</li>
+  <li style="">onCodePathSegmentLoop</li>
+</ul>
+<p>利用这 5 个事件<span class=" fw-cl "><span>，</span></span>我们可以更加精确地控制检测范围和粒度<span class=" fw-cl "><span>。</span></span>更多的 ESLint rule 实现<span class=" fw-cl "><span>，</span></span>可以翻看源码进行学习<span class=" fw-cl "><span>，</span></span>总之根据这 5 种事件<span class=" fw-cl "><span>，</span></span>我们可以监测非顺序性代码<span class=" fw-cl "><span>，</span></span>其核心原理还是事件机制<span class=" fw-cl "><span>。</span></span></p>
+<p>我们通过 no-unreachable 规则来进行了解<span class=" fw-cl "><span>，</span></span>该规则可以通过监测 return<span class=" fw-cl "><span>，</span></span>throws<span class=" fw-cl "><span>，</span></span>break<span class=" fw-cl "><span>，</span></span>continue 的使用<span class=" fw-cl "><span>，</span></span>识别出不会被执行的代码<span class=" fw-cl "><span>，</span></span>并 report<span class=" fw-cl "><span>：</span></span></p>
+<p><code>/**<br>
+ * Checks whether or not a given variable declarator has the initializer.<br>
+ * @param {ASTNode} node - A VariableDeclarator node to check.<br>
+ * @returns {boolean} `true` if the node has the initializer.<br>
+ */<br>
+function isInitialized(node) {<br>
+ &nbsp;&nbsp;&nbsp;return Boolean(node.init);<br>
+}<br>
+<br>
+/**<br>
+ * Checks whether or not a given code path segment is unreachable.<br>
+ * @param {CodePathSegment} segment - A CodePathSegment to check.<br>
+ * @returns {boolean} `true` if the segment is unreachable.<br>
+ */<br>
+function isUnreachable(segment) {<br>
+ &nbsp;&nbsp;&nbsp;return !segment.reachable;<br>
+}<br>
+<br>
+/**<br>
+ * The class to distinguish consecutive unreachable statements.<br>
+ */<br>
+class ConsecutiveRange {<br>
+ &nbsp;&nbsp;&nbsp;constructor(sourceCode) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.sourceCode = sourceCode;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.startNode = null;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.endNode = null;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* The location object of this range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @type {Object}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;get location() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;start: this.startNode.loc.start,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end: this.endNode.loc.end<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* `true` if this range is empty.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @type {boolean}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;get isEmpty() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return !(this.startNode &amp;&amp; this.endNode);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* Checks whether the given node is inside of this range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @param {ASTNode|Token} node - The node to check.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @returns {boolean} `true` if the node is inside of this range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;contains(node) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.range[0] &gt;= this.startNode.range[0] &amp;&amp;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.range[1] &lt;= this.endNode.range[1]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* Checks whether the given node is consecutive to this range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @param {ASTNode} node - The node to check.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @returns {boolean} `true` if the node is consecutive to this range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;isConsecutive(node) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.contains(this.sourceCode.getTokenBefore(node));<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* Merges the given node to this range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @param {ASTNode} node - The node to merge.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @returns {void}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;merge(node) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.endNode = node;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* Resets this range by the given node or null.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @param {ASTNode|null} node - The node to reset, or null.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @returns {void}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;reset(node) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.startNode = this.endNode = node;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+//------------------------------------------------------------------------------<br>
+// Rule Definition<br>
+//------------------------------------------------------------------------------<br>
+<br>
+module.exports = {<br>
+ &nbsp;&nbsp;&nbsp;meta: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: "problem",<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;description: "disallow unreachable code after `return`, `throw`, `continue`, and `break` statements",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;category: "Possible Errors",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;recommended: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;url: "https://eslint.org/docs/rules/no-unreachable"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;schema: []<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;create(context) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentCodePath = null;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const range = new ConsecutiveRange(context.getSourceCode());<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* Reports a given node if it's unreachable.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param {ASTNode} node - A statement node to report.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @returns {void}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function reportIfUnreachable(node) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let nextNode = null;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (node &amp;&amp; currentCodePath.currentSegments.every(isUnreachable)) {<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Store this statement to distinguish consecutive statements.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (range.isEmpty) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;range.reset(node);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Skip if this statement is inside of the current range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (range.contains(node)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Merge if this statement is consecutive to the current range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (range.isConsecutive(node)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;range.merge(node);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nextNode = node;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/*<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* Report the current range since this statement is reachable or is<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* not consecutive to the current range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!range.isEmpty) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context.report({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;message: "Unreachable code.",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loc: range.location,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node: range.startNode<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Update the current range.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;range.reset(nextNode);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return {<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Manages the current code path.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onCodePathStart(codePath) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentCodePath = codePath;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onCodePathEnd() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentCodePath = currentCodePath.upper;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Registers for all statement nodes (excludes FunctionDeclaration).<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BlockStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BreakStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ClassDeclaration: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ContinueStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DebuggerStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DoWhileStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ExpressionStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ForInStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ForOfStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ForStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IfStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ImportDeclaration: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LabeledStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ReturnStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SwitchStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ThrowStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TryStatement: reportIfUnreachable,<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VariableDeclaration(node) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (node.kind !== "var" || node.declarations.some(isInitialized)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reportIfUnreachable(node);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WhileStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WithStatement: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ExportNamedDeclaration: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ExportDefaultDeclaration: reportIfUnreachable,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ExportAllDeclaration: reportIfUnreachable,<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Program:exit"() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reportIfUnreachable();<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+};</code></p>
+<p>实现中<span class=" fw-cl "><span>，</span></span>通过 isUnreachable 函数来判别一个 code path 是否无法触及<span class=" fw-cl "><span>，</span></span>我提供一些返例帮助大家理解<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {<br>
+ &nbsp;&nbsp;&nbsp;return true;<br>
+ &nbsp;&nbsp;&nbsp;console.log("done");<br>
+}<br>
+<br>
+function bar() {<br>
+ &nbsp;&nbsp;&nbsp;throw new Error("Oops!");<br>
+ &nbsp;&nbsp;&nbsp;console.log("done");<br>
+}<br>
+<br>
+while(value) {<br>
+ &nbsp;&nbsp;&nbsp;break;<br>
+ &nbsp;&nbsp;&nbsp;console.log("done");<br>
+}<br>
+<br>
+throw new Error("Oops!");<br>
+console.log("done");<br>
+<br>
+function baz() {<br>
+ &nbsp;&nbsp;&nbsp;if (Math.random() &lt; 0.5) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new Error();<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;console.log("done");<br>
+}</code></p>
+<p>因为 unreachable 的代码需要放在一个区块当中去理解<span class=" fw-cl "><span>，</span></span>单条语句无法去进行判别<span class=" fw-cl "><span>，</span></span>因此使用 ConsecutiveRange 类来保留连续代码信息<span class=" fw-cl "><span>。</span></span></p>
+<p>最后<span class=" fw-cl "><span>，</span></span>这种优秀的插件扩展机制对于设计一个库<span class=" fw-cl "><span>，</span></span>尤其是设计一个规范工具来说<span class=" fw-cl "><span>，</span></span>是非常值得借鉴的模式<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>prettier 也会在新的版本中引入插件机制<span class=" fw-cl "><span>，</span></span>目前已经在 beta 版<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以<a href="https://prettier.io/docs/en/plugins.html#docsNav" title="尝鲜">尝鲜</a><span class=" fw-cl "><span>。</span></span></p>
+<h3>自动化规范与团队建设</h3>
+<p>自动化规范还有其他一些细节<span class=" fw-cl "><span>，</span></span>比如使用 EditorConfig 来保证编辑器的设置统一<span class=" fw-cl "><span>，</span></span>确定在制表符空格或换行方面的一致性<span class=" fw-cl "><span>，</span></span>又如使用 <a href="https://www.npmjs.com/package/@commitlint/config-conventional" title="commitlint">commitlint</a> 并配合 husky<span class=" fw-cl "><span>，</span></span>来保证 commit message 的规范<span class=" fw-cl "><span>：</span></span></p>
+<p><code># 安装 commitlint cli 和 conventional config<br>
+npm install --save-dev @commitlint/{config-conventional,cli}<br>
+<br>
+# 配置 commitlint<br>
+echo "module.exports = {extends: ['@commitlint/config-conventional']}" &gt; commitlint.config.js</code></p>
+<p>并在 commit-msg 的 git hook 阶段进行检查<span class=" fw-cl "><span>，</span></span>在 package.json 中添加<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;"husky": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hooks": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"commit-msg": "commitlint -E HUSKY_GIT_PARAMS"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} &nbsp;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>我们也可以根据团队需求做更多定制化的尝试<span class=" fw-cl "><span>，</span></span>比如自动规范化或生产 commit message<span class=" fw-cl "><span>，</span></span>有了规范的 commit message 之后<span class=" fw-cl "><span>，</span></span>就可以提取关键内容<span class=" fw-cl "><span>，</span></span>规范化生产 changelog 等<span class=" fw-cl "><span>。</span></span></p>
+<p>其他方向上<span class=" fw-cl "><span>，</span></span>还可以从团队文档的生产来考虑<span class=" fw-cl "><span>。</span></span>举个例子<span class=" fw-cl "><span>，</span></span>如果使用 React 开发项目<span class=" fw-cl "><span>，</span></span>那么 React 组件文档如何规范化生成<span class=" fw-cl "><span>？</span></span>如何提高组件使用的效率<span class=" fw-cl "><span>，</span></span>减少学习成本<span class=" fw-cl "><span>？</span></span>我在<a href="https://juejin.im/pin/5c45dd09092dcb473721710d" title="掘金 AMA">掘金 AMA</a> 上做客时<span class=" fw-cl "><span>，</span></span>有人便提出了这样的问题<span class=" fw-cl "><span>。</span></span></p>
+<blockquote><br></blockquote>
+<p>我们组内面临着最古老的 React 管理平台重构任务<span class=" fw-cl "><span>，</span></span>这次我们想生成关于管理平台的阅读文档<span class="fw-op  "><span>（</span></span>包括常用的样式命名<span class=" fw-cl "><span>、</span></span>工具方法<span class=" fw-cl "><span>、</span></span>全局组件<span class=" fw-cl "><span>、</span></span>复杂 API 交互流程等<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>所以我想提出的问题是<span class=" fw-cl "><span>：</span></span>面向 React 代码的可维护性和可持续发展<span class="fw-op  "><span>（</span></span>不要单个功能每个团队成员都实现一遍<span class=" fw-cl "><span>，</span></span>当新成员加入的时候知道有哪些功能能从现在代码中复用<span class=" fw-cl "><span>，</span></span> 也知道有哪些功能还没有<span class=" fw-cl "><span>，</span></span>他可以添加实现进去<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>业内有哪些工具或 npm 库或开发模式是可以确切能够帮助解决痛点或者改善现状的呢<span class=" fw-cl "><span>？</span></span></p>
+<p><strong style="">确实<span class=" fw-cl "><span>，</span></span>随着项目复杂度的提升<span class=" fw-cl "><span>，</span></span>各种组件也<span class="fw-op  "><span>「</span></span>爆炸式<span class=" fw-cl "><span>」</span></span>增长<span class=" fw-cl "><span>。</span></span>如何让这些组件方便易用<span class=" fw-cl "><span>，</span></span>能快速上手<span class=" fw-cl "><span>，</span></span>同时不成为负担<span class=" fw-cl "><span>，</span></span>又避免重复造轮子现象<span class=" fw-cl "><span>，</span></span>良好的组件管理在团队中非常重要<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>关于<span class="fw-op  "><span>「</span></span>React 组件管理文档<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>简单梳理一下<span class=" fw-cl "><span>：</span></span>总得来说<span class=" fw-cl "><span>，</span></span>社区在这方面的探索很多<span class=" fw-cl "><span>，</span></span>相关方案也各有特色<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">最知名的一定是 <a href="https://storybook.js.org/" title="storybook">storybook</a><span class=" fw-cl "><span>，</span></span>它会生成一个静态页面<span class=" fw-cl "><span>，</span></span>专门用来展示组件的实际效果以及用法<span class=" fw-cl "><span>；</span></span>缺点是业务侵入性较强<span class=" fw-cl "><span>，</span></span>且 story 编写成本较高<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">我个人很喜欢的是 <a href="https://github.com/reactjs/react-docgen" title="react-docgen">react-docgen</a><span class=" fw-cl "><span>，</span></span>比较极客风格<span class=" fw-cl "><span>，</span></span>它能够分析并提取 React 组件信息<span class=" fw-cl "><span>。</span></span>原理是使用了 recast 和 @babel/parser AST 分析<span class=" fw-cl "><span>，</span></span>最终产出一个 JSON 文档<span class=" fw-cl "><span>。</span></span> <a href="https://github.com/reactjs/react-docgen" title="https://github.com/reactjs/react-docgen">https://github.com/reactjs/react-docgen</a> 是它的网页链接<span class=" fw-cl "><span>，</span></span>缺点是它较为轻量<span class=" fw-cl "><span>，</span></span>缺乏有效的可视化能力<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">那么在 react-docgen 之上<span class=" fw-cl "><span>，</span></span>我们可以考虑 <a href="https://www.npmjs.com/package/react-styleguidist" title="React Styleguidist">React Styleguidist</a><span class=" fw-cl "><span>，</span></span>这款 React 组件文档生成器<span class=" fw-cl "><span>，</span></span>支持丰富的 demo<span class=" fw-cl "><span>，</span></span>可能会更符合需求<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">一些小而美的解决方案<span class=" fw-cl "><span>：</span></span>比如 react-doc<span class=" fw-cl "><span>、</span></span>react-doc-generator<span class=" fw-cl "><span>、</span></span>cherrypdoc<span class=" fw-cl "><span>，</span></span>都可以考虑尝试<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p><span class="fw-op  "><span>「</span></span>自己动手<span class=" fw-cl "><span>、</span></span>丰衣足食<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>其实开发一个类似的工具并不会太复杂<span class=" fw-cl "><span>。</span></span>如果有时间和精力<span class=" fw-cl "><span>，</span></span>你可以根据自己的需求<span class=" fw-cl "><span>，</span></span>实现一个完全匹配自己团队的 React 组件管理文档<span class=" fw-cl "><span>，</span></span>或者其他框架相关<span class=" fw-cl "><span>、</span></span>业务相关的文档<span class=" fw-cl "><span>，</span></span>这非常有意义<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>在规范化的道路上<span class=" fw-cl "><span>，</span></span>只有你想不到<span class=" fw-cl "><span>，</span></span>没有你做不到<span class=" fw-cl "><span>。</span></span></p>
+<p>简单的规范化工具用起来非常清爽<span class=" fw-cl "><span>，</span></span>但是背后的实现却蕴含了很深的设计与技术细节<span class=" fw-cl "><span>，</span></span>值得我们深入学习<span class=" fw-cl "><span>。</span></span></p>
+<p>作为前端工程师<span class=" fw-cl "><span>，</span></span>我们应该从平时开发的痛点和效率瓶颈入手<span class=" fw-cl "><span>，</span></span>敢于尝试<span class=" fw-cl "><span>，</span></span>不断探索<span class=" fw-cl "><span>。</span></span>保证团队开发的自动化程度<span class=" fw-cl "><span>，</span></span>就能减少不必要的麻烦<span class=" fw-cl "><span>。</span></span></p>
+<p>除了<span class="fw-op  "><span>「</span></span>偏硬<span class=" fw-cl "><span>」</span></span>的强制规范手段<span class=" fw-cl "><span>，</span></span>一些<span class="fw-op  "><span>「</span></span>软方向<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>比如团队氛围<span class=" fw-cl "><span>、</span></span>code review/analyse 等<span class=" fw-cl "><span>，</span></span>也直接决定着团队的代码质量<span class=" fw-cl "><span>。</span></span>进阶的工程师不仅需要在技术上成长<span class=" fw-cl "><span>，</span></span>在团队建设上更需要主动交流<span class=" fw-cl "><span>。</span></span></p>
+<p>课程代码仓库<span class=" fw-cl "><span>：</span></span> <a href="https://github.com/HOUCe/lucas-gitchat-courses%3C/a%3E" title="https://github.com/HOUCe/lucas-gitchat-courses</a>">https://github.com/HOUCe/lucas-gitchat-courses</a><br>
+<br>
+</p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1p6Pm29aTXLQyEwI5olY</span></p>
+</body>
+</html>

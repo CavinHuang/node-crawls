@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 45 节分析一道「微信」面试题</h1>
+  <p>前一段时间<span class=" fw-cl "><span>，</span></span>一道疑似<span class="fw-op  "><span>「</span></span>微信<span class=" fw-cl "><span>」</span></span>招聘的面试题出现<span class=" fw-cl "><span>，</span></span>可能有不少读者已经了解过了<span class=" fw-cl "><span>。</span></span>这道题乍一看挺难<span class=" fw-cl "><span>，</span></span>但是细细分析却还算简单<span class=" fw-cl "><span>，</span></span>我们甚至可以用多种手段解题<span class=" fw-cl "><span>，</span></span>用不同思想来给出答案<span class=" fw-cl "><span>。</span></span></p>
+<p>网上零零碎碎的有一些解答<span class=" fw-cl "><span>，</span></span>但是缺乏全面梳理<span class=" fw-cl "><span>。</span></span>我认为通过这道题<span class=" fw-cl "><span>，</span></span>有必要将前端多重知识点<span class="fw-op  "><span>「</span></span>融会贯通<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>在这里和大家分享<span class=" fw-cl "><span>。</span></span></p>
+<p>本讲知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-1e171a94e914d8a94b4ca2dd6c6bad76.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:15.59202813599062% 0" data-src="https://pic1.zhimg.com/v2-1e171a94e914d8a94b4ca2dd6c6bad76.png">加载中...</span></figure>
+<h3>题意分析</h3>
+<p>我们来先看看题目<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>实现一个 LazyMan<span class=" fw-cl "><span>，</span></span>按照以下方式调用时<span class=" fw-cl "><span>，</span></span>得到相关输出<span class=" fw-cl "><span>：</span></span></p>
+<p><code>LazyMan("Hank")<br>
+// Hi! This is Hank!<br>
+ <br>
+LazyMan("Hank").sleep(10).eat("dinner")<br>
+// Hi! This is Hank!<br>
+// 等待 10 秒..<br>
+// Wake up after 10<br>
+// Eat dinner~<br>
+ <br>
+LazyMan("Hank").eat("dinner").eat("supper")<br>
+// Hi This is Hank!<br>
+// Eat dinner~<br>
+// Eat supper~<br>
+ <br>
+LazyMan("Hank").sleepFirst(5).eat("supper")<br>
+// 等待 5 秒<br>
+// Wake up after 5<br>
+// Hi This is Hank!<br>
+// Eat supper</code></p>
+<p>  当面试者拿到这道题目的时候<span class=" fw-cl "><span>，</span></span>乍看题干可能会有点慌张<span class=" fw-cl "><span>。</span></span>其实很多面试失败是<span class="fw-op  "><span>「</span></span>自己吓唬自己<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>在平时放松状态下写代码<span class=" fw-cl "><span>，</span></span>也许解题不在话下<span class=" fw-cl "><span>。</span></span></p>
+<p>下面我们就从接到题目开始<span class=" fw-cl "><span>，</span></span>剖析应该如何进行分析<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">可以把 LazyMan 理解为一个构造函数<span class=" fw-cl "><span>，</span></span>在调用时输出参数内容</li>
+  <li style="">LazyMan 支持链式调用</li>
+  <li style="">链式调用过程提供了以下几个方法<span class=" fw-cl "><span>：</span></span>sleepFirst<span class=" fw-cl "><span>、</span></span>eat<span class=" fw-cl "><span>、</span></span>sleep</li>
+  <li style="">其中 eat 方法输出参数相关内容<span class=" fw-cl "><span>：</span></span>Eat + 参数</li>
+  <li style="">sleep 方法比较特殊<span class=" fw-cl "><span>，</span></span>链式调用将暂停一定时间后继续执行<span class=" fw-cl "><span>，</span></span>看到这里也许应该想到 setTimeout</li>
+  <li style="">sleepFirst 最为特殊<span class=" fw-cl "><span>，</span></span>这个任务或者这个方法的 <strong style="">优先级最高</strong><span class=" fw-cl "><span>；</span></span>调用 sleepFirst 之后<span class=" fw-cl "><span>，</span></span>链式调用将暂停一定时间后继续执行<span class=" fw-cl "><span>。</span></span>请再次观察题干<span class=" fw-cl "><span>，</span></span>尤其是最后一个 demo<span class=" fw-cl "><span>，</span></span>sleepFirst 的输出优先级最高<span class=" fw-cl "><span>，</span></span>调用后先等待 5 秒输出 Wake up after 5<span class=" fw-cl "><span>，</span></span>再输出 Hi This is Hank!</li>
+</ul>
+<p>我们应该如何解这个题目呢<span class=" fw-cl "><span>，</span></span>从拿到需求开始进行分析<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">先从最简单的<span class=" fw-cl "><span>，</span></span>我们可以封装一些基础方法<span class=" fw-cl "><span>，</span></span>比如 log 输出<span class=" fw-cl "><span>、</span></span>封装 setTimeout 等</li>
+  <li style="">因为 LazyMan 要实现一系列调用<span class=" fw-cl "><span>，</span></span><strong style="">且调用并不是顺序执行的<span class=" fw-cl "><span>，</span></span>比如如果 sleepFirst 出现在调用链时<span class=" fw-cl "><span>，</span></span>优先执行<span class=" fw-cl "><span>；</span></span>同时任务并不是全部都同步执行的</strong><span class=" fw-cl "><span>，</span></span>因此<strong style="">我们应该实现一个任务队列</strong><span class=" fw-cl "><span>，</span></span>这个队列将调度执行各个任务</li>
+  <li style="">因此每次调用 LazyMan 或链式执行时<span class=" fw-cl "><span>，</span></span>我们应该将相关调用方法加入到<span class="fw-op  "><span>（</span></span>push<span class=" fw-cl "><span>）</span></span>任务队列中<span class=" fw-cl "><span>，</span></span>储存起来<span class=" fw-cl "><span>，</span></span>后续统一被调度</li>
+  <li style="">在写入任务队列时<span class=" fw-cl "><span>，</span></span>如果当前的方法为 sleepFirst<span class=" fw-cl "><span>，</span></span>那么需要将该方法放到队列的最头处<span class=" fw-cl "><span>，</span></span>这应该是一个 unshift 方法</li>
+</ul>
+<p>这么一分析<span class=" fw-cl "><span>，</span></span>这道题就<span class="fw-op  "><span>「</span></span>非常简单<span class=" fw-cl "><span>」</span></span>了<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来试图解剖一下这道题目的考察点<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">面向对象思想与设计<span class=" fw-cl "><span>，</span></span>包括类的使用等</li>
+  <li style="">对象方法链式调用的理解和设计</li>
+  <li style="">小部分设计模式的设计</li>
+  <li style="">因为存在<span class="fw-op  "><span>「</span></span>重复逻辑<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>考察代码的解耦和抽象能力</li>
+  <li style="">逻辑的清晰程度以及其他编程思维</li>
+</ul>
+<h3>常规思路解答</h3>
+<p>基于以上思路<span class=" fw-cl "><span>，</span></span>我们给出较为常规的答案<span class=" fw-cl "><span>，</span></span>其中代码已经加上了必要的注释<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class LazyManGenerator {<br>
+ &nbsp;constructor(name) {<br>
+ &nbsp;&nbsp;&nbsp;this.taskArray = []<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 初始化时任务<br>
+ &nbsp;&nbsp;&nbsp;const task = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`Hi! This is ${name}`)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 执行完初始化时任务后<span class=" fw-cl "><span>，</span></span>继续执行下一个任务<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.next()<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 将初始化任务放入任务队列中<br>
+ &nbsp;&nbsp;&nbsp;this.taskArray.push(task)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.next()<br>
+ &nbsp;&nbsp;&nbsp;}, 0)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;next() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 取出下一个任务并执行<br>
+ &nbsp;&nbsp;&nbsp;const task = this.taskArray.shift()<br>
+ &nbsp;&nbsp;&nbsp;task &amp;&amp; task()<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;sleep(time) {<br>
+ &nbsp;&nbsp;&nbsp;this.sleepTask(time, false)<br>
+ &nbsp;&nbsp;&nbsp;// return this 保持链式调用<br>
+ &nbsp;&nbsp;&nbsp;return this<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;sleepFirst(time) {<br>
+ &nbsp;&nbsp;&nbsp;this.sleepTask(time, true)<br>
+ &nbsp;&nbsp;&nbsp;return this<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;sleepTask(time, prior) {<br>
+ &nbsp;&nbsp;&nbsp;const task = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`Wake up after ${time}`)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.next()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, time * 1000)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (prior) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.taskArray.unshift(task)<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.taskArray.push(task)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;eat(name) {<br>
+ &nbsp;&nbsp;&nbsp;const task = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`Eat ${name}`)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.next()<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;this.taskArray.push(task)<br>
+ &nbsp;&nbsp;&nbsp;return this<br>
+ &nbsp;}<br>
+}<br>
+<br>
+function LazyMan(name) {<br>
+ &nbsp;return new LazyManGenerator(name)<br>
+}</code></p>
+<p>简单分析一下<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">LazyMan 方法返回一个 LazyManGenerator 构造函数的实例</li>
+  <li style="">在 LazyManGenerator constructor 当中<span class=" fw-cl "><span>，</span></span>我们维护了 taskArray 用来存储任务<span class=" fw-cl "><span>，</span></span>同时将初始化任务放到 taskArray 当中</li>
+  <li style="">还是在 LazyManGenerator constructor 中<span class=" fw-cl "><span>，</span></span>将任务的逐个执行即 next 调用放在 setTimeout 中<span class=" fw-cl "><span>，</span></span>这样就能够保证在开始执行任务时<span class=" fw-cl "><span>，</span></span>taskArray 数组已经填满了任务</li>
+  <li style="">我们来看看 next 方法<span class=" fw-cl "><span>，</span></span>取出 taskArray 数组中的首项<span class=" fw-cl "><span>，</span></span>进行执行</li>
+  <li style="">eat 方法将 eat task 放到 taskArray 数组中<span class=" fw-cl "><span>，</span></span>注意 eat task 方法需要调用 this.next() 显式调用<span class="fw-op  "><span>「</span></span>下一个任务<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>；</span></span>同时返回 this<span class=" fw-cl "><span>，</span></span>完成链式调用</li>
+  <li style="">sleep 和 sleepFirst 都调用了 sleepTask<span class=" fw-cl "><span>，</span></span>不同在于第二个参数<span class=" fw-cl "><span>：</span></span>sleepTask 第二个参数表示是否优先执行<span class=" fw-cl "><span>，</span></span>如果 prior 为 true<span class=" fw-cl "><span>，</span></span>则使用 unshift 将任务插到 taskArray 开头</li>
+</ul>
+<p>这个解法最容易想到<span class=" fw-cl "><span>，</span></span>也相对来说容易<span class=" fw-cl "><span>，</span></span>主要是面向过程<span class=" fw-cl "><span>。</span></span>关键点在于对于 setTimeout 任务队列的准确理解以及 return this 实现链式调用的方式<span class=" fw-cl "><span>。</span></span></p>
+<p>事实上<span class=" fw-cl "><span>，</span></span>sleepTask 应该作为 LazyManGenerator 类的私有属性出现<span class=" fw-cl "><span>，</span></span>因为 ES class 暂时 private 属性没有被广泛实现<span class=" fw-cl "><span>，</span></span>这里不再追求实现<span class=" fw-cl "><span>。</span></span></p>
+<h3>设计模式解答</h3>
+<p>关于这道题目的解答<span class=" fw-cl "><span>，</span></span>网上最流行的是一种发布订阅模式的方案<span class=" fw-cl "><span>。</span></span>相关代码出处<span class=" fw-cl "><span>：</span></span><a href="https://github.com/wall-wxk/blogDemo/blob/master/2017/01/22/lazyMan.html" title="lazyMan">lazyMan</a><span class=" fw-cl "><span>。</span></span></p>
+<p>但是其实仔细看其实现<span class=" fw-cl "><span>，</span></span>也是上一环节中常规解法的变种<span class=" fw-cl "><span>。</span></span>虽然说是发布订阅模式<span class=" fw-cl "><span>，</span></span>但是其实仍然是 next 思想执行下一个任务的思路<span class=" fw-cl "><span>，</span></span>该实现 publish 和 subscribe 方法分别是完成执行任务和注册任务逻辑<span class=" fw-cl "><span>。</span></span>我认为这样的代码实现有一点<span class="fw-op  "><span>「</span></span>过度设计<span class=" fw-cl "><span>」</span></span>之嫌<span class=" fw-cl "><span>，</span></span>更像是往发布订阅模式上去靠<span class=" fw-cl "><span>，</span></span>整体流程不够自然<span class=" fw-cl "><span>。</span></span></p>
+<p>当然读者仍可参考<span class=" fw-cl "><span>，</span></span>并有自己的思考<span class=" fw-cl "><span>，</span></span>这里我不再更多分析<span class=" fw-cl "><span>。</span></span></p>
+<h3>再谈流程控制和队列<span class=" fw-cl "><span>、</span></span>中间件启发</h3>
+<p>这道题目我们给出解法并不算完<span class=" fw-cl "><span>，</span></span>更重要也更有价值的是思考<span class=" fw-cl "><span>、</span></span>延伸<span class=" fw-cl "><span>。</span></span>微信题目较好地考察了候选者的流程控制能力<span class=" fw-cl "><span>，</span></span>而流程控制在前端开发者面前也非常重要<span class=" fw-cl "><span>。</span></span></p>
+<p>我们看上述代码中的 next 函数<span class=" fw-cl "><span>，</span></span>它负责找出 stack 中的下一个函数并执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>next() {<br>
+ &nbsp;&nbsp;&nbsp;// 取出下一个任务并执行<br>
+ &nbsp;&nbsp;&nbsp;const task = this.taskArray.shift()<br>
+ &nbsp;&nbsp;&nbsp;task &amp;&amp; task()<br>
+}</code></p>
+<p>NodeJS 中 connect 类库<span class=" fw-cl "><span>，</span></span>以及其他框架的中间件设计也都离不开类似思想的 next<span class=" fw-cl "><span>。</span></span>比如生成器自动执行函数 co<span class=" fw-cl "><span>、</span></span>redux<span class=" fw-cl "><span>、</span></span>koa 也通过不同的实现<span class=" fw-cl "><span>，</span></span>可以让 next 在多个函数之间执行完后面的函数再折回来执行 next<span class=" fw-cl "><span>，</span></span>较为巧妙<span class=" fw-cl "><span>。</span></span>我们具体来看一下<span class=" fw-cl "><span>。</span></span></p>
+<h4>senchalabs connect 和 express</h4>
+<p>具体场景<span class=" fw-cl "><span>：</span></span>在 Node 环境中<span class=" fw-cl "><span>，</span></span>有 parseBody<span class=" fw-cl "><span>、</span></span>checkIdInDatabase 等相关中间件<span class=" fw-cl "><span>，</span></span>他们组成了 middlewares 数组<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const middlewares = [<br>
+ &nbsp;function middleware1(req, res, next) {<br>
+ &nbsp;&nbsp;&nbsp;parseBody(req, function(err, body) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (err) return next(err);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.body = body;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next();<br>
+ &nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;},<br>
+ &nbsp;function middleware2(req, res, next) {<br>
+ &nbsp;&nbsp;&nbsp;checkIdInDatabase(req.body.id, function(err, rows) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (err) return next(err);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.dbResult = rows;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next();<br>
+ &nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;},<br>
+ &nbsp;function middleware3(req, res, next) {<br>
+ &nbsp;&nbsp;&nbsp;if (res.dbResult &amp;&amp; res.dbResult.length &gt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.end('true');<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.end('false');<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;next();<br>
+ &nbsp;}<br>
+]</code></p>
+<p>当一个请求打开时<span class=" fw-cl "><span>，</span></span>我们需要链式调用各个中间件<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const requestHandler = (req, res) =&gt; {<br>
+ &nbsp;let i = 0<br>
+<br>
+ &nbsp;function next(err) {<br>
+ &nbsp;&nbsp;&nbsp;if (err) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return res.end('error:', err.toString())<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (i &lt; middlewares.length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;middlewares[i++](req, res, next)<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// 初始执行第一个中间件<br>
+ &nbsp;next()<br>
+}</code></p>
+<p>基本思路和面试题解法一致<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">将所有中间件<span class="fw-op  "><span>（</span></span>任务处理函数<span class=" fw-cl "><span>）</span></span>储存在一个 list 中</li>
+  <li style="">循环依次调用中间件<span class="fw-op  "><span>（</span></span>任务处理函数<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>senchalabs/connect 这个库做了很好的封装<span class=" fw-cl "><span>，</span></span>是 express 等框架设计实现的原始模型<span class=" fw-cl "><span>。</span></span>这里我们简单分析一下 senchalabs/connect 这个库的实现<span class=" fw-cl "><span>。</span></span></p>
+<p>用法<span class=" fw-cl "><span>：</span></span></p>
+<p>首先使用 createServer 方法创建 app 实例<span class=" fw-cl "><span>，</span></span></p>
+<p><code>const app = createServer()</code></p>
+<p>对应源码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function createServer() {<br>
+ &nbsp;function app(req, res, next){ app.handle(req, res, next); }<br>
+ &nbsp;merge(app, proto);<br>
+ &nbsp;merge(app, EventEmitter.prototype);<br>
+ &nbsp;app.route = '/';<br>
+ &nbsp;app.stack = [];<br>
+ &nbsp;return app;<br>
+}</code></p>
+<p>我们看 app 实例<span class="fw-op  "><span>「</span></span>继承<span class=" fw-cl "><span>」</span></span>了 EventEmitter 类<span class=" fw-cl "><span>，</span></span>实现事件发布订阅<span class=" fw-cl "><span>，</span></span>同时 stack 数组来维护各个中间件任务<span class=" fw-cl "><span>。</span></span></p>
+<p>接着使用 app.use 来添加中间件<span class=" fw-cl "><span>：</span></span></p>
+<p><code>app.use('/api', function(req, res, next) {//...})</code></p>
+<p>源码实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>proto.use = function use(route, fn) {<br>
+ &nbsp;var handle = fn;<br>
+ &nbsp;var path = route;<br>
+<br>
+ &nbsp;// default route to '/'<br>
+ &nbsp;if (typeof route !== 'string') {<br>
+ &nbsp;&nbsp;&nbsp;handle = route;<br>
+ &nbsp;&nbsp;&nbsp;path = '/';<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// wrap sub-apps<br>
+ &nbsp;if (typeof handle.handle === 'function') {<br>
+ &nbsp;&nbsp;&nbsp;var server = handle;<br>
+ &nbsp;&nbsp;&nbsp;server.route = path;<br>
+ &nbsp;&nbsp;&nbsp;handle = function (req, res, next) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;server.handle(req, res, next);<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// wrap vanilla http.Servers<br>
+ &nbsp;if (handle instanceof http.Server) {<br>
+ &nbsp;&nbsp;&nbsp;handle = handle.listeners('request')[0];<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// strip trailing slash<br>
+ &nbsp;if (path[path.length - 1] === '/') {<br>
+ &nbsp;&nbsp;&nbsp;path = path.slice(0, -1);<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// add the middleware<br>
+ &nbsp;debug('use %s %s', path || '/', handle.name || 'anonymous');<br>
+ &nbsp;this.stack.push({ route: path, handle: handle });<br>
+<br>
+ &nbsp;return this;<br>
+};</code></p>
+<p>通过 if...else 逻辑区分出三种不同的 fn 类型<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">fn 是一个普通的 function(req,res[,next]){} 函数</li>
+  <li style="">fn 是一个普通的 httpServer</li>
+  <li style="">fn 是一个普通的是另一个 connect 的 app 对象<span class="fw-op  "><span>（</span></span>sub app 特性<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>对于这三种类型<span class=" fw-cl "><span>，</span></span>分别转换为 function(req, res, next) {} 的形式<span class=" fw-cl "><span>，</span></span>具体我们不再分析<span class=" fw-cl "><span>。</span></span>最重要的执行过程是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>this.stack.push({ route: path, handle: handle })</code></p>
+<p>以及返回<span class=" fw-cl "><span>：</span></span></p>
+<p><code>return this</code></p>
+<p>以上就完成了中间件即任务的注册<span class=" fw-cl "><span>，</span></span>我们有<span class=" fw-cl "><span>：</span></span></p>
+<p><code>app.stack = [function1, function2, function3, ...];</code></p>
+<p>接下来看看任务的调度和执行<span class=" fw-cl "><span>。</span></span>使用方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>app.handle(req, res, out)</code></p>
+<p>handle 源码实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>proto.handle = function handle(req, res, out) {<br>
+ &nbsp;var index = 0;<br>
+ &nbsp;var protohost = getProtohost(req.url) || '';<br>
+ &nbsp;var removed = '';<br>
+ &nbsp;var slashAdded = false;<br>
+ &nbsp;var stack = this.stack;<br>
+<br>
+ &nbsp;// final function handler<br>
+ &nbsp;var done = out || finalhandler(req, res, {<br>
+ &nbsp;&nbsp;&nbsp;env: env,<br>
+ &nbsp;&nbsp;&nbsp;onerror: logerror<br>
+ &nbsp;});<br>
+<br>
+ &nbsp;// store the original URL<br>
+ &nbsp;req.originalUrl = req.originalUrl || req.url;<br>
+<br>
+ &nbsp;function next(err) {<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;next();<br>
+};</code></p>
+<p>源码导读<span class=" fw-cl "><span>：</span></span>out 参数是关于 sub app 的特性<span class=" fw-cl "><span>，</span></span>这个特性可以暂时忽略<span class=" fw-cl "><span>，</span></span>我们暂时不关心<span class=" fw-cl "><span>。</span></span>handle 实现我们并不陌生<span class=" fw-cl "><span>，</span></span>它构建 next 函数<span class=" fw-cl "><span>，</span></span>并触发第一个 next 执行<span class=" fw-cl "><span>。</span></span></p>
+<p>next 实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function next(err) {<br>
+ &nbsp;&nbsp;&nbsp;if (slashAdded) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.url = req.url.substr(1);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;slashAdded = false;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (removed.length !== 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.url = protohost + removed + req.url.substr(protohost.length);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;removed = '';<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// next callback<br>
+ &nbsp;&nbsp;&nbsp;var layer = stack[index++];<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// all done<br>
+ &nbsp;&nbsp;&nbsp;if (!layer) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;defer(done, err);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// route data<br>
+ &nbsp;&nbsp;&nbsp;var path = parseUrl(req).pathname || '/';<br>
+ &nbsp;&nbsp;&nbsp;var route = layer.route;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// skip this layer if the route doesn't match<br>
+ &nbsp;&nbsp;&nbsp;if (path.toLowerCase().substr(0, route.length) !== route.toLowerCase()) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return next(err);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// skip if route match does not border "/", ".", or end<br>
+ &nbsp;&nbsp;&nbsp;var c = path.length &gt; route.length &amp;&amp; path[route.length];<br>
+ &nbsp;&nbsp;&nbsp;if (c &amp;&amp; c !== '/' &amp;&amp; c !== '.') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return next(err);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// trim off the part of the url that matches the route<br>
+ &nbsp;&nbsp;&nbsp;if (route.length !== 0 &amp;&amp; route !== '/') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;removed = route;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.url = protohost + req.url.substr(protohost.length + removed.length);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ensure leading slash<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!protohost &amp;&amp; req.url[0] !== '/') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;req.url = '/' + req.url;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;slashAdded = true;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// call the layer handle<br>
+ &nbsp;&nbsp;&nbsp;call(layer.handle, route, err, req, res, next);<br>
+}</code></p>
+<p>源码导读<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">取出下一个中间件</li>
+</ul>
+<p><code>var layer = stack[index++]</code></p>
+<ul>
+  <li style="">如果当前请求路由和 handler 不匹配<span class=" fw-cl "><span>，</span></span>则跳过<span class=" fw-cl "><span>：</span></span></li>
+</ul>
+<p><code>if (path.toLowerCase().substr(0, route.length) !== route.toLowerCase()) {<br>
+ &nbsp;return next(err);<br>
+}</code></p>
+<ul>
+  <li style="">若匹配<span class=" fw-cl "><span>，</span></span>则执行 call 函数<span class=" fw-cl "><span>，</span></span>call 函数实现<span class=" fw-cl "><span>：</span></span></li>
+</ul>
+<p><code>function call(handle, route, err, req, res, next) {<br>
+ &nbsp;var arity = handle.length;<br>
+ &nbsp;var error = err;<br>
+ &nbsp;var hasError = Boolean(err);<br>
+<br>
+ &nbsp;debug('%s %s : %s', handle.name || '<anonymous>', route, req.originalUrl);<br>
+<br>
+ &nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;if (hasError &amp;&amp; arity === 4) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// error-handling middleware<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;handle(err, req, res, next);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+ &nbsp;&nbsp;&nbsp;} else if (!hasError &amp;&amp; arity &lt; 4) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// request-handling middleware<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;handle(req, res, next);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;} catch (e) {<br>
+ &nbsp;&nbsp;&nbsp;// replace the error<br>
+ &nbsp;&nbsp;&nbsp;error = e;<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// continue<br>
+ &nbsp;next(error);<br>
+}</anonymous></code></p>
+<p>注意<span class=" fw-cl "><span>：</span></span>我们使用了 try...catch 包裹逻辑<span class=" fw-cl "><span>，</span></span>这是很必要的容错思维<span class=" fw-cl "><span>，</span></span>这样第三方中间件的执行如果出错<span class=" fw-cl "><span>，</span></span>不至于打挂我们的应用<span class=" fw-cl "><span>。</span></span></p>
+<p>较为巧妙的一点是<span class=" fw-cl "><span>：</span></span>function(err, req, res, next){} 形式为错误处理函数<span class=" fw-cl "><span>，</span></span>function(req, res, next){} 为正常的业务逻辑处理函数<span class=" fw-cl "><span>。</span></span>因此通过 Function.length 来判断当前 handler 是否为容错函数<span class=" fw-cl "><span>，</span></span>来做到参数的传入<span class=" fw-cl "><span>。</span></span></p>
+<p>call 函数是 next 函数的核心<span class=" fw-cl "><span>，</span></span>它是一个执行者<span class=" fw-cl "><span>，</span></span>并在最后的逻辑中继续执行 next 函数<span class=" fw-cl "><span>，</span></span>完成中间件的顺序调用<span class=" fw-cl "><span>。</span></span></p>
+<p>NodeJS 的框架 express<span class=" fw-cl "><span>，</span></span>实际就是 senchalabs connect 的升级版<span class=" fw-cl "><span>，</span></span>通过对 connect 源码的学习<span class=" fw-cl "><span>，</span></span>我们应该更加清楚流程的调度和控制<span class=" fw-cl "><span>，</span></span>再去看 express 就轻而易举了<span class=" fw-cl "><span>。</span></span></p>
+<p>Senchalabs connect 用流程控制库的回调函数及中间件的思想来解耦回调逻辑<span class=" fw-cl "><span>；</span></span>Koa 则是用 generator 方法解决回调问题<span class="fw-op  "><span>（</span></span>最新版使用 async/await<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>也可以用事件<span class=" fw-cl "><span>、</span></span>Promise 的方式实现<span class=" fw-cl "><span>，</span></span>下一环节<span class=" fw-cl "><span>，</span></span>我们就分析 Koa 的洋葱模型<span class=" fw-cl "><span>。</span></span></p>
+<h4>Koa 的洋葱模型</h4>
+<p>对 Koa 中间的洋葱模型的分析文章上不少<span class=" fw-cl "><span>，</span></span>著名的洋葱圈图示我也不在自己画了<span class=" fw-cl "><span>，</span></span>具体使用不再介绍<span class=" fw-cl "><span>，</span></span>不了解的读者请先自行学习<span class=" fw-cl "><span>。</span></span></p>
+<p>我想先谈一下面向切面编程<span class="fw-op  "><span>（</span></span>AOP<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>在 JavaScript 语言为例<span class=" fw-cl "><span>，</span></span>一个简单的示例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Function.prorotype.before = function (fn) {<br>
+ &nbsp;const self = this<br>
+ &nbsp;return function (...args) {<br>
+ &nbsp;&nbsp;&nbsp;console.log('')<br>
+ &nbsp;&nbsp;&nbsp;let res = fn.call(this)<br>
+ &nbsp;&nbsp;&nbsp;if (res) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.apply(this, args)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}<br>
+<br>
+Function.prototype.after = function (fn) {<br>
+ &nbsp;const self = this<br>
+ &nbsp;return function (...args) {<br>
+ &nbsp;&nbsp;&nbsp;let res = self.apply(this, args)<br>
+ &nbsp;&nbsp;&nbsp;if (res) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fn.call(this)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>这样的代码实现<span class=" fw-cl "><span>，</span></span>是我们能够在执行某个函数 fn 之前<span class=" fw-cl "><span>，</span></span>先执行某段逻辑<span class=" fw-cl "><span>；</span></span>在某个函数 fn 之后<span class=" fw-cl "><span>，</span></span>再去执行另一段逻辑<span class=" fw-cl "><span>。</span></span>其实是一种简单中间件流程控制的体现<span class=" fw-cl "><span>。</span></span>不过这样的 AOP 有一个问题<span class=" fw-cl "><span>：</span></span>无法实现异步模式<span class=" fw-cl "><span>。</span></span></p>
+<p>那么如何实现 Koa 的异步中间件模式呢<span class=" fw-cl "><span>？</span></span>即某个中间件执行到一半<span class=" fw-cl "><span>，</span></span>交出执行权<span class=" fw-cl "><span>，</span></span>之后再回来继续执行<span class=" fw-cl "><span>。</span></span>我们直接看源码分析<span class=" fw-cl "><span>，</span></span>这段源码实现了 Koa 洋葱模型中间件<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function compose(middleware) {<br>
+ &nbsp;return function *(next) {(<br>
+ &nbsp;&nbsp;&nbsp;if (!next) next = noop();<br>
+<br>
+ &nbsp;&nbsp;&nbsp;var i = middleware.length;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;while (i--) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next = middleware[i].call(this, next);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('isGenerator:', (typeof next.next === 'function' &amp;&amp; typeof next.throw === 'function')); // true<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return yield *next;<br>
+ &nbsp;}<br>
+}<br>
+<br>
+function *noop(){}</code></p>
+<p>其中<span class=" fw-cl "><span>，</span></span>一个中间件的写法类似<span class=" fw-cl "><span>：</span></span></p>
+<p><code>app.use(function *(next){<br>
+ &nbsp;var start = new Date;<br>
+ &nbsp;yield next;<br>
+ &nbsp;var ms = new Date - start;<br>
+ &nbsp;this.set('X-Response-Time', ms + 'ms');<br>
+});</code></p>
+<p>这是一个很简单的记录 response time 的中间件<span class=" fw-cl "><span>，</span></span>中间件跳转的信号是 yield next<span class=" fw-cl "><span>。</span></span></p>
+<p>较新版本的 Koa 已经改用 async/await 实现<span class=" fw-cl "><span>，</span></span>思路也是完全一样的<span class=" fw-cl "><span>，</span></span>当然看上去更加优雅<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function compose (middleware) {<br>
+ &nbsp;if (!Array.isArray(middleware)) throw new TypeError('Middleware stack must be an array!')<br>
+ &nbsp;for (const fn of middleware) {<br>
+ &nbsp;&nbsp;&nbsp;if (typeof fn !== 'function') throw new TypeError('Middleware must be composed of functions!')<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;return function (context, next) {<br>
+ &nbsp;&nbsp;&nbsp;let index = -1<br>
+ &nbsp;&nbsp;&nbsp;return dispatch(0)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function dispatch (i) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (i &lt;= index) return Promise.reject(new Error('next() called multiple times'))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;index = i<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let fn = middleware[i]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (i === middleware.length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fn = next<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!fn) return Promise.resolve()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Promise.resolve(fn(context, function next () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return dispatch(i + 1)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} catch (err) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Promise.reject(err)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>我们来重点解读一下这个版本的实现<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">compose 传入的 middleware 参数必须是数组<span class=" fw-cl "><span>，</span></span>否则抛出错误</li>
+  <li style="">middleware 数组的每一个元素必须是函数<span class=" fw-cl "><span>，</span></span>否则抛出错误</li>
+  <li style="">compose 返回一个函数<span class=" fw-cl "><span>，</span></span>保存对 middleware 的引用</li>
+  <li style="">compose 返回函数的第一个参数是 context<span class=" fw-cl "><span>，</span></span>所有中间件的第一个参数就是传入的 context</li>
+  <li style="">compose 返回函数的第二个参数是 next 函数<span class=" fw-cl "><span>，</span></span>next 是实现洋葱模型的关键</li>
+  <li style="">index 记录当前运行到第几个中间件</li>
+  <li style="">执行第一个中间件函数<span class=" fw-cl "><span>：</span></span>return dispatch(0)</li>
+  <li style="">dispatch 函数中<span class=" fw-cl "><span>，</span></span>参数 i 如果小于等于 index<span class=" fw-cl "><span>，</span></span>说明一个中间件中执行了多次 next<span class=" fw-cl "><span>，</span></span>我们进行报错<span class=" fw-cl "><span>，</span></span>由此可见一个中间件函数内部不允许多次调用 next 函数</li>
+  <li style="">取出中间件函数 fn = middleware[i]</li>
+  <li style="">如果 i === middleware.length<span class=" fw-cl "><span>，</span></span>说明执行到了圆心<span class=" fw-cl "><span>，</span></span>将 next 赋值给 fn</li>
+  <li style="">因为 async 需要后面是 Promise<span class=" fw-cl "><span>，</span></span>我们包一层 Promise</li>
+  <li style="">next 函数是固定的<span class=" fw-cl "><span>，</span></span>它可以执行下一个中间件函数</li>
+</ul>
+<p><code>function next () {<br>
+ &nbsp;return dispatch(i + 1)<br>
+}</code></p>
+<p>如果读者不好理解<span class=" fw-cl "><span>，</span></span>可以参考应用示例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>async function middleware1(ctx, next) {<br>
+ &nbsp;console.log('1')<br>
+ &nbsp;await next()<br>
+ &nbsp;console.log('2')<br>
+};<br>
+<br>
+async function middleware2(ctx, next) {<br>
+ &nbsp;console.log('3')<br>
+ &nbsp;await next()<br>
+ &nbsp;console.log('4')<br>
+};</code></p>
+<p>如果读者还是难以理解<span class=" fw-cl "><span>，</span></span>我给出一个简版逻辑<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function compose (middleware) {<br>
+ &nbsp;return dispatch(0) <br>
+ &nbsp;function dispatch(i) {<br>
+ &nbsp;&nbsp;&nbsp;fn = middleware[i]<br>
+ &nbsp;&nbsp;&nbsp;if(!fn) return<br>
+ &nbsp;&nbsp;&nbsp;return fn(() =&gt; dispatch(i + 1))<br>
+ &nbsp;}<br>
+}</code></p>
+<h4>co 库不再神秘</h4>
+<p>说到流程控制<span class=" fw-cl "><span>，</span></span>也少不了大名鼎鼎的 co 库<span class=" fw-cl "><span>。</span></span>co 函数库是 TJ 大神基于 ES6 generator 的异步解决方案<span class=" fw-cl "><span>，</span></span>因此这里需要读者熟练掌握 ES6 generator<span class=" fw-cl "><span>。</span></span>目前虽然 co 库可能不再<span class="fw-op  "><span>「</span></span>流行<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>但是了解其实现<span class=" fw-cl "><span>，</span></span>模拟类似场景也是非常有必要的<span class=" fw-cl "><span>。</span></span></p>
+<p>我们这里不解读其源码<span class=" fw-cl "><span>，</span></span>而是实现一个类似的自动执行 generator 的方案<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const runGenerator = generatorFunc =&gt; {<br>
+ &nbsp;const it = generatorFunc()<br>
+ &nbsp;iterate(it)<br>
+<br>
+ &nbsp;function iterate (it) {<br>
+ &nbsp;&nbsp;&nbsp;step()<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function step(arg, isError) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const {value, done} = isError ? it.throw(arg) : it.next(arg)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let response<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!done) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof value === 'function') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response = value() <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response = value &nbsp;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Promise.resolve(response).then(step, err =&gt; step(err, true))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>代码解读<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">runGenerator 函数接受一个生成器函数 generatorFunc</li>
+  <li style="">运行 generatorFunc 得到结果<span class=" fw-cl "><span>，</span></span>并通过 iterate 函数<span class=" fw-cl "><span>，</span></span>迭代该生成器结果</li>
+  <li style="">iterate 函数中执行 step 函数<span class=" fw-cl "><span>，</span></span>step 函数的第一个参数 arg 是上一个 yield 右表达式的<span class="fw-op  "><span>「</span></span>求出的值<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>即下面对应的 response</li>
+  <li style="">这里需要考虑 response 的求值过程<span class=" fw-cl "><span>，</span></span>它通过 value 计算得来<span class=" fw-cl "><span>，</span></span>value 是 yield 右侧的值<span class=" fw-cl "><span>，</span></span>它有这么几种情况<span class=" fw-cl "><span>：</span></span>
+    <ul>
+      <li style="">yield new Promise()<span class=" fw-cl "><span>，</span></span>value 是一个 promise 实例<span class=" fw-cl "><span>，</span></span>那么 response 就是该 Promise 实例 resolve 后的值</li>
+      <li style="">yield () =&gt; {return value}<span class=" fw-cl "><span>，</span></span>value 是一个函数<span class=" fw-cl "><span>，</span></span>那么 response 就是执行该函数后的返回值</li>
+      <li style="">yield value<span class=" fw-cl "><span>，</span></span>value 是一个普通值<span class=" fw-cl "><span>，</span></span>那么 response 就是该值</li>
+    </ul>
+  </li>
+  <li style="">我们最终统一利用 Promise.resolve 的特性<span class=" fw-cl "><span>，</span></span>对 response 进行处理<span class=" fw-cl "><span>，</span></span>并递归<span class="fw-op  "><span>（</span></span>迭代<span class=" fw-cl "><span>）</span></span>调用 step</li>
+  <li style="">同时利用 step 函数 arg 参数<span class=" fw-cl "><span>，</span></span>赋值给上一个 yield 的左表达式值<span class=" fw-cl "><span>，</span></span>并返回下一个 yield 右表达式的值</li>
+</ul>
+<p>执行代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function* gen1() {<br>
+ &nbsp;yield console.log(1)<br>
+ &nbsp;yield console.log(2)<br>
+ &nbsp;yield console.log(3)<br>
+}<br>
+<br>
+runGenerator(gen1)</code></p>
+<p>或者<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function* gen2() {<br>
+ &nbsp;var value1 = yield Promise.resolve('promise')<br>
+ &nbsp;console.log(value1)<br>
+<br>
+ &nbsp;var value2 = yield () =&gt; Promise.resolve('thunk') &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;console.log(value2)<br>
+<br>
+ &nbsp;var value3 = yield 2<br>
+ &nbsp;console.log(value3)<br>
+}<br>
+<br>
+ runGenerator(gen2);</code></p>
+<p>最后还是附上 co 的实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function co(gen) { // co 接受一个 generator 函数<br>
+ &nbsp;&nbsp;&nbsp;var ctx = this<br>
+ &nbsp;&nbsp;&nbsp;var args = slice.call(arguments, 1)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return new Promise(function(resolve, reject) { // co 返回一个 Promise 对象<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(typeof gen === 'function') gen = gen.apply(ctx, args) // gen 为 generator 函数<span class=" fw-cl "><span>，</span></span>执行该函数<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(!gen || typeof gen.next !== 'function') return resolve(gen) // 不是则返回并更新 Promise 状态为 resolve<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onFulfilled() // 将 generator 函数的 next 方法包装成 onFulfilled<span class=" fw-cl "><span>，</span></span>主要是为了能够捕获抛出的异常<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param {Mixed} res<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @return {Promise}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @api private<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function onFulfilled(res) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var ret;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ret = gen.next(res)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} catch (err) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(err)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next(ret)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param {Error} err<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @return {Promise}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @api private<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function onRejected(err) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var ret<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ret = gen.throw(err)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} catch (err) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(err)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next(ret)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* Get the next value in the generator,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* return a promise.<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param {Object} ret<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @return {Promise}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @api private<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function next(ret) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(ret.done) return resolve(ret.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var value = toPromise.call(ctx, ret.value) // if (isGeneratorFunction(obj) || isGenerator(obj)) return co.call(this, obj);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(value &amp;&amp; isPromise(value)) return value.then(onFulfilled, onRejected)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return onRejected(new TypeError('You may only yield a function, promise, generator, but the following object was passed: ' + String(ret.value) + '"'))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+}</code></p>
+<p>如果读者对于以上内容理解有困难<span class=" fw-cl "><span>，</span></span>那么我建议还是从 generator 等最基本的概念切入<span class=" fw-cl "><span>，</span></span>不必心急<span class=" fw-cl "><span>，</span></span>慢慢反复体会<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>这道<span class="fw-op  "><span>「</span></span>著名<span class=" fw-cl "><span>」</span></span>的<span class="fw-op  "><span>「</span></span>微信<span class=" fw-cl "><span>」</span></span>面试题<span class=" fw-cl "><span>，</span></span>绝不只是网上分析的几行代码答案那么简单<span class=" fw-cl "><span>，</span></span>本讲我们从这道题目出发<span class=" fw-cl "><span>，</span></span>分析了几种解决方案<span class=" fw-cl "><span>。</span></span>更重要的是<span class=" fw-cl "><span>，</span></span>在解决方案的基础上<span class=" fw-cl "><span>，</span></span>我们重点剖析了 JavaScript 处理任务流程<span class=" fw-cl "><span>、</span></span>控制触发逻辑的方方面面<span class=" fw-cl "><span>。</span></span>也许在小型传统页面应用中<span class=" fw-cl "><span>，</span></span>这样<span class="fw-op  "><span>「</span></span>相对复杂<span class=" fw-cl "><span>」</span></span>的处理场景并不多见<span class=" fw-cl "><span>，</span></span>但是在大型项目<span class=" fw-cl "><span>、</span></span>富交互项目<span class=" fw-cl "><span>、</span></span>后端 NodeJS 中非常重要<span class=" fw-cl "><span>，</span></span>尤其是中间件思想<span class=" fw-cl "><span>、</span></span>洋葱模型是非常典型的编程思路<span class=" fw-cl "><span>，</span></span>希望读者能认真体会<span class=" fw-cl "><span>。</span></span></p>
+<p>最后我们分析了 generator 以及 Koa 中间件实现原理<span class=" fw-cl "><span>，</span></span>也许读者在平时基础业务开发中接触不到这些知识<span class=" fw-cl "><span>，</span></span>但是请想一想 redux-saga 的实现<span class=" fw-cl "><span>、</span></span>中间件的编写<span class=" fw-cl "><span>，</span></span>其实都是这些内容运用体现<span class=" fw-cl "><span>。</span></span>进阶即是如此<span class=" fw-cl "><span>，</span></span>如果不掌握好这些<span class="fw-op  "><span>「</span></span>难啃<span class=" fw-cl "><span>」</span></span>的知识<span class=" fw-cl "><span>，</span></span>那么永远无法写出优秀的框架和解决方案<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX12lZRGEycPoe3kdsgdE9</span></p>
+</body>
+</html>

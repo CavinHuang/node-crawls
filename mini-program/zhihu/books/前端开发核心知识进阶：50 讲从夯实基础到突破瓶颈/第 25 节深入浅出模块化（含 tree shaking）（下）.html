@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 25 节深入浅出模块化（含 tree shaking）（下）</h1>
+  <p>本节课程<span class=" fw-cl "><span>，</span></span>让我们继续模块化的话题<span class=" fw-cl "><span>。</span></span>在此之前<span class=" fw-cl "><span>，</span></span>先来回顾一下这个主题的知识点<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-47c6e1545f27be32f871ade877520609.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:27.094017094017094% 0" data-src="https://pic3.zhimg.com/v2-47c6e1545f27be32f871ade877520609.png">加载中...</span></figure>
+<h3>模块化发展历程</h3>
+<p>在上一讲中<span class=" fw-cl "><span>，</span></span>介绍了以下方案实现模块化<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">早期命名空间模拟模块化</li>
+  <li style="">CommonJS</li>
+  <li style="">AMD</li>
+  <li style="">CMD</li>
+  <li style="">UMD</li>
+</ul>
+<p>接下来我们来探讨 ES 原生模块化的知识<span class=" fw-cl "><span>，</span></span>并就 tree shaking 这个话题展开<span class=" fw-cl "><span>。</span></span></p>
+<h4>ES 原生时代和 tree shaking</h4>
+<p>ES 模块化<span class="fw-op  "><span>（</span></span>或称为 ESM<span class=" fw-cl "><span>）</span></span>的具体使用方法我们不再具体介绍<span class=" fw-cl "><span>，</span></span>请读者先了解相关基础内容<span class=" fw-cl "><span>。</span></span></p>
+<p>ES 模块的设计思想是尽量<strong style="">静态化</strong><span class=" fw-cl "><span>，</span></span>这样能保证在编译时就确定模块之间的依赖关系<span class=" fw-cl "><span>，</span></span>每个模块的输入和输出变量也都是确定的<span class=" fw-cl "><span>。</span></span>CommonJS 和 AMD 模块<span class=" fw-cl "><span>，</span></span>无法保证前置即确定这些内容<span class=" fw-cl "><span>，</span></span>只能在运行时确定<span class=" fw-cl "><span>。</span></span>这是 ES 模块化和其他规范的显著不同<span class=" fw-cl "><span>。</span></span>第二个差别在于<span class=" fw-cl "><span>，</span></span>CommonJS 模块输出的是一个值的<strong style="">拷贝</strong><span class=" fw-cl "><span>，</span></span>ES 模块输出的是值的<strong style="">引用</strong><span class=" fw-cl "><span>。</span></span>我们来具体看一下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// data.js<br>
+export let data = 'data'<br>
+export function modifyData() {<br>
+ &nbsp;&nbsp;&nbsp;data = 'modified data'<br>
+}<br>
+<br>
+// index.js<br>
+import { data, modifyData } from './lib'<br>
+console.log(data) // data<br>
+modifyData()<br>
+console.log(data) // modified data</code></p>
+<p>我们在 index.js 中调用了 modifyData 方法<span class=" fw-cl "><span>，</span></span>之后查询 data 值<span class=" fw-cl "><span>，</span></span>得到了最新的变化<span class=" fw-cl "><span>。</span></span></p>
+<p>而同样的逻辑<span class=" fw-cl "><span>，</span></span>在 CommonJS 规范下的表现为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// data.js<br>
+var data = 'data'<br>
+function modifyData() {<br>
+ &nbsp;&nbsp;&nbsp;data = 'modified data'<br>
+}<br>
+<br>
+module.exports = {<br>
+ &nbsp;&nbsp;&nbsp;data: data,<br>
+ &nbsp;&nbsp;&nbsp;modifyData: modifyData<br>
+}<br>
+<br>
+// index.js<br>
+var data = require('./data').data<br>
+var modifyData = require('./data').modifyData<br>
+console.log(data) // data<br>
+modifyData()<br>
+console.log(data) // data</code></p>
+<p>因为 CommonJS 是输出了值的拷贝<span class=" fw-cl "><span>，</span></span>而非引用<span class=" fw-cl "><span>，</span></span>因此在调用 modifyData 之后<span class=" fw-cl "><span>，</span></span>index.js 的 data 值并没有发生变化<span class=" fw-cl "><span>，</span></span>其值为一个全新的拷贝<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">ES 模块化为什么要设计成静态的</strong></h5>
+<p>一个明显的优势是<span class=" fw-cl "><span>：</span></span>通过静态分析<span class=" fw-cl "><span>，</span></span>我们能够分析出导入的依赖<span class=" fw-cl "><span>。</span></span>如果导入的模块没有被使用<span class=" fw-cl "><span>，</span></span>我们便可以通过 tree shaking 等手段减少代码体积<span class=" fw-cl "><span>，</span></span>进而提升运行性能<span class=" fw-cl "><span>。</span></span>这就是基于 ESM 实现 tree shaking 的基础<span class=" fw-cl "><span>。</span></span></p>
+<p>这么说可能过于笼统<span class=" fw-cl "><span>，</span></span>我们从设计的角度分析这两种规范哲学的利弊<span class=" fw-cl "><span>。</span></span>静态性需要规范去强制保证<span class=" fw-cl "><span>，</span></span>不像 CommonJS 那样灵活<span class=" fw-cl "><span>，</span></span>ES 模块化的静态性带来了限制<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">只能在文件顶部 import 依赖</li>
+  <li style="">export 导出的变量类型严格限制</li>
+  <li style="">变量不允许被重新绑定<span class=" fw-cl "><span>，</span></span>import 的模块名只能是字符串常量<span class=" fw-cl "><span>，</span></span>即不可以动态确定依赖</li>
+</ul>
+<p>这样的限制在语言层面带来的便利之一是<span class=" fw-cl "><span>：</span></span>我们可以通过作用域分析<span class=" fw-cl "><span>，</span></span>分析出代码里变量所属的作用域以及它们之间的引用关系<span class=" fw-cl "><span>，</span></span>进而可以推导出变量和导入依赖变量的引用关系<span class=" fw-cl "><span>，</span></span>在没有明显引用时<span class=" fw-cl "><span>，</span></span>就可以进行去冗余<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">tree shaking</strong></h5>
+<p>上面说到的<span class="fw-op  "><span>「</span></span>在没有明显引用时<span class=" fw-cl "><span>，</span></span>就可以进行去冗余<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>就是我们经常提到的 <strong style="">tree shaking</strong><span class=" fw-cl "><span>，</span></span>它的目的就是减少应用中写出<span class=" fw-cl "><span>，</span></span>但没有被实际运用的 JavaScript 代码<span class=" fw-cl "><span>。</span></span>这样一来<span class=" fw-cl "><span>，</span></span>无用代码的清除<span class=" fw-cl "><span>，</span></span>意味着更小的代码体积<span class=" fw-cl "><span>，</span></span>bundle size 的缩减<span class=" fw-cl "><span>，</span></span>对用户体验起到了积极作用<span class=" fw-cl "><span>。</span></span></p>
+<p>在计算机科学当中<span class=" fw-cl "><span>，</span></span>一个典型去除无用代码<span class=" fw-cl "><span>、</span></span>冗余代码的手段是 <a href="https://en.wikipedia.org/wiki/Dead_code_elimination" title="DCE">DCE</a><span class=" fw-cl "><span>，</span></span>dead code elimination<span class=" fw-cl "><span>。</span></span><strong style="">那么 tree shaking 和 DCE<span class="fw-op  "><span>（</span></span>Dead Code Elemination<span class=" fw-cl "><span>）</span></span>有什么区别<span class=" fw-cl "><span>？</span></span></strong></p>
+<blockquote><br></blockquote>
+<p>Rollup 的主要贡献者 Rich Harris 做过这样的比喻<span class=" fw-cl "><span>：</span></span>假设我们用鸡蛋做蛋糕<span class=" fw-cl "><span>。</span></span>显然<span class=" fw-cl "><span>，</span></span>我们不需要蛋壳而只需要蛋清和蛋黄<span class=" fw-cl "><span>，</span></span>那么如何去除蛋壳呢<span class=" fw-cl "><span>？</span></span>DCE 是这样做的<span class=" fw-cl "><span>：</span></span>直接把整个鸡蛋放到碗里搅拌<span class=" fw-cl "><span>，</span></span>蛋糕做完后再慢慢地从里面挑出蛋壳</p>
+<p>相反<span class=" fw-cl "><span>，</span></span>与 DCE 不同<span class=" fw-cl "><span>，</span></span>tree shaking 是开始阶段就把蛋壳剥离<span class=" fw-cl "><span>，</span></span>留下蛋清和蛋黄<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>也可以将 tree shaking 理解为广义 DCE 的一种<span class=" fw-cl "><span>，</span></span>它在前置打包时即排除掉不会用到的代码<span class=" fw-cl "><span>。</span></span></p>
+<p>当然说到底<span class=" fw-cl "><span>，</span></span>tree shaking 只是一种辅助手段<span class=" fw-cl "><span>，</span></span>良好的模块拆分和设计才是减少代码体积的关键<span class=" fw-cl "><span>。</span></span></p>
+<p>Tree shaking 也有局限性<span class=" fw-cl "><span>，</span></span>它还有很多不能清除无用代码的场景<span class=" fw-cl "><span>，</span></span>比如 Rollup 的 tree shaking 实现只处理函数和顶层的 <code>import/export</code> 导入的变量<span class=" fw-cl "><span>，</span></span>不能把没用到的类的方法消除<span class=" fw-cl "><span>；</span></span>对于 tree shaking 来说<span class=" fw-cl "><span>，</span></span>具有副作用的脚本无法被优化<span class=" fw-cl "><span>。</span></span></p>
+<p>更多情况读者可以参考<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style=""><a href="https://juejin.im/post/5a64724df265da3e5a575d65" title="tree-shaking 不完全指南">tree-shaking 不完全指南</a></li>
+  <li style=""><a href="https://github.com/indutny/webpack-common-shake#limitations" title="webpack-common-shake">webpack-common-shake</a></li>
+  <li style=""><a href="https://juejin.im/post/5a5652d8f265da3e497ff3de" title="你的 Tree-Shaking 并没什么卵用">你的 Tree-Shaking 并没什么卵用</a></li>
+  <li style=""><a href="https://juejin.im/post/5bb8ef58f265da0a972e3434" title="Webpack Tree shaking 深入探究">Webpack Tree shaking 深入探究</a></li>
+</ul>
+<h5><strong style="">tree shaking 使用注意事项</strong></h5>
+<p>webpack 和 Rollup 构建工具目前都有成熟的方案<span class=" fw-cl "><span>，</span></span>但是笔者并不建议马上引入到项目中<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>是否要在成熟的项目上立即实施 tree shaking 需要妥善考虑<span class=" fw-cl "><span>。</span></span>这里我也提供几篇收藏的文章<span class=" fw-cl "><span>，</span></span>介绍了 tree shaking 的使用方法<span class=" fw-cl "><span>，</span></span>这些基本操作内容<span class=" fw-cl "><span>，</span></span>我们不再展开<span class=" fw-cl "><span>，</span></span>可以按照官方文档实施<span class=" fw-cl "><span>，</span></span>我也在文档之外推荐这些内容供大家学习<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style=""><a href="https://mp.weixin.qq.com/s/Y4v7tAWUeDNs_FWpUnKmAw" title="Webpack 之 treeShaking">Webpack 之 treeShaking</a></li>
+  <li style=""><a href="https://juejin.im/post/5b8ce49df265da438151b468" title="体积减少 80%！释放 webpack tree-shaking 的真正潜力">体积减少 80%<span class=" fw-cl "><span>！</span></span>释放 webpack tree-shaking 的真正潜力</a></li>
+  <li style=""><a href="https://juejin.im/post/5a4dc842518825698e7279a9" title="Tree-Shaking 性能优化实践 - 原理篇">Tree-Shaking 性能优化实践 - 原理篇</a></li>
+</ul>
+<h5>ES 的 export 和 export default</h5>
+<p>ES 模块化导出有 export 和 export default 两种<span class=" fw-cl "><span>。</span></span>这里我们建议减少使用 export default 导出<span class=" fw-cl "><span>，</span></span>原因是一方面 export default 导出整体对象结果<span class=" fw-cl "><span>，</span></span>不利于 tree shaking 进行分析<span class=" fw-cl "><span>；</span></span>另一方面<span class=" fw-cl "><span>，</span></span>export default 导出的结果可以随意命名变量<span class=" fw-cl "><span>，</span></span>不利于团队统一管理<span class=" fw-cl "><span>。</span></span></p>
+<p>Nicholas C. Zakas 有一篇文章<span class=" fw-cl "><span>：</span></span> <a href="https://link.juejin.im/?target=https%3A%2F%2Fhumanwhocodes.com%2Fblog%2F2019%2F01%2Fstop-using-default-exports-javascript-module%2F" title="Why I've stopped exporting defaults from my JavaScript modules">Why I've stopped exporting defaults from my JavaScript modules</a> <span class=" fw-cl "><span>，</span></span>表达了类似的观点<span class=" fw-cl "><span>。</span></span></p>
+<h3>未来趋势和思考</h3>
+<p>个人认为<span class=" fw-cl "><span>，</span></span>ES 模块化是未来不可避免的发展趋势<span class=" fw-cl "><span>，</span></span>它的优点毫无争议<span class=" fw-cl "><span>，</span></span>比如开箱即用的 tree shaking 和未来浏览器兼容性支持<span class=" fw-cl "><span>。</span></span>Node.js 的 CommonJS 模块化方案甚至也会慢慢过渡到 ES 模块化上<span class=" fw-cl "><span>。</span></span>如果你正在使用 webpack 构建应用项目<span class=" fw-cl "><span>，</span></span>那么 ES 模块化是首选<span class=" fw-cl "><span>；</span></span>如果你的项目是一个前端库<span class=" fw-cl "><span>，</span></span>也建议使用 ES 模块化<span class=" fw-cl "><span>。</span></span>这么看来<span class=" fw-cl "><span>，</span></span>或许只有在编写 Node.js 程序时<span class=" fw-cl "><span>，</span></span>才需要考虑 CommonJS<span class=" fw-cl "><span>。</span></span></p>
+<h4>在浏览器中快速使用 ES 模块化</h4>
+<p>目前各大浏览器较新版本都已经开始逐步支持 ES 模块了<span class=" fw-cl "><span>。</span></span>如果我们想在浏览器中使用原生 ES 模块方案<span class=" fw-cl "><span>，</span></span>只需要在 script 标签上添加一个 type="module" 属性<span class=" fw-cl "><span>。</span></span>通过该属性<span class=" fw-cl "><span>，</span></span>浏览器知道这个文件是以模块化的方式运行的<span class=" fw-cl "><span>。</span></span>而对于不支持的浏览器<span class=" fw-cl "><span>，</span></span>需要通过 nomodule 属性来指定某脚本为 fallback 方案<span class=" fw-cl "><span>：</span></span></p>
+<p><code><script type="module"><br>
+ &nbsp;&nbsp;&nbsp;import module1 from './module1'<br>
+</script><br>
+<script nomodule=""><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;alert('你的浏览器不支持 ES 模块<span class=" fw-cl "><span>，</span></span>请先升级<span class=" fw-cl "><span>！</span></span>')<br>
+</script></code></p>
+<p>使用 type="module" 的另一个作用是进行 ES Next 兼容性的嗅探<span class=" fw-cl "><span>。</span></span>因为支持 ES 模块化的浏览器<span class=" fw-cl "><span>，</span></span>都支持 ES Promise 等特性<span class=" fw-cl "><span>，</span></span>基于此<span class=" fw-cl "><span>，</span></span>应用场景较多<span class=" fw-cl "><span>。</span></span></p>
+<h4>在 Node.js 中使用 ES 模块化</h4>
+<p>Node.js 从 9.0 版本开始支持 ES 模块<span class=" fw-cl "><span>，</span></span>执行脚本需要启动时加上 --experimental-modules<span class=" fw-cl "><span>，</span></span>不过这一用法要求相应的文件后缀名必须为 *.mjs<span class=" fw-cl "><span>：</span></span></p>
+<p><code>node --experimental-modules module1.mjs<br>
+import module1 from './module1.mjs'<br>
+console.log(module1)</code></p>
+<p>另外<span class=" fw-cl "><span>，</span></span>也可以安装 babel-cli 和 babel-preset-env<span class=" fw-cl "><span>，</span></span>配置 .babelrc 文件后<span class=" fw-cl "><span>，</span></span>执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>./node_modules/.bin/babel-node</code></p>
+<p>或<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npx babel-node</code></p>
+<p>在工具方面<span class=" fw-cl "><span>，</span></span>webpack 本身维护了一套模块系统<span class=" fw-cl "><span>，</span></span>这套模块系统兼容了几乎所有前端历史进程下的模块规范<span class=" fw-cl "><span>，</span></span>包括 AMD/CommonJS/ES 模块化等<span class=" fw-cl "><span>，</span></span>具体分析咱们见后续课程<span class="fw-op  "><span>《</span></span>webpack 工程师 &gt; 前端工程师<span class=" fw-cl "><span>》</span></span><span class="fw-op  fw--collapsed"><span>（</span></span>即下一讲的内容<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>通过本课程的学习<span class=" fw-cl "><span>，</span></span>我们了解了 JavaScript 模块化的历史<span class=" fw-cl "><span>，</span></span>重点分析了不同过渡方案的不同实现以及 ES 模块化标准的细节<span class=" fw-cl "><span>。</span></span>希望读者对模块系统有一个更清晰的认识<span class=" fw-cl "><span>，</span></span>同时希望大家可以仔细阅读源码<span class=" fw-cl "><span>，</span></span>对代码设计有自己的理解和体会<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX18ZybRyjiPZAB61sbdLe</span></p>
+</body>
+</html>

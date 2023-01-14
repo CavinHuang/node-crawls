@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 26 节webpack 工程师 > 前端工程师（上）</h1>
+  <p>说起前端工程化<span class=" fw-cl "><span>，</span></span> webpack 必然在前端工具链中占有最重要的地位<span class=" fw-cl "><span>；</span></span>说起前端工程师进阶<span class=" fw-cl "><span>，</span></span>webpack 更是一个绕不开的话题<span class=" fw-cl "><span>。</span></span></p>
+<p>从原始的刀耕火种时代<span class=" fw-cl "><span>，</span></span>到 Gulp<span class=" fw-cl "><span>、</span></span>Grunt 等早期方案的横空出世<span class=" fw-cl "><span>，</span></span>再到 webpack 通过其丰富的功能和开放的设计一举奠定<span class="fw-op  "><span>「</span></span>江湖地位<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>我想每个前端工程师都需要熟悉各个时代的<span class="fw-op  "><span>「</span></span>打包神器<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>作为团队中不可或缺的高级工程师<span class=" fw-cl "><span>，</span></span>能否玩转 webpack<span class=" fw-cl "><span>，</span></span>能否通过工具搭建令人舒适的工作流和构建基础<span class=" fw-cl "><span>，</span></span>能否不断适应技术发展打磨编译体系<span class=" fw-cl "><span>，</span></span>将直接决定你的工作价值<span class=" fw-cl "><span>。</span></span></p>
+<p>在这一系列课程里<span class=" fw-cl "><span>，</span></span>赘述社区上大量存在的<span class="fw-op  "><span>「</span></span>webpack 配置 demo<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>或者讲解一些现成的插件应用意义不大<span class=" fw-cl "><span>，</span></span>这些知识都可以免费找到<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">分析 webpack 工作原理<span class=" fw-cl "><span>，</span></span>探究 webpack 能力边界<span class=" fw-cl "><span>，</span></span>结合实践并加以应用</strong>将会是本讲的重点<span class=" fw-cl "><span>。</span></span></p>
+<p>webpack 主题的知识点如下所示<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-7ceef3404e373a0fa52e57b9798d8e4d.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:34.300000000000004% 0" data-src="https://pic3.zhimg.com/v2-7ceef3404e373a0fa52e57b9798d8e4d.png">加载中...</span></figure>
+<p>接下来<span class=" fw-cl "><span>，</span></span>我们通过 2 节内容来学习这个主题<span class=" fw-cl "><span>。</span></span></p>
+<h3>webpack 到底将代码编译成了什么</h3>
+<p><strong style="">项目中经过 webpack 打包后的代码究竟被编译成了什么<span class=" fw-cl "><span>？</span></span></strong>也许你认为并不重要<span class=" fw-cl "><span>。</span></span>业务中的代码往往非常复杂<span class=" fw-cl "><span>，</span></span>经过 webpack 编译后的代码可读性非常差<span class=" fw-cl "><span>。</span></span>但是不管是复杂的项目还是最简单的一行代码<span class=" fw-cl "><span>，</span></span>其经过 webpack 编译打包的<strong style="">产出本质是相同的</strong><span class=" fw-cl "><span>。</span></span>我们试图从最简单的情况开始<span class=" fw-cl "><span>，</span></span>研究 webpack 打包产出的秘密<span class=" fw-cl "><span>。</span></span></p>
+<h4>CommonJS 规范打包结果</h4>
+<p>如何着手分析呢<span class=" fw-cl "><span>？</span></span>首先创建并切入到项目<span class=" fw-cl "><span>，</span></span>进行初始化<span class=" fw-cl "><span>：</span></span></p>
+<p><code>mkdir webpack-demo<br>
+cd webpack-demo<br>
+npm init -y</code></p>
+<p>安装 webpack 最新版本<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npm install --save-dev webpack<br>
+npm install --save-dev webpack-cli</code></p>
+<p>根目录下创建 index.html<span class=" fw-cl "><span>：</span></span></p>
+<p><code><br>
+<br>
+<br>
+ &nbsp;&nbsp;&nbsp;<title>Document</title><br>
+<br>
+<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div id="app"></div><code><br>
+ &nbsp;&nbsp;&nbsp;<script src="./dist/main.js"></script><br>
+<br>
+</code><p></p>
+<p>创建 <code>./src</code> 文件<span class=" fw-cl "><span>。</span></span>因为我们要研究模块化打包产出<span class=" fw-cl "><span>，</span></span>这一定涉及依赖关系<span class=" fw-cl "><span>，</span></span>因此在 <code>./src</code> 目录下创建 hello.js 和 index.js<span class=" fw-cl "><span>，</span></span>其中 index.js 为入口脚本<span class=" fw-cl "><span>，</span></span>它将依赖 hello.js<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const sayHello = require('./hello')<br>
+console.log(sayHello('lucas'))</code></p>
+<p>hello.js<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = function (name) {<br>
+ &nbsp;&nbsp;&nbsp;return 'hello ' + name<br>
+}</code></p>
+<p>这里我们为了演示<span class=" fw-cl "><span>，</span></span>采用了 CommonJS 规范<span class=" fw-cl "><span>，</span></span>也没有加入 Babel 编译环节<span class=" fw-cl "><span>。</span></span></p>
+<p>直接执行命令<span class=" fw-cl "><span>：</span></span></p>
+<p><code>node_modules/.bin/webpack --mode development</code></p>
+<p>便得到了产出 <code>./dist</code><span class=" fw-cl "><span>，</span></span>打开 <code>./dist/main.js</code><span class=" fw-cl "><span>，</span></span>得到最终编译结果<span class=" fw-cl "><span>：</span></span></p>
+<p><code>(function(modules) {<br>
+ &nbsp;&nbsp;&nbsp;//缓存已经加载过的 module 的 exports<span class=" fw-cl "><span>，</span></span>防止 module 在 exports 之前 JS 重复执行<br>
+ &nbsp;&nbsp;&nbsp;var installedModules = {};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;//类似 commonJS 的 require()<span class=" fw-cl "><span>，</span></span>它是 webpack 加载函数<span class=" fw-cl "><span>，</span></span>用来加载 webpack 定义的模块<span class=" fw-cl "><span>，</span></span>返回 exports 导出的对象<br>
+ &nbsp;&nbsp;&nbsp;function __webpack_require__(moduleId) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//缓存中存在<span class=" fw-cl "><span>，</span></span>则直接返回结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (installedModules[moduleId]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return installedModules[moduleId].exports<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//第一次加载时<span class=" fw-cl "><span>，</span></span>初始化模块对象<span class=" fw-cl "><span>，</span></span>并进行缓存<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var module = installedModules[moduleId] = {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i: moduleId, // 模块 ID<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;l: false, // 是否已加载标识<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exports: {} // 模块导出对象<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* 执行模块<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param module.exports -- 模块导出对象引用<span class=" fw-cl "><span>，</span></span>改变模块包裹函数内部的 this 指向<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param module -- 当前模块对象引用<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param module.exports -- 模块导出对象引用<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;* @param __webpack_require__ -- 用于在模块中加载其他模块<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//标记是否已加载标识<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;module.l = true;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//返回模块导出对象引用<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return module.exports<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.m = modules;<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.c = installedModules;<br>
+ &nbsp;&nbsp;&nbsp;//定义 exports 对象导出的属性<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.d = function(exports, name, getter) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//如果 exports <span class="fw-op  "><span>（</span></span>不含原型链上<span class=" fw-cl "><span>）</span></span>没有 [name] 属性<span class=" fw-cl "><span>，</span></span>定义该属性的 getter<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!__webpack_require__.o(exports, name)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(exports, name, {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get: getter<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.r = function(exports) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof Symbol !== 'undefined' &amp;&amp; Symbol.toStringTag) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(exports, Symbol.toStringTag, {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value: 'Module'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(exports, '__esModule', {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value: true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.t = function(value, mode) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (mode &amp; 1) value = __webpack_require__(value);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (mode &amp; 8) return value;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if ((mode &amp; 4) &amp;&amp; typeof value === 'object' &amp;&amp; value &amp;&amp; value.__esModule) return value;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var ns = Object.create(null);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;__webpack_require__.r(ns);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(ns, 'default', {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value: value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (mode &amp; 2 &amp;&amp; typeof value != 'string') for (var key in value) __webpack_require__.d(ns, key, function(key) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return value[key]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}.bind(null, key));<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return ns<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.n = function(module) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var getter = module &amp;&amp; module.__esModule ?<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function getDefault() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return module['default']<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} : function getModuleExports() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return module<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;__webpack_require__.d(getter, 'a', getter);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return getter<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.o = function(object, property) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Object.prototype.hasOwnProperty.call(object, property)<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;// __webpack_public_path__<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.p = "";<br>
+<br>
+ &nbsp;&nbsp;&nbsp;//加载入口模块并返回入口模块的 exports<br>
+ &nbsp;&nbsp;&nbsp;return __webpack_require__(__webpack_require__.s = "./src/index.js")<br>
+})({<br>
+ &nbsp;&nbsp;&nbsp;"./src/hello.js": (function(module, exports) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eval("module.exports = function(name) {\n &nbsp;&nbsp;&nbsp;return 'hello ' + name\n}\n\n//# sourceURL=webpack:///./src/hello.js?")<br>
+ &nbsp;&nbsp;&nbsp;}),<br>
+ &nbsp;&nbsp;&nbsp;"./src/index.js": (function(module, exports, __webpack_require__) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eval("var sayHello = __webpack_require__(/*! ./hello */ \"./src/hello.js\")\nconsole.log(sayHello('lucas'))\n\n//# sourceURL=webpack:///./src/index.js?")<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+});</code></p>
+<p>不要着急阅读<span class=" fw-cl "><span>，</span></span>我们先把最核心的代码骨架提出来<span class=" fw-cl "><span>，</span></span>上面的代码其实就是一个 IIFE<span class="fw-op  "><span>（</span></span>立即执行函数表达式<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span></p>
+<p><code>(function(modules){<br>
+ &nbsp;// ...<br>
+})({<br>
+ &nbsp;"./src/hello.js": (function(){<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;}),<br>
+ &nbsp;"./src/index.js": (function() {<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;})<br>
+})</code></p>
+<p><br></p>
+<p>Ben Cherry 的著名文章<a href="http://www.adequatelygood.com/JavaScript-Module-Pattern-In-Depth.html" title="<span class=" apple-converted-space"="">&nbsp;JavaScript Module Pattern: In-Depth"&gt; JavaScript Module Pattern: In-Depth</a> 介绍了 IIFE 实现模块化的多种进阶尝试<span class=" fw-cl "><span>，</span></span>阮一峰老师在其博客中也提到了相关内容<span class=" fw-cl "><span>。</span></span>用 IIFE 实现模块化<span class=" fw-cl "><span>，</span></span>我们并不陌生<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">深入上述代码结果<span class="fw-op  "><span>（</span></span>已添加注释<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>我们可以提炼出以下关键几点<span class=" fw-cl "><span>。</span></span></strong></p>
+<ul>
+  <li style="">webpack 打包结果就是一个 IIFE<span class=" fw-cl "><span>，</span></span>一般称它为 webpackBootstrap<span class=" fw-cl "><span>，</span></span>这个 IIFE 接收一个对象 modules 作为参数<span class=" fw-cl "><span>，</span></span>modules 对象的 key 是依赖路径<span class=" fw-cl "><span>，</span></span>value 是经过简单处理后的脚本<span class="fw-op  "><span>（</span></span>它不完全等同于我们编写的业务脚本<span class=" fw-cl "><span>，</span></span>而是被 webpack 进行包裹后的内容<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></li>
+  <li style="">打包结果中<span class=" fw-cl "><span>，</span></span>定义了一个重要的模块加载函数 <code>__webpack_require__</code><span class=" fw-cl "><span>。</span></span></li>
+  <li style="">我们首先使用 <code>__webpack_require__</code> 加载函数去加载入口模块 <code>./src/index.js</code><span class=" fw-cl "><span>。</span></span></li>
+  <li style="">加载函数 <code>__webpack_require__</code> 使用了闭包变量 installedModules<span class=" fw-cl "><span>，</span></span>它的作用是将已加载过的模块结果保存在内存中<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>如果读者对于产出结果源码存在不理解的地方<span class=" fw-cl "><span>，</span></span>请继续阅读<span class=" fw-cl "><span>，</span></span>我们将会在 webpack 工作基本原理部分进一步说明<span class=" fw-cl "><span>，</span></span>同时欢迎随时在评论区跟我讨论<span class=" fw-cl "><span>。</span></span></p>
+<h4>ES 规范打包结果</h4>
+<p>以上是基于 CommonJS 规范的模块化写法<span class=" fw-cl "><span>，</span></span>业务中我们的代码往往遵循 ES Next 模块化标准<span class=" fw-cl "><span>，</span></span>并通过 Babel 进行编译<span class=" fw-cl "><span>，</span></span>这样的流程下<span class=" fw-cl "><span>，</span></span>会得到什么结果呢<span class=" fw-cl "><span>？</span></span></p>
+<p>我们动手尝试一下<span class=" fw-cl "><span>，</span></span>安装依赖<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npm install --save-dev webpack<br>
+npm install --save-dev webpack-cli<br>
+npm install --save-dev babel-loader<br>
+npm install --save-dev @babel/core<br>
+npm install --save-dev @babel/preset-env</code></p>
+<p>同时配置 package.json<span class=" fw-cl "><span>，</span></span>加入<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;"build": "webpack --mode development --progress --display-modules --colors --display-reasons"<br>
+s},</code></p>
+<p>设置 npm script 以方便运行 webpack 构建<span class=" fw-cl "><span>，</span></span>同时在 package.json 中加入 Babel 配置<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"babel": {<br>
+ &nbsp;&nbsp;&nbsp;"presets": ["@babel/preset-env"]<br>
+}</code></p>
+<p>将 index.js 和 hello.js 改写为 ESM 方式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// hello.js<br>
+const sayHello = name =&gt; `hello ${name}`<br>
+export default sayHello<br>
+<br>
+// index.js<br>
+import sayHello from './hello.js'<br>
+console.log(sayHello('lucas'))</code></p>
+<p>执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npm run build</code></p>
+<p>得到的打包主体与之前内容基本一致<span class=" fw-cl "><span>。</span></span>但是细节上<span class=" fw-cl "><span>，</span></span>我们发现 IIFE 传入参数 modules 对象的 value 部分<span class=" fw-cl "><span>，</span></span>即执行脚本内容多了以下语句<span class=" fw-cl "><span>：</span></span></p>
+<p><code>__webpack_require__.r(__webpack_exports__)</code></p>
+<p>实际上 <code>__webpack_require__.r</code> 这个方法是给模块的 exports 对象加上 ES 模块化规范的标记<span class=" fw-cl "><span>。</span></span></p>
+<p>具体标记方式为<span class=" fw-cl "><span>：</span></span>如果支持 Symbol 对象<span class=" fw-cl "><span>，</span></span>则通过 Object.defineProperty 为 exports 对象的 Symbol.toStringTag 属性赋值 Module<span class=" fw-cl "><span>，</span></span>这样做的结果是 exports 对象在调用 toString 方法时会返回 Module<span class=" fw-cl "><span>；</span></span>同时<span class=" fw-cl "><span>，</span></span>将 <code>exports.__esModule</code> 赋值为 true<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<p>除了 CommonJS 和 ES Module 规范<span class=" fw-cl "><span>，</span></span>webpack 同样支持 AMD 规范<span class=" fw-cl "><span>，</span></span>这里不再进行分析<span class=" fw-cl "><span>，</span></span>读者可以重新打包来观察它们的区别<span class=" fw-cl "><span>。</span></span>总之<span class=" fw-cl "><span>，</span></span>希望大家记住 webpack 打包输出的结果就是一个 IIFE<span class=" fw-cl "><span>，</span></span>通过这个 IIFE<span class=" fw-cl "><span>，</span></span>以及 <code><strong style="">webpack_require</strong></code> 支持了各种模块化打包方案<span class=" fw-cl "><span>。</span></span></p>
+<h4>按需加载打包结果</h4>
+<p><strong style="">现代化的业务<span class=" fw-cl "><span>，</span></span>尤其是在单页应用中<span class=" fw-cl "><span>，</span></span>我们往往使用<span class="fw-op  "><span>「</span></span>按需加载<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>那么对于这种相对较新的依赖技术<span class=" fw-cl "><span>，</span></span>webpack 又会产出什么样的代码呢<span class=" fw-cl "><span>？</span></span></strong></p>
+<p>我们加入 Babel 插件<span class=" fw-cl "><span>，</span></span>以支持 dynamic import<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npm install --save-dev babel-plugin-dynamic-import-webpack</code></p>
+<p>并在 webpack.config.js 中添加相关插件配置<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports={<br>
+ &nbsp;&nbsp;&nbsp;module:{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rules:[<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test: /\.js$/,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exclude: /node_modules/, <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: "babel-loader",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;options: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"plugins": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"dynamic-import-webpack"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>同时<span class=" fw-cl "><span>，</span></span>将 index.js 使用 dynamic import 的方式实现按需加载<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import('./hello').then(sayHello =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log(sayHello('lucas'))<br>
+})</code></p>
+<p>最后执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npm run build</code></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>我们发现重新构建后会输出两个文件<span class=" fw-cl "><span>，</span></span>分别是执行入口文件 main.js 和异步加载文件 0.js<span class=" fw-cl "><span>，</span></span>因为异步按需加载显然不能把所有的代码再打到一个 bundle 当中了<span class=" fw-cl "><span>。</span></span></p>
+<p>0.js 内容为<span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<p><code>(window["webpackJsonp"] = window["webpackJsonp"] || []).push([<br>
+[0],<br>
+{<br>
+ &nbsp;&nbsp;&nbsp;"./src/hello.js": (function(module, __webpack_exports__, __webpack_require__) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"use strict";<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eval("__webpack_require__.r(__webpack_exports__);\n// module.exports = function(name) {\n// &nbsp;&nbsp;&nbsp;&nbsp;return 'hello ' + name\n// }\nvar sayHello = function sayHello(name) {\n &nbsp;return \"hello \".concat(name);\n};\n\n/* harmony default export */ __webpack_exports__[\"default\"] = (sayHello);\n\n//# sourceURL=webpack:///./src/hello.js?")<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+}])</code></p>
+<p>main.js 内容也与之前相比变化较大<span class=" fw-cl "><span>：</span></span></p>
+<p><code>(function(modules) {<br>
+ &nbsp;&nbsp;&nbsp;/***<br>
+ &nbsp;&nbsp;&nbsp;* webpackJsonp 用于从异步加载的文件中安装模块<br>
+ &nbsp;&nbsp;&nbsp;* 把 webpackJsonp 挂载到全局是为了方便在其他文件中调用<br>
+ &nbsp;&nbsp;&nbsp;*<br>
+ &nbsp;&nbsp;&nbsp;* @param chunkIds 异步加载的文件中存放的需要安装的模块对应的 Chunk ID<br>
+ &nbsp;&nbsp;&nbsp;* @param moreModules 异步加载的文件中存放的需要安装的模块列表<br>
+ &nbsp;&nbsp;&nbsp;* @param executeModules 在异步加载的文件中存放的需要安装的模块都安装成功后<span class=" fw-cl "><span>，</span></span>需要执行的模块对应的 index<br>
+ &nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;function webpackJsonpCallback(data) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var chunkIds = data[0];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var moreModules = data[1];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var moduleId, chunkId, i = 0,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolves = [];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 把所有 chunkId 对应的模块都标记成已经加载成功 <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (; i &lt; chunkIds.length; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chunkId = chunkIds[i];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (installedChunks[chunkId]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolves.push(installedChunks[chunkId][0])<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;installedChunks[chunkId] = 0<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (moduleId in moreModules) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (Object.prototype.hasOwnProperty.call(moreModules, moduleId)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;modules[moduleId] = moreModules[moduleId]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (parentJsonpFunction) parentJsonpFunction(data);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (resolves.length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolves.shift()()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;var installedModules = {};<br>
+ &nbsp;&nbsp;&nbsp;// 存储每个 Chunk 的加载状态<br>
+ &nbsp;&nbsp;&nbsp;// 键为 Chunk 的 ID<span class=" fw-cl "><span>，</span></span>值为 0 代表已经加载成功<br>
+ &nbsp;&nbsp;&nbsp;var installedChunks = {<br>
+ &nbsp;&nbsp;&nbsp;"main": 0<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;function jsonpScriptSrc(chunkId) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return __webpack_require__.p + "" + ({}[chunkId] || chunkId) + ".js"<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;function __webpack_require__(moduleId) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (installedModules[moduleId]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return installedModules[moduleId].exports<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var module = installedModules[moduleId] = {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i: moduleId,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;l: false,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exports: {}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;module.l = true;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return module.exports<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;* 用于加载被分割出去的<span class=" fw-cl "><span>，</span></span>需要异步加载的 Chunk 对应的文件<br>
+ &nbsp;&nbsp;&nbsp;* @param chunkId 需要异步加载的 Chunk 对应的 ID<br>
+ &nbsp;&nbsp;&nbsp;* @returns {Promise}<br>
+ &nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.e = function requireEnsure(chunkId) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var promises = [];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var installedChunkData = installedChunks[chunkId];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果加载状态为 0 表示该 Chunk 已经加载成功了<span class=" fw-cl "><span>，</span></span>直接返回 resolve Promise<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (installedChunkData !== 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (installedChunkData) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;promises.push(installedChunkData[2])<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var promise = new Promise(function(resolve, reject) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;installedChunkData = installedChunks[chunkId] = [resolve, reject]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;promises.push(installedChunkData[2] = promise);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var script = document.createElement('script');<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var onScriptComplete;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;script.charset = 'utf-8';<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 设置异步加载的最长超时时间<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;script.timeout = 120;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (__webpack_require__.nc) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;script.setAttribute("nonce", __webpack_require__.nc)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 文件的路径为配置的 publicPath<span class=" fw-cl "><span>、</span></span>chunkId 拼接而成<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;script.src = jsonpScriptSrc(chunkId);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onScriptComplete = function(event) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;script.onerror = script.onload = null;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clearTimeout(timeout);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var chunk = installedChunks[chunkId];<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (chunk !== 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (chunk) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var errorType = event &amp;&amp; (event.type === 'load' ? 'missing' : event.type);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var realSrc = event &amp;&amp; event.target &amp;&amp; event.target.src;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var error = new Error('Loading chunk ' + chunkId + ' failed.\n(' + errorType + ': ' + realSrc + ')');<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;error.type = errorType;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;error.request = realSrc;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chunk[1](error)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;installedChunks[chunkId] = undefined<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var timeout = setTimeout(function() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onScriptComplete({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'timeout',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target: script<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, 120000);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;script.onerror = script.onload = onScriptComplete;head <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 通过 DOM 操作<span class=" fw-cl "><span>，</span></span>往 HTML head 中插入一个 script 标签去异步加载 Chunk 对应的 JavaScript 文件<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;document.head.appendChild(script)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Promise.all(promises)<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.m = modules;<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.c = installedModules;<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.d = function(exports, name, getter) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!__webpack_require__.o(exports, name)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(exports, name, {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get: getter<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.r = function(exports) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof Symbol !== 'undefined' &amp;&amp; Symbol.toStringTag) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(exports, Symbol.toStringTag, {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value: 'Module'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(exports, '__esModule', {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value: true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.t = function(value, mode) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (mode &amp; 1) value = __webpack_require__(value);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (mode &amp; 8) return value;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if ((mode &amp; 4) &amp;&amp; typeof value === 'object' &amp;&amp; value &amp;&amp; value.__esModule) return value;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var ns = Object.create(null);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;__webpack_require__.r(ns);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(ns, 'default', {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value: value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (mode &amp; 2 &amp;&amp; typeof value != 'string') for (var key in value) __webpack_require__.d(ns, key, function(key) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return value[key]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}.bind(null, key));<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return ns<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.n = function(module) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var getter = module &amp;&amp; module.__esModule ?<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function getDefault() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return module['default']<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} : function getModuleExports() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return module<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.d(getter, 'a', getter);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return getter<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.o = function(object, property) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Object.prototype.hasOwnProperty.call(object, property)<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.p = "";<br>
+ &nbsp;&nbsp;&nbsp;__webpack_require__.oe = function(err) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.error(err);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw err;<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;var jsonpArray = window["webpackJsonp"] = window["webpackJsonp"] || [];<br>
+ &nbsp;&nbsp;&nbsp;var oldJsonpFunction = jsonpArray.push.bind(jsonpArray);<br>
+ &nbsp;&nbsp;&nbsp;jsonpArray.push = webpackJsonpCallback;<br>
+ &nbsp;&nbsp;&nbsp;jsonpArray = jsonpArray.slice();<br>
+ &nbsp;&nbsp;&nbsp;for (var i = 0; i &lt; jsonpArray.length; i++) webpackJsonpCallback(jsonpArray[i]);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;var parentJsonpFunction = oldJsonpFunction;<br>
+ &nbsp;&nbsp;&nbsp;return __webpack_require__(__webpack_require__.s = "./src/index.js")<br>
+ &nbsp;&nbsp;&nbsp;})({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 所有没有经过异步加载的<span class=" fw-cl "><span>，</span></span>随着执行入口文件加载的模块<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"./src/index.js": (function(module, exports, __webpack_require__) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eval("// var sayHello = require('./hello')\n// console.log(sayHello('lucas'))\n// import sayHello from './hello.js'\n// console.log(sayHello('lucas'))\nnew Promise(function (resolve) {\n &nbsp;__webpack_require__.e(/*! require.ensure */ 0).then((function (require) {\n &nbsp;&nbsp;&nbsp;resolve(__webpack_require__(/*! ./hello */ \"./src/hello.js\"));\n &nbsp;}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);\n}).then(function (sayHello) {\n &nbsp;console.log(sayHello('lucas'));\n});\n\n//# sourceURL=webpack:///./src/index.js?")<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+});</code></p>
+<p>按需加载相比常规打包产出结果变化较大<span class=" fw-cl "><span>，</span></span>也更加复杂<span class=" fw-cl "><span>。</span></span>我们仔细对比其中差异<span class=" fw-cl "><span>，</span></span>发现 main.js<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">多了一个 <code>__webpack_require__.e</code></li>
+  <li style="">多了一个 webpackJsonp</li>
+</ul>
+<p>其中 <code>__webpack_require__.e</code> 实现非常重要<span class=" fw-cl "><span>，</span></span>它初始化了一个 promise 数组<span class=" fw-cl "><span>，</span></span>使用 Promise.all() 进行异步插入 script 脚本<span class=" fw-cl "><span>；</span></span>webpackJsonp 会挂在到全局对象 window 上<span class=" fw-cl "><span>，</span></span>进行模块安装<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<p>熟悉 webpack 的读者可能会知道 CommonsChunkPlugin 插件<span class="fw-op  "><span>（</span></span>在 webpack v4 版本中已经被取代<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>这个插件用来分割第三方依赖或者公共库的代码<span class=" fw-cl "><span>，</span></span>将业务逻辑和稳定的库脚本分离<span class=" fw-cl "><span>，</span></span>以达到优化代码体积<span class=" fw-cl "><span>、</span></span>合理使用缓存的目的<span class=" fw-cl "><span>。</span></span>实际上<span class=" fw-cl "><span>，</span></span>这样的思路和上述<span class="fw-op  "><span>「</span></span>按需加载<span class=" fw-cl "><span>」</span></span>不谋而合<span class=" fw-cl "><span>，</span></span>具体实现思路也一致<span class=" fw-cl "><span>。</span></span>我们可以推测开发者在使用 CommonsChunkPlugin 插件打包后的代码结果和上面的代码结构类似<span class=" fw-cl "><span>，</span></span>都存在 <strong style="">webpack_require</strong>.e 和 webpackJsonp<span class=" fw-cl "><span>。</span></span><strong style="">因为提取公共代码和异步加载本质上都是前置进行代码分割<span class=" fw-cl "><span>，</span></span>再在必要时加载<span class=" fw-cl "><span>，</span></span>具体实现可以观察</strong> <strong style="">webpack_require.e 和 webpackJsonp</strong><span class=" fw-cl "><span>。</span></span></p>
+<p>到此<span class=" fw-cl "><span>，</span></span>我们分析了业务中几乎所有的打包方式以及 webpack 产出结果<span class=" fw-cl "><span>。</span></span>虽然这些内容较为晦涩<span class=" fw-cl "><span>，</span></span>源码冗长而难以阅读<span class=" fw-cl "><span>，</span></span>但是这对我们理解 webpack 内部工作原理<span class=" fw-cl "><span>，</span></span>编写 loader<span class=" fw-cl "><span>、</span></span>plugin 意义重大<span class=" fw-cl "><span>。</span></span>只有分析过所有这些最基本的编译后代码<span class=" fw-cl "><span>，</span></span>我们才能对上线代码的质量做到<span class="fw-op  "><span>「</span></span>心里有底<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>在出现问题时<span class=" fw-cl "><span>，</span></span>能够驾轻就熟<span class=" fw-cl "><span>，</span></span>独当一面<span class=" fw-cl "><span>。</span></span>这也是高级 Web 工程师所必备的素养<span class=" fw-cl "><span>。</span></span></p>
+<p>如果读者在阅读 webpack 打包后代码存在一些困难<span class=" fw-cl "><span>，</span></span>也没有关系<span class=" fw-cl "><span>，</span></span>细节实现相对打包思想设计并没有那么重要<span class=" fw-cl "><span>。</span></span>也许你试着去设计一个模块系统<span class=" fw-cl "><span>，</span></span>了解一下 require.js 或者 sea.js 的实现<span class=" fw-cl "><span>，</span></span>这些内容也就不再<span class="fw-op  "><span>「</span></span>那么高深<span class=" fw-cl "><span>」</span></span>了<span class=" fw-cl "><span>。</span></span>这些代码实现细节可以放在一边<span class=" fw-cl "><span>，</span></span>通过后续章节的学习之后<span class=" fw-cl "><span>，</span></span>再返回来看<span class=" fw-cl "><span>，</span></span>可能效果更好<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1XkLPGDrFGeZ6LvFJ5YQ</span></p>
+</body>
+</html>

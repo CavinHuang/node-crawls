@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 35 节性能优化问题，老司机如何解决（下）</h1>
+  <p>上一节课<span class=" fw-cl "><span>，</span></span>我们从宏观上讲述了性能优化的概念<span class=" fw-cl "><span>。</span></span>这一节<span class=" fw-cl "><span>，</span></span>我们直接来<span class="fw-op  "><span>「</span></span>手写代码<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>在此之前<span class=" fw-cl "><span>，</span></span>我们先回顾一下<span class="fw-op  "><span>「</span></span>性能优化<span class=" fw-cl "><span>」</span></span>主题的知识点<span class=" fw-cl "><span>：</span></span></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-3c48cea7f5b26071b7e64d19479460c9.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:35.750507099391484% 0" data-src="https://pic4.zhimg.com/v2-3c48cea7f5b26071b7e64d19479460c9.png">加载中...</span><figcaption>图片</figcaption></figure>
+<h3>代码例题实战</h3>
+<p><span class="fw-op  "><span>「</span></span>白板写代码<span class=" fw-cl "><span>」</span></span>是考察候选人基础能力<span class=" fw-cl "><span>、</span></span>思维能力的有效手段<span class=" fw-cl "><span>。</span></span>这一部分<span class=" fw-cl "><span>，</span></span>我们列举几个性能相关的代码片段<span class=" fw-cl "><span>，</span></span>供读者体会<span class=" fw-cl "><span>。</span></span></p>
+<h4>实战 1<span class=" fw-cl "><span>：</span></span>初步解决布局抖动问题</h4>
+<p>请候选人对以下代码进行优化<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="html" language="HTML" class="language-html"><code lang="html" language="HTML" class="language-html">var h1 = element1.clientHeight<br>
+ element1.style.height = (h1 * 2) + 'px'<br>
+<br>
+ var h2 = element2.clientHeight<br>
+ element2.style.height = (h2 * 2) + 'px'<br>
+<br>
+ var h3 = element3.clientHeight<br>
+ element3.style.height = (h3 * 2) + 'px'</code></pre>
+<p>这是一道较为基础的题目<span class=" fw-cl "><span>，</span></span>上面的代码<span class=" fw-cl "><span>，</span></span>会造成典型的布局抖动问题<span class=" fw-cl "><span>。</span></span></p>
+<p><strong>布局抖动</strong>是指 DOM 元素被 JavaScript 多次反复读写<span class=" fw-cl "><span>，</span></span>导致文档多次无意义重排<span class=" fw-cl "><span>。</span></span>我们知道浏览器很<span class="fw-op  "><span>「</span></span>懒<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>它会收集<span class="fw-op  "><span>（</span></span>batch<span class=" fw-cl "><span>）</span></span>当前操作<span class=" fw-cl "><span>，</span></span>统一进行重排<span class=" fw-cl "><span>。</span></span>可是<span class=" fw-cl "><span>，</span></span>如果在当前操作完成前<span class=" fw-cl "><span>，</span></span>从 DOM 元素中获取值<span class=" fw-cl "><span>，</span></span>这会迫使浏览器提早执行布局操作<span class=" fw-cl "><span>，</span></span>这称为<strong>强制同步布局</strong><span class=" fw-cl "><span>。</span></span>这样的副作用对于低配置的移动设备来说<span class=" fw-cl "><span>，</span></span>后果是不堪设想的<span class=" fw-cl "><span>。</span></span></p>
+<p>我们对 element1 进行读<span class=" fw-cl "><span>、</span></span>写操作之后<span class=" fw-cl "><span>，</span></span>又企图去获取 element2 的值<span class=" fw-cl "><span>，</span></span>浏览器为了获取正确的值<span class=" fw-cl "><span>，</span></span>只能进行重排<span class=" fw-cl "><span>。</span></span>优化思路为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// 读</code><br>
+<code> var h1 = element1.clientHeight</code><br>
+<code> var h2 = element2.clientHeight</code><br>
+<code> var h3 = element3.clientHeight</code><br>
+<br>
+<code> // 写<span class="fw-op  "><span>（</span></span>无效布局<span class=" fw-cl "><span>）</span></span></code><br>
+<code> element1.style.height = (h1 * 2) + 'px'</code><br>
+<code> element2.style.height = (h2 * 2) + 'px'</code><br>
+<code> element3.style.height = (h3 * 2) + 'px'</code></p>
+<h4>实战 2<span class=" fw-cl "><span>：</span></span>使用 window.requestAnimationFrame 对上述代码优化</h4>
+<p>如果读者对 window.requestAnimationFrame 不熟悉的话<span class=" fw-cl "><span>，</span></span>我们先来看一下 MDN 上的说明<span class=" fw-cl "><span>：</span></span></p>
+<blockquote>该方法告诉浏览器你希望执行的操作<span class=" fw-cl "><span>，</span></span>并请求浏览器在下一次重绘之前调用指定的函数来更新<span class=" fw-cl "><span>。</span></span></blockquote>
+<p>语法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>window.requestAnimationFrame(callback)</code></p>
+<p>也就是说<span class=" fw-cl "><span>，</span></span>当你需要更新屏幕画面时就可以调用此方法<span class=" fw-cl "><span>。</span></span>在浏览器下次重绘前统一执行回调函数<span class=" fw-cl "><span>，</span></span>优化方案<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// 读</code><br>
+<code> var h1 = element1.clientHeight</code><br>
+<code> // 写</code><br>
+<code> requestAnimationFrame(() =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;<code>element1.style.height = (h1 * 2) + 'px'</code><br>
+<code> })</code><br>
+<br>
+<code> // 读</code><br>
+<code> var h2 = element2.clientHeight</code><br>
+<code> // 写</code><br>
+<code> requestAnimationFrame(() =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;<code>element2.style.height = (h2 * 2) + 'px'</code><br>
+<code> })</code><br>
+<br>
+<code> // 读</code><br>
+<code> var h3 = element3.clientHeight</code><br>
+<code> // 写</code><br>
+<code> requestAnimationFrame(() =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;<code>element3.style.height = (h3 * 2) + 'px'</code><br>
+<code> })</code></p>
+<p>我们将代码中所有 DOM 的写操作在下一帧一起执行<span class=" fw-cl "><span>，</span></span>保留所有 DOM 的读操作在当前同步状态<span class=" fw-cl "><span>。</span></span>这样有效减少了无意义的重排<span class=" fw-cl "><span>，</span></span>显然效率更高<span class=" fw-cl "><span>。</span></span></p>
+<h4>实战 3<span class=" fw-cl "><span>：</span></span>延伸题目<span class=" fw-cl "><span>，</span></span>实现 window.requestAnimationFrame 的 polyfill</h4>
+<p>polyfill 就是我们常说的垫片<span class=" fw-cl "><span>，</span></span>此处指在浏览器兼容性不支持的情况下<span class=" fw-cl "><span>，</span></span>备选实现方案<span class=" fw-cl "><span>。</span></span></p>
+<p>window.requestAnimationFrame 在一些老版本浏览器中无法兼容<span class=" fw-cl "><span>，</span></span>为了让代码在老机器也能运行不报错<span class=" fw-cl "><span>，</span></span>请用代码实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>if (!window.requestAnimationFrame) window.requestAnimationFrame = (callback, element) =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;<code>const id = window.setTimeout(() =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>callback()</code><br>
+ &nbsp;&nbsp;&nbsp;<code>}, 1000 / 60)</code><br>
+ &nbsp;&nbsp;&nbsp;<code>return id</code><br>
+<code> }</code><br>
+<code> if (!window.cancelAnimationFrame) window.cancelAnimationFrame = id =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;<code>clearTimeout(id)</code><br>
+<code> }</code></p>
+<p>上面的代码按照 1 秒钟 60 次<span class="fw-op  "><span>（</span></span>大约每 16.7 毫秒一次<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>并使用 window.setTimeout 来进行模拟<span class=" fw-cl "><span>。</span></span>这是一种粗略的实现<span class=" fw-cl "><span>，</span></span>并没有考虑统一浏览器前缀和 callback 参数等问题<span class=" fw-cl "><span>。</span></span>一般需求中<span class=" fw-cl "><span>，</span></span>实现上面的答案已经可以符合要求了<span class=" fw-cl "><span>。</span></span></p>
+<h4>实战 4<span class=" fw-cl "><span>：</span></span>为以下每个 li 添加点击事件</h4>
+<ul>
+  <li><code>1</code></li>
+</ul>
+<p><br></p>
+<ul>
+  <li><code>2</code></li>
+</ul>
+<p><br></p>
+<ul>
+  <li><code>3</code></li>
+</ul>
+<p><br></p>
+<ul>
+  <li><code>4</code></li>
+</ul>
+<p><br></p>
+<ul>
+  <li><code>5</code></li>
+</ul>
+<p><br></p>
+<ul>
+  <li><code>6</code></li>
+</ul>
+<p><br></p>
+<ul>
+  <li><code>7</code></li>
+</ul>
+<p><br></p>
+<ul>
+  <li><code>8</code></li>
+</ul>
+<p><br></p>
+<ul>
+  <li><code>9</code></li>
+</ul>
+<p><br></p>
+<ul>
+  <li><code>10</code></li>
+</ul>
+<p>这道题目非常基础<span class=" fw-cl "><span>，</span></span>但是实现方式上需要注意是否使用了<strong>事件委托</strong><span class=" fw-cl "><span>。</span></span>如果候选人直接对 li 进行绑定处理<span class=" fw-cl "><span>，</span></span>那么很容易给面试官留下<span class="fw-op  "><span>「</span></span>平时代码习惯不好<span class=" fw-cl "><span>」</span></span>的印象<span class=" fw-cl "><span>，</span></span>造成潜在性能负担<span class=" fw-cl "><span>。</span></span>更好的做法显然是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>window.onload = () =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;<code>const ul = document.getElementsByTagName('ul')[0]</code><br>
+ &nbsp;&nbsp;&nbsp;<code>const liList = document.getElementsByTagName('li')</code><br>
+<br>
+ &nbsp;&nbsp;&nbsp;<code>ul.onclick = e =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>const normalizeE = e || window.event</code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>const target = normalizeE.target || normalizeE.srcElement</code><br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>if (target.nodeName.toLowerCase() == "li") {</code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>alert(target.innerHTML)</code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code>}</code><br>
+ &nbsp;&nbsp;&nbsp;<code>}</code><br>
+<code> }</code></p>
+<p>一般情况下<span class=" fw-cl "><span>，</span></span>作为面试官<span class=" fw-cl "><span>，</span></span>我不会提示候选人采用事件委托的写法<span class=" fw-cl "><span>，</span></span>而是观察候选人的第一反应<span class=" fw-cl "><span>，</span></span>对其代码习惯进行考察<span class=" fw-cl "><span>。</span></span>如果候选人没有采用事件委托的写法<span class=" fw-cl "><span>，</span></span>才会进一步追问<span class=" fw-cl "><span>。</span></span></p>
+<h4>实战 5<span class=" fw-cl "><span>：</span></span>实现节流<span class=" fw-cl "><span>、</span></span>防抖</h4>
+<p>我们知道<span class=" fw-cl "><span>，</span></span>鼠标滚动<span class="fw-op  "><span>（</span></span>scroll<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span>调整窗口大小<span class="fw-op  "><span>（</span></span>resize<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span>敲击键盘<span class="fw-op  "><span>（</span></span>keyup<span class=" fw-cl "><span>）</span></span>这类事件在触发时往往频率极高<span class=" fw-cl "><span>。</span></span>这时候事件对应的回调函数也会在极短时间内反复执行<span class=" fw-cl "><span>。</span></span>想象一下<span class=" fw-cl "><span>，</span></span>如果这些回调函数内的逻辑涉及复杂的计算<span class=" fw-cl "><span>，</span></span>或者对 DOM 操作非常频繁<span class=" fw-cl "><span>，</span></span>从而造成大量布局操作<span class=" fw-cl "><span>、</span></span>绘制操作<span class=" fw-cl "><span>，</span></span>那么就存在阻塞主线程的危险<span class=" fw-cl "><span>，</span></span>直接后果就是掉帧<span class=" fw-cl "><span>，</span></span>用户能够感受到明显的卡顿<span class=" fw-cl "><span>。</span></span></p>
+<p>有经验的程序员为了规避这样的问题<span class=" fw-cl "><span>，</span></span>往往会使用节流<span class="fw-op  "><span>（</span></span>throttle<span class=" fw-cl "><span>）</span></span>或者防抖<span class="fw-op  "><span>（</span></span>debounce<span class=" fw-cl "><span>）</span></span>来进行处理<span class=" fw-cl "><span>。</span></span>因此节流和防抖已经成为非常常见的优化手段<span class=" fw-cl "><span>，</span></span>现如今也是面试的必考题型之一<span class=" fw-cl "><span>。</span></span></p>
+<p><strong>节流和防抖总是一起出现<span class=" fw-cl "><span>，</span></span>那么它们有什么不同呢<span class=" fw-cl "><span>？</span></span></strong></p>
+<p>回答这个问题<span class=" fw-cl "><span>，</span></span>我们首先要知道它们解决的问题相同<span class=" fw-cl "><span>，</span></span>方向类似<span class=" fw-cl "><span>：</span></span><strong>两者并不会减少事件的触发<span class=" fw-cl "><span>，</span></span>而是减少事件触发时回调函数的执行次数</strong><span class=" fw-cl "><span>。</span></span>为了达成这个目的<span class=" fw-cl "><span>，</span></span>节流和防抖采用的手段有所差别<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li>防抖<span class=" fw-cl "><span>：</span></span>抖动现象本质就是指短时间内高频次触发<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>我们可以把短时间内的多个连续调用合并成一次<span class=" fw-cl "><span>，</span></span>也就是只触发一次回调函数<span class=" fw-cl "><span>。</span></span></li>
+  <li>节流<span class=" fw-cl "><span>：</span></span>顾名思义<span class=" fw-cl "><span>，</span></span>就是将短时间的函数调用以一个固定的频率间隔执行<span class=" fw-cl "><span>，</span></span>这就如同水龙头开关限制出水口流量<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p><a href="http://caiogondim.github.io/js-debounce-throttle-visual-explanation/">这个例子</a>可以很形象地展示节流与防抖的区别<span class=" fw-cl "><span>。</span></span></p>
+<p>另外<span class=" fw-cl "><span>，</span></span>请参考防抖图示<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+</p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-3b6f7b147b3e44a648ab5a4883a5adc6.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:29.049999999999997% 0" data-src="https://pic2.zhimg.com/v2-3b6f7b147b3e44a648ab5a4883a5adc6.png">加载中...</span><figcaption>图片</figcaption></figure>
+<p>节流图示<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+</p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-3bdc5eae89be951741c2c0efd46ce481.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:19.25% 0" data-src="https://pic1.zhimg.com/v2-3bdc5eae89be951741c2c0efd46ce481.png">加载中...</span><figcaption>图片</figcaption></figure>
+<p>了解了原理<span class=" fw-cl "><span>，</span></span>我们先来实现事件防抖<span class=" fw-cl "><span>：</span></span></p>
+<pre class="language-undefined"><code class="language-undefined">// 简单的防抖动函数<br>
+ const debounce = (func, wait, immediate) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let timeout<br>
+ &nbsp;&nbsp;&nbsp;return function () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const context = this<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const args = arguments<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const callNow = immediate &amp; !timeout<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout &amp;&amp; clearTimeout(timeout)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout = setTimeout(function() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout = null<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!immediate) func.apply(context, args)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, wait)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (callNow) func.apply(context, args)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ }</code></pre>
+<p><br>
+<br>
+<code> // 采用了防抖动</code><br>
+<code> window.addEventListener('scroll', debounce(() =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;<code>console.log('scroll')</code><br>
+<code> }, 500))</code><br>
+<br>
+<code> // 没采用防抖动</code><br>
+<code> window.addEventListener('scroll', () =&gt; {</code><br>
+ &nbsp;&nbsp;&nbsp;<code>console.log('scroll')</code><br>
+<code> })</code></p>
+<p>如代码所示<span class=" fw-cl "><span>，</span></span>我们使用 setTimeout 在 500ms 后执行事件回调<span class=" fw-cl "><span>，</span></span>如果在这 500ms 内又有相关事件触发<span class=" fw-cl "><span>，</span></span>则通过 clearTimeout(timeout) 取消上一次设置的回调<span class=" fw-cl "><span>。</span></span>因此在 500ms 内没有连续触发多次 scroll 事件<span class=" fw-cl "><span>，</span></span>才会真正触发 scroll 回调函数——或者说<span class=" fw-cl "><span>，</span></span>500ms 内的多次调用被归并成了一次<span class=" fw-cl "><span>，</span></span>在最后一次<span class="fw-op  "><span>「</span></span>抖动<span class=" fw-cl "><span>」</span></span>后<span class=" fw-cl "><span>，</span></span>进行回调执行<span class=" fw-cl "><span>。</span></span>同时<span class=" fw-cl "><span>，</span></span>我们设置了 immediate 参数<span class=" fw-cl "><span>，</span></span>用以立即执行<span class=" fw-cl "><span>。</span></span>关于 func.apply 的用法<span class=" fw-cl "><span>，</span></span>学习过<span class="fw-op  "><span>《</span></span>第 1-1 课<span class=" fw-cl "><span>：</span></span>一网打尽 this<span class=" fw-cl "><span>，</span></span>对执行上下文说 Yes<span class=" fw-cl "><span>》</span></span>的读者应该不会陌生<span class=" fw-cl "><span>。</span></span></p>
+<p>关于事件节流<span class=" fw-cl "><span>：</span></span></p>
+<pre class="language-undefined"><code class="language-undefined">const throttle = (func, wait) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let startTime = 0<br>
+ &nbsp;&nbsp;&nbsp;return function() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let handleTime = +new Date()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let context = this<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const args = arguments<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (handleTime - startTime &gt;= wait) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func.apply(context, args)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;startTime = handleTime<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ }<br>
+<br>
+ window.addEventListener('scroll', throttle(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log('scroll')<br>
+ }, 500))</code></pre>
+<p>当然<span class=" fw-cl "><span>，</span></span>我们同样可以用 setTimeout 来实现<span class=" fw-cl "><span>：</span></span></p>
+<pre class="language-undefined"><code class="language-undefined">const throttle = (func, wait) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let timeout <br>
+<br>
+ &nbsp;&nbsp;&nbsp;return function () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const context = this<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const args = arguments<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!timeout) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout = setTimeout(function() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func.apply(context, args)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timeout = null<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, wait)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ }</code></pre>
+<p>与防抖相比<span class=" fw-cl "><span>，</span></span>少了 clearTimeout 的操作<span class=" fw-cl "><span>，</span></span>请读者细心对比<span class=" fw-cl "><span>。</span></span></p>
+<p>要准确理解节流和防抖<span class=" fw-cl "><span>，</span></span>需要多动手实践<span class=" fw-cl "><span>。</span></span>这里也建议大家有时间研究研究 lodash 库关于节流和防抖的实现<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>这个话题还可以玩出很多花来<span class=" fw-cl "><span>，</span></span>比如如何暴露给开发者 cancelDebounce<span class=" fw-cl "><span>，</span></span>又如上述 throttle 的两种方式各有哪些瑕疵<span class=" fw-cl "><span>，</span></span>针对这些瑕疵<span class=" fw-cl "><span>，</span></span>是否可以结合两种实现优化<span class=" fw-cl "><span>？</span></span>感兴趣的读者请在评论区留言探讨<span class=" fw-cl "><span>，</span></span>或者在文末彩蛋部分找到相关内容<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>性能优化<span class=" fw-cl "><span>，</span></span>实在是一个极大的话题<span class=" fw-cl "><span>，</span></span>需要我们在平时工作学习中不断积累<span class=" fw-cl "><span>。</span></span>对于准备面试的朋友<span class=" fw-cl "><span>，</span></span>在面试前<span class=" fw-cl "><span>，</span></span>除了时刻注意代码习惯<span class=" fw-cl "><span>、</span></span>掌握常见考点以外<span class=" fw-cl "><span>，</span></span>还要整理<span class=" fw-cl "><span>、</span></span>回顾<span class=" fw-cl "><span>、</span></span>复盘平时的性能相关项目<span class=" fw-cl "><span>。</span></span></p>
+<p>这一节课难以覆盖性能优化的方方面面<span class=" fw-cl "><span>，</span></span>本课程的其他章节<span class=" fw-cl "><span>，</span></span>还会有这个话题的相关渗透<span class=" fw-cl "><span>，</span></span>如网络协议<span class=" fw-cl "><span>、</span></span>缓存策略<span class=" fw-cl "><span>、</span></span>数据结构和算法等<span class=" fw-cl "><span>，</span></span>这些内容和性能息息相关<span class=" fw-cl "><span>。</span></span>请大家持续关注学习<span class=" fw-cl "><span>，</span></span>同时欢迎在评论区和其他小伙伴讨论以及向我提问<span class=" fw-cl "><span>。</span></span></p>
+<p>课程代码仓库<span class=" fw-cl "><span>：</span></span> <a href="https://github.com/HOUCe/lucas-gitchat-courses%3C/a%3E">https://github.com/HOUCe/lucas-gitchat-courses</a></p>
+<h3>彩蛋分享</h3>
+<h4>节流和防抖相关</h4>
+<ul>
+  <li><a href="https://css-tricks.com/debouncing-throttling-explained-examples/">Debouncing and Throttling Explained Through Examples</a></li>
+  <li><a href="https://mp.weixin.qq.com/s?__biz=MzAxODE2MjM1MA==&amp;mid=2651551467&amp;idx=2&amp;sn=2ce4ce1ec06c32aa698451128985b870&amp;chksm=8025a12ab752283c66f1e529664fcc9fe272d5d500f8daedcc35e85f79baa69b62a208b2235a&amp;scene=0#wechat_redirect">谈谈 JS 中的函数节流</a></li>
+  <li><a href="https://juejin.im/entry/58a3911b570c35006cdc2d6a">JavaScript 函数节流和函数防抖之间的区别</a></li>
+  <li><a href="https://mp.weixin.qq.com/s?__biz=MzAxODE2MjM1MA==&amp;mid=2651552107&amp;idx=1&amp;sn=7ea1a6d4b3cf1c8a99b50f703e4c41f1&amp;chksm=8025aeaab75227bc3bae46270d175bd1444f4983c9472eb93de5fc9c19951416e239dcc4860f&amp;mpshare=1&amp;scene=1&amp;srcid=0419s6nwU8LrOAy4BP2TH3wO&amp;key=14e4edd6ca5f2a5d9d86be4c9f83873bba1ae3395ad7d51553704ab7d15851bb129ead9ae2751548d6e530fcdfb471b1b7fdc9d4576bac260e706ef288ada0c02f31962f40314318bb69347d0284f0c2&amp;ascene=0&amp;uin=NjI4NTQ2ODIx&amp;devicetype=iMac+MacBookPro12%2C1+OSX+OSX+10.10.4+build(14E46">高性能滚动 scroll 及页面渲染优化</a>&amp;version=12020110&amp;nettype=WIFI&amp;fontScale=100&amp;pass_ticket=OxCcOonsw3hgntyvXy%2FSYPn%2Fw9jx2Hv%2FheV8seAGt987cQT%2FygphdRBJ0UyMTQvc)</li>
+  <li><a href="https://juejin.im/post/5b043309f265da0ba77015e7">从 lodash 源码学习节流与防抖</a></li>
+  <li><a href="https://juejin.im/post/5be24d76e51d451def13cca2">理解并优化函数节流 Throttle</a></li>
+</ul>
+<h4>浏览器引擎渲染性能相关</h4>
+<ul>
+  <li><a href="https://developers.google.com/web/resources/contributors/kosamari">Inside look at modern web browser</a></li>
+  <li><a href="https://www.html5rocks.com/en/tutorials/internals/howbrowserswork/">How Browsers Work: Behind the scenes of modern web browsers</a></li>
+  <li><a href="http://taligarsiel.com/Projects/howbrowserswork1.htm">How browsers work</a></li>
+  <li><a href="https://blog.logrocket.com/how-browser-rendering-works-behind-the-scenes-6782b0e8fb10">How browser rendering works — behind the scenes</a></li>
+  <li><a href="http://frontendbabel.info/articles/webpage-rendering-101/">What Every Frontend Developer Should Know About Webpage Rendering</a></li>
+  <li><a href="https://www.cnblogs.com/lhb25/p/how-browsers-work.html">前端文摘<span class=" fw-cl "><span>：</span></span>深入解析浏览器的幕后工作原理</a></li>
+  <li><a href="https://zhuanlan.zhihu.com/p/30558018">从 Chrome 源码看浏览器如何加载资源</a></li>
+  <li><a href="https://juejin.im/post/5bbaa7da6fb9a05d3761aafe">浏览器内核渲染<span class=" fw-cl "><span>：</span></span>重建引擎</a></li>
+  <li><a href="https://juejin.im/entry/5c26d05d5188257a937fb6b2">体现工匠精神的 Resource Hints</a></li>
+  <li><a href="https://www.itcodemonkey.com/article/10417.html">浏览器页面渲染机制<span class=" fw-cl "><span>，</span></span>你真的弄懂了吗</a></li>
+  <li><a href="https://insights.thoughtworks.cn/critical-rendering-path-and-optimization-strategy/">前端不止<span class=" fw-cl "><span>：</span></span>Web 性能优化 – 关键渲染路径以及优化策略</a></li>
+  <li><a href="https://zcfy.cc/article/optimising-the-front-end-for-the-browser-hacker-noon-2847.html">浏览器前端优化</a></li>
+  <li><a href="https://mp.weixin.qq.com/s/1kQ-cyQmLfLcYiLiJ_ViwA?">浅析前端页面渲染机制</a></li>
+  <li><a href="https://juejin.im/entry/5893fbe88d6d8100582e8b7f">浅析渲染引擎与前端优化</a></li>
+  <li><a href="https://github.com/sundway/blog/issues/2">渲染性能</a></li>
+  <li><a href="https://segmentfault.com/a/1190000002629708">Repaint <span class=" fw-cl "><span>、</span></span>Reflow 的基本认识和优化 (2)</a></li>
+</ul>
+<h4>动画性能相关</h4>
+<ul>
+  <li><a href="https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/dev-guides/hh920765(v=vs.85">Timing control for script-based animations</a>)</li>
+  <li><a href="https://medium.com/@bdc/gain-motion-superpowers-with-requestanimationframe-ecc6d5b0d9a4">Gain Motion Superpowers with requestAnimationFrame</a></li>
+  <li><a href="https://github.com/amfe/article/issues/47">CSS Animation 性能优化</a></li>
+  <li><a href="https://segmentfault.com/a/1190000000391529">GSAP 的动画快于 jQuery 吗<span class=" fw-cl "><span>？</span></span>为何<span class=" fw-cl "><span>？</span></span></a></li>
+  <li><a href="https://juejin.im/entry/58b0187c1b69e60058a09faf">Javascript 高性能动画与页面渲染</a></li>
+  <li><a href="https://mp.weixin.qq.com/s?__biz=MzA5NzkwNDk3MQ==&amp;mid=2650585331&amp;idx=1&amp;sn=c2d55ab4c5458d3dcda25188fd608079&amp;source=41#wechat_redirect">也许你不知道<span class=" fw-cl "><span>，</span></span>JS animation 比 CSS 更快<span class=" fw-cl "><span>！</span></span></a></li>
+  <li><a href="https://www.w3cplus.com/animation/progressive-web-animation.html">渐进式动画解决方案</a></li>
+  <li><a href="https://juejin.im/post/5ad71f39f265da239f07e862">你应该知道的 requestIdleCallback</a></li>
+  <li><a href="http://taobaofed.org/blog/2016/04/25/performance-composite/">无线性能优化<span class=" fw-cl "><span>：</span></span>Composite</a></li>
+  <li><a href="https://juejin.im/post/5c8a1db15188257e9044ec52">优化动画卡顿<span class=" fw-cl "><span>：</span></span>卡顿原因分析及优化方案</a></li>
+  <li><a href="https://mp.weixin.qq.com/s/kC7RmozaG5bWjIqdiZat7A?">一篇文章说清浏览器解析和 CSS<span class="fw-op  "><span>（</span></span>GPU<span class=" fw-cl "><span>）</span></span>动画优化</a></li>
+</ul>
+<h4>实战案例相关</h4>
+<ul>
+  <li><a href="https://medium.com/google-design/google-photos-45b714dfbed1">Building the Google Photos Web UI</a></li>
+  <li><a href="https://medium.com/dev-channel/a-netflix-web-performance-case-study-c0bcde26a9d9">A Netflix Web Performance Case Study</a></li>
+  <li><a href="https://medium.com/@addyosmani/the-cost-of-javascript-in-2018-7d8950fbb5d4">The Cost Of JavaScript In 2018</a></li>
+  <li><a href="https://dev.to/goenning/how-we-reduced-our-initial-jscss-size-by-67-3ac0?utm_source=mybridge&amp;utm_medium=blog&amp;utm_campaign=read_more?add=add">How we reduced our initial JS/CSS size by 67%</a></li>
+  <li><a href="https://www.smashingmagazine.com/2019/01/front-end-performance-checklist-2019-pdf-pages/">Front-End Performance Checklist 2019</a></li>
+  <li><a href="https://imweb.io/topic/5b6fd3c13cb5a02f33c013bd">网站性能优化实战——从 12.67s 到 1.06s 的故事</a></li>
+  <li><a href="https://mp.weixin.qq.com/s?__biz=MzUxMzcxMzE5Ng==&amp;mid=2247489935&amp;idx=1&amp;sn=f59537133b8548caf5a513ee95ecc1be&amp;chksm=f951acccce2625da71bacdb5cd814bcdc8900c293c56662bbad6e39af40ebd451837d3866404&amp;token=1623409489&amp;lang=zh_CN&amp;scene=21#wechat_redirect">前端黑科技<span class=" fw-cl "><span>：</span></span>美团网页首帧优化实践</a></li>
+  <li><a href="https://juejin.im/post/5c398a81e51d4551e13b88f3?add=asd">Web 字体图标-自动化方案</a></li>
+  <li><a href="https://mp.weixin.qq.com/s/uWuzwE1jPHbd73Y3UiyezA">JS 加载慢<span class=" fw-cl "><span>？</span></span>谷歌大神带你飞!</a></li>
+  <li><a href="https://my.oschina.net/zhangstephen/blog/1601383?from=juejin">前端性能优化<span class="fw-op  "><span>（</span></span>三<span class=" fw-cl "><span>）</span></span> 移动端浏览器前端优化策略</a></li>
+  <li><a href="https://juejin.im/post/5c7e578de51d4541c11413fc">CSS @font-face 性能优化</a></li>
+  <li><a href="https://juejin.im/post/5c931c4a6fb9a070dc28923b">移动 Web 性能优化从入门到进阶</a></li>
+  <li><a href="https://segmentfault.com/a/1190000005147979">记一次惊心动魄的前端性能优化之旅</a><br>
+<br>
+</li>
+</ul><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1MGX3MF4K2O1kIA9x3</span></p>
+</body>
+</html>

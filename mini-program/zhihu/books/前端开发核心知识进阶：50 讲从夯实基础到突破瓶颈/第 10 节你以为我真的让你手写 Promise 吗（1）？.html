@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 10 节你以为我真的让你手写 Promise 吗（1）？</h1>
+  <p>通过前面几节课的学习<span class=" fw-cl "><span>，</span></span>我们认识到<span class=" fw-cl "><span>：</span></span>想优雅地进行异步操作<span class=" fw-cl "><span>，</span></span>必须要熟识一个极其重要的概念 —— Promise<span class=" fw-cl "><span>。</span></span>它是取代传统回调<span class=" fw-cl "><span>，</span></span>实现同步链式写法的解决方案<span class=" fw-cl "><span>；</span></span>是理解 generator<span class=" fw-cl "><span>、</span></span>async/await 的关键<span class=" fw-cl "><span>。</span></span>但是 Promise 对于初学者来说<span class=" fw-cl "><span>，</span></span>并不是很好理解<span class=" fw-cl "><span>，</span></span>其中的概念纷杂<span class=" fw-cl "><span>，</span></span>且抽象程度较高<span class=" fw-cl "><span>。</span></span></p>
+<p>与此同时<span class=" fw-cl "><span>，</span></span>在中高级前端开发面试当中<span class=" fw-cl "><span>，</span></span>对于 Promise 的考察也多种多样<span class=" fw-cl "><span>，</span></span>近几年流行<span class="fw-op  "><span>「</span></span>让开发者实现一个 Promise<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>那么这一讲<span class=" fw-cl "><span>，</span></span>我就带大家实现一个简单的 Promise<span class=" fw-cl "><span>。</span></span>注意<span class=" fw-cl "><span>：</span></span><strong style="">实现不是最终目的<span class=" fw-cl "><span>，</span></span>在实现的过程中<span class=" fw-cl "><span>，</span></span>我会配以关键结论和关于 Promise 的考察题目<span class=" fw-cl "><span>，</span></span>希望大家可以融会贯通<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>整个过程将分两节课完成<span class=" fw-cl "><span>，</span></span>本讲的相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-7b6068c2a23d7fcb002410515c0eb919.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:27.414075286415713% 0" data-src="https://pic2.zhimg.com/v2-7b6068c2a23d7fcb002410515c0eb919.png">加载中...</span></figure>
+<h3>从 Promise 化一个 API 谈起</h3>
+<p>熟悉微信小程序开发的读者应该知道<span class=" fw-cl "><span>，</span></span>我们使用 wx.request() 在微信小程序环境中发送一个网络请求<span class=" fw-cl "><span>。</span></span>参考官方文档<span class=" fw-cl "><span>，</span></span>具体用法如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>wx.request({<br>
+ &nbsp;url: 'test.php', // 仅为示例<span class=" fw-cl "><span>，</span></span>并非真实的接口地址<br>
+ &nbsp;data: {<br>
+ &nbsp;&nbsp;&nbsp;x: '',<br>
+ &nbsp;&nbsp;&nbsp;y: ''<br>
+ &nbsp;},<br>
+ &nbsp;header: {<br>
+ &nbsp;&nbsp;&nbsp;'content-type': 'application/json' // 默认值<br>
+ &nbsp;},<br>
+ &nbsp;success(res) {<br>
+ &nbsp;&nbsp;&nbsp;console.log(res.data)<br>
+ &nbsp;}<br>
+})</code></p>
+<p>配置化的 API 风格和我们早期使用 jQuery 中 Ajax 方法的封装类似<span class=" fw-cl "><span>。</span></span>这样的设计有一个小的问题<span class=" fw-cl "><span>，</span></span>就是容易出现<span class="fw-op  "><span>「</span></span>回调地狱<span class=" fw-cl "><span>」</span></span>问题<span class=" fw-cl "><span>。</span></span>如果我们想先通过 ./userInfo 接口来获取登录用户信息数据<span class=" fw-cl "><span>，</span></span>再从登录用户信息数据中<span class=" fw-cl "><span>，</span></span>通过请求 <code>./${id}/friendList</code> 接口来获取登录用户所有好友列表<span class=" fw-cl "><span>，</span></span>就需要<span class=" fw-cl "><span>：</span></span></p>
+<p><code>wx.request({<br>
+ &nbsp;url: './userInfo',<br>
+ &nbsp;success(res) {<br>
+ &nbsp;&nbsp;&nbsp;const id = res.data.id<br>
+ &nbsp;&nbsp;&nbsp;wx.request({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;url: `./${id}/friendList`,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;success(res) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(res)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+})</code></p>
+<p>这只是嵌套了一层回调而已<span class=" fw-cl "><span>，</span></span>还够不成<span class="fw-op  "><span>「</span></span>地狱<span class=" fw-cl "><span>」</span></span>场景<span class=" fw-cl "><span>，</span></span>但是足以说明问题<span class=" fw-cl "><span>。</span></span></p>
+<p>我们知道解决<span class="fw-op  "><span>「</span></span>回调地狱<span class=" fw-cl "><span>」</span></span>问题的一个极佳方式就是 Promise<span class=" fw-cl "><span>，</span></span>将微信小程序 wx.request() 方法进行 Promise 化<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const wxRequest = (url, data = {}, method = 'GET') =&gt; <br>
+ &nbsp;new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;wx.request({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;url,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;header: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//通用化 header 设置<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;success: function (res) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const code = res.statusCode<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (code !== 200) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject({ error: 'request fail', code })<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(res.data)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fail: function (res) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject({ error: 'request fail'})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;})</code></p>
+<p>Promise 基本概念不再过多介绍<span class=" fw-cl "><span>。</span></span>这是一个典型的 Promise 化案例<span class=" fw-cl "><span>，</span></span>当然我们不仅可以对 wx.request() API 进行 Promise 化<span class=" fw-cl "><span>，</span></span>更应该做的通用<span class=" fw-cl "><span>，</span></span>能够 Promise 化更多类似<span class="fw-op  "><span>（</span></span>通过 success 和 fail 表征状态<span class=" fw-cl "><span>）</span></span>的接口<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const promisify = fn =&gt; args =&gt; <br>
+ &nbsp;new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;args.success = function(res) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return resolve(res)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;args.fail = function(res) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return reject(res)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})</code></p>
+<p>使用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const wxRequest = promisify(wx.request)</code></p>
+<p>通过上例<span class=" fw-cl "><span>，</span></span>我们知道<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<p>Promise 其实就是一个构造函数<span class=" fw-cl "><span>，</span></span>我们使用这个构造函数创建一个 Promise 实例<span class=" fw-cl "><span>。</span></span>该构造函数很简单<span class=" fw-cl "><span>，</span></span>它只有一个参数<span class=" fw-cl "><span>，</span></span>按照 Promise/A+ 规范的命名<span class=" fw-cl "><span>，</span></span>把 Promise 构造函数的参数叫做 executor<span class=" fw-cl "><span>，</span></span>executor 类型为函数<span class=" fw-cl "><span>。</span></span>这个函数又<span class="fw-op  "><span>「</span></span>自动<span class=" fw-cl "><span>」</span></span>具有 resolve<span class=" fw-cl "><span>、</span></span>reject 两个方法作为参数<span class=" fw-cl "><span>。</span></span></p>
+<p>请仔细体会上述结论<span class=" fw-cl "><span>，</span></span>那么我们可以通过结论<span class=" fw-cl "><span>，</span></span>开始实现 Promise 的第一步<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+<br>
+}</code></p>
+<p>好吧<span class=" fw-cl "><span>，</span></span>初始起步是够基本的了<span class=" fw-cl "><span>。</span></span>如果读者还不理解构造函数的概念<span class=" fw-cl "><span>，</span></span>我给大家推荐阅读<span class=" fw-cl "><span>：</span></span> <a href="http://javascript.ruanyifeng.com/oop/basic.html" title="构造函数与 new 命令">构造函数与 new 命令</a><span class=" fw-cl "><span>，</span></span>在理解的基础上<span class=" fw-cl "><span>，</span></span>让我们继续吧<span class=" fw-cl "><span>。</span></span></p>
+<h3>Promise 初见雏形</h3>
+<p>在上面的 wx.request() 介绍中<span class=" fw-cl "><span>，</span></span>实现了 Promise 化<span class=" fw-cl "><span>，</span></span>因此对于嵌套回调场景<span class=" fw-cl "><span>，</span></span>可以<span class=" fw-cl "><span>：</span></span></p>
+<p><code>wxRequest('./userInfo')<br>
+ &nbsp;.then(<br>
+ &nbsp;&nbsp;&nbsp;data =&gt; wxRequest(`./${data.id}/friendList`),<br>
+ &nbsp;&nbsp;&nbsp;error =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(error)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;)<br>
+ &nbsp;.then(<br>
+ &nbsp;&nbsp;&nbsp;data =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(data)<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;error =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(error)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;)</code></p>
+<p>通过观察使用例子<span class=" fw-cl "><span>，</span></span>我们来剖析 Promise 的实质<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<p><strong style="">结论</strong>　Promise 构造函数返回一个 promise 对象实例<span class=" fw-cl "><span>，</span></span>这个返回的 promise 对象具有一个 then 方法<span class=" fw-cl "><span>。</span></span>then 方法中<span class=" fw-cl "><span>，</span></span>调用者可以定义两个参数<span class=" fw-cl "><span>，</span></span>分别是 onfulfilled 和 onrejected<span class=" fw-cl "><span>，</span></span>它们都是函数类型<span class=" fw-cl "><span>。</span></span>其中 onfulfilled 通过参数<span class=" fw-cl "><span>，</span></span>可以获取 promise 对象 resolved 的值<span class=" fw-cl "><span>，</span></span>onrejected 获得 promise 对象 rejected 的值<span class=" fw-cl "><span>。</span></span>通过这个值<span class=" fw-cl "><span>，</span></span>我们来处理异步完成后的逻辑<span class=" fw-cl "><span>。</span></span></p>
+<p>这些都是规范的基本内容<span class=" fw-cl "><span>：</span></span> <a href="https://promisesaplus.com/" title="Promise/A+">Promise/A+</a><span class=" fw-cl "><span>。</span></span></p>
+<p>因此<span class=" fw-cl "><span>，</span></span>继续实现我们的 Promise<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+<br>
+}</code></p>
+<p>继续复习 Promise 的知识<span class=" fw-cl "><span>，</span></span>看例子来理解<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let promise1 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;resolve('data')<br>
+})<br>
+<br>
+promise1.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})<br>
+<br>
+let promise2 = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;reject('error')<br>
+})<br>
+<br>
+promise2.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+}, error =&gt; {<br>
+ &nbsp;console.log(error)<br>
+})</code></p>
+<p><br></p>
+<p><strong style="">结论</strong>　我们在使用 new 关键字调用 Promise 构造函数时<span class=" fw-cl "><span>，</span></span>在合适的时机<span class="fw-op  "><span>（</span></span>往往是异步结束时<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>调用 executor 的参数 resolve 方法<span class=" fw-cl "><span>，</span></span>并将 resolved 的值作为 resolve 函数参数执行<span class=" fw-cl "><span>，</span></span>这个值便可以后续在 then 方法第一个函数参数<span class="fw-op  "><span>（</span></span>onfulfilled<span class=" fw-cl "><span>）</span></span>中拿到<span class=" fw-cl "><span>；</span></span>同理<span class=" fw-cl "><span>，</span></span>在出现错误时<span class=" fw-cl "><span>，</span></span>调用 executor 的参数 reject 方法<span class=" fw-cl "><span>，</span></span>并将错误信息作为 reject 函数参数执行<span class=" fw-cl "><span>，</span></span>这个错误信息可以在后续的 then 方法第二个函数参数<span class="fw-op  "><span>（</span></span>onrejected<span class=" fw-cl "><span>）</span></span>中拿到<span class=" fw-cl "><span>。</span></span></p>
+<p>因此<span class=" fw-cl "><span>，</span></span>我们在实现 Promise 时<span class=" fw-cl "><span>，</span></span>应该有两个值<span class=" fw-cl "><span>，</span></span>分别储存 resolved 的值<span class=" fw-cl "><span>，</span></span>以及 rejected 的值<span class="fw-op  "><span>（</span></span>当然<span class=" fw-cl "><span>，</span></span>因为 Promise 状态的唯一性<span class=" fw-cl "><span>，</span></span>不可能同时出现 resolved 的值和 rejected 的值<span class=" fw-cl "><span>，</span></span>因此也可以用一个变量来存储<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>；</span></span>同时也需要存在一个状态<span class=" fw-cl "><span>，</span></span>这个状态就是 promise 实例的状态<span class="fw-op  "><span>（</span></span>pending<span class=" fw-cl "><span>，</span></span>fulfilled<span class=" fw-cl "><span>，</span></span>rejected<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>；</span></span>同时还要提供 resolve 方法以及 reject 方法<span class=" fw-cl "><span>，</span></span>这两个方法需要作为 executor 的参数提供给开发者使用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;const self = this<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+<br>
+ &nbsp;function resolve(value) {<br>
+ &nbsp;&nbsp;&nbsp;self.value = value<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;function reject(reason) {<br>
+ &nbsp;&nbsp;&nbsp;self.reason = reason<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;executor(resolve, reject)<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled = Function.prototype, onrejected = Function.prototype) {<br>
+ &nbsp;onfulfilled(this.value)<br>
+<br>
+ &nbsp;onrejected(this.reason)<br>
+}</code></p>
+<p>为了保证 onfulfilled<span class=" fw-cl "><span>、</span></span>onrejected 能够强健执行<span class=" fw-cl "><span>，</span></span>我们为其设置了默认值<span class=" fw-cl "><span>，</span></span>其默认值为一个函数元<span class="fw-op  "><span>（</span></span>Function.prototype<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">注意<span class=" fw-cl "><span>，</span></span>因为 resolve 的最终调用是由开发者在不确定环境下<span class="fw-op  "><span>（</span></span>往往是在全局中<span class=" fw-cl "><span>）</span></span>直接调用的<span class=" fw-cl "><span>。</span></span>为了在 resolve 函数中能够拿到 promise 实例的值<span class=" fw-cl "><span>，</span></span>我们需要对 this 进行保存<span class=" fw-cl "><span>，</span></span>上述代码中用 self 变量记录 this<span class=" fw-cl "><span>，</span></span>或者使用箭头函数<span class=" fw-cl "><span>：</span></span></strong></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+<br>
+ &nbsp;const resolve = value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const reject = reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;executor(resolve, reject)<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled = Function.prototype, onrejected = Function.prototype) {<br>
+ &nbsp;onfulfilled(this.value)<br>
+<br>
+ &nbsp;onrejected(this.reason)<br>
+}</code></p>
+<p><strong style="">为什么 then 放在 Promise 构造函数的原型上<span class=" fw-cl "><span>，</span></span>而不是放在构造函数内部呢<span class=" fw-cl "><span>？</span></span></strong></p>
+<p>这涉及到原型<span class=" fw-cl "><span>、</span></span>原型链的知识了<span class=" fw-cl "><span>，</span></span>虽然不是本讲的内容<span class=" fw-cl "><span>，</span></span>这里还是简单地提一下<span class=" fw-cl "><span>：</span></span>每个 promise 实例的 then 方法逻辑是一致的<span class=" fw-cl "><span>，</span></span>在实例调用该方法时<span class=" fw-cl "><span>，</span></span>可以通过原型<span class="fw-op  "><span>（</span></span>Promise.prototype<span class=" fw-cl "><span>）</span></span>找到<span class=" fw-cl "><span>，</span></span>而不需要每次实例化都新创建一个 then 方法<span class=" fw-cl "><span>，</span></span>这样节省内存<span class=" fw-cl "><span>，</span></span>显然更合适<span class=" fw-cl "><span>。</span></span></p>
+<h3>Promise 实现状态完善</h3>
+<p>我们先来看一到题目<span class=" fw-cl "><span>，</span></span>判断输出<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;resolve('data')<br>
+ &nbsp;reject('error')<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+}, error =&gt; {<br>
+ &nbsp;console.log(error)<br>
+})</code></p>
+<p><strong style="">只会</strong>输出<span class=" fw-cl "><span>：</span></span>data<span class=" fw-cl "><span>，</span></span>因为我们知道 promise 实例状态只能从 pending 改变为 fulfilled<span class=" fw-cl "><span>，</span></span>或者从 pending 改变为 rejected<span class=" fw-cl "><span>。</span></span>状态一旦变更完毕<span class=" fw-cl "><span>，</span></span>就不可再次变化或者逆转<span class=" fw-cl "><span>。</span></span>也就是说<span class=" fw-cl "><span>：</span></span>如果一旦变到 fulfilled<span class=" fw-cl "><span>，</span></span>就不能再 rejected<span class=" fw-cl "><span>，</span></span>一旦变到 rejected<span class=" fw-cl "><span>，</span></span>就不能 fulfilled<span class=" fw-cl "><span>。</span></span></p>
+<p>而我们的代码实现<span class=" fw-cl "><span>，</span></span>显然无法满足这一特性<span class=" fw-cl "><span>。</span></span>执行上一段代码时<span class=" fw-cl "><span>，</span></span>将会输出 data 以及 error<span class=" fw-cl "><span>。</span></span></p>
+<p>因此<span class=" fw-cl "><span>，</span></span>需要对状态进行判断和完善<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+<br>
+ &nbsp;const resolve = value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'fulfilled'<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const reject = reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'rejected'<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;executor(resolve, reject)<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;onfulfilled = typeof onfulfilled === 'function' ? onfulfilled : data =&gt; data<br>
+ &nbsp;onrejected = typeof onrejected === 'function' ? onrejected : error =&gt; {throw error}<br>
+<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;onfulfilled(this.value)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;onrejected(this.reason)<br>
+ &nbsp;}<br>
+}</code></p>
+<p>我们看<span class=" fw-cl "><span>，</span></span>在 resolve 和 reject 方法中<span class=" fw-cl "><span>，</span></span>我们加入判断<span class=" fw-cl "><span>，</span></span>只允许 promise 实例状态从 pending 改变为 fulfilled<span class=" fw-cl "><span>，</span></span>或者从 pending 改变为 rejected<span class=" fw-cl "><span>。</span></span></p>
+<p>同时注意<span class=" fw-cl "><span>，</span></span><strong style="">这里我们对 Promise.prototype.then 参数 onfulfilled 和 onrejected 进行了判断<span class=" fw-cl "><span>，</span></span>当实参不是一个函数类型时<span class=" fw-cl "><span>，</span></span>赋予默认函数值</strong><span class=" fw-cl "><span>。</span></span>这时候的默认值不再是函数元 Function.prototype 了<span class=" fw-cl "><span>。</span></span>为什么要这么更改<span class=" fw-cl "><span>？</span></span>后面会有介绍<span class=" fw-cl "><span>。</span></span></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>我们的实现显然更加接近真实了<span class=" fw-cl "><span>。</span></span>刚才的例子也可以跑通了<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;resolve('data')<br>
+ &nbsp;reject('error')<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+}, error =&gt; {<br>
+ &nbsp;console.log(error)<br>
+})</code></p>
+<p>但是不要高兴得太早<span class=" fw-cl "><span>，</span></span>promise 是解决异步问题的<span class=" fw-cl "><span>，</span></span>我们的代码全部都是同步执行的<span class=" fw-cl "><span>，</span></span>似乎还差了更重要的逻辑<span class=" fw-cl "><span>。</span></span></p>
+<h3>Promise 异步完善</h3>
+<p>到目前为止<span class=" fw-cl "><span>，</span></span>实现还差了哪些内容呢<span class=" fw-cl "><span>？</span></span>别急<span class=" fw-cl "><span>，</span></span>我们再从示例代码分析<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;resolve('data')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})</code></p>
+<p>正常来讲<span class=" fw-cl "><span>，</span></span>上述代码会在 2 秒之后输出 data<span class=" fw-cl "><span>，</span></span>但是我们实现的代码<span class=" fw-cl "><span>，</span></span>并没有输入任何信息<span class=" fw-cl "><span>。</span></span>这是为什么呢<span class=" fw-cl "><span>？</span></span></p>
+<p>原因很简单<span class=" fw-cl "><span>，</span></span>因为我们的实现逻辑全是同步的<span class=" fw-cl "><span>。</span></span>在上面实例化一个 promise 的构造函数时<span class=" fw-cl "><span>，</span></span>我们是在 setTimeout 逻辑里才调用 resolve<span class=" fw-cl "><span>，</span></span>也就是说<span class=" fw-cl "><span>，</span></span>2 秒之后才会调用 resolve 方法<span class=" fw-cl "><span>，</span></span>也才会去更改 promise 实例状态<span class=" fw-cl "><span>。</span></span>而结合我们的实现<span class=" fw-cl "><span>，</span></span>返回实现代码<span class=" fw-cl "><span>，</span></span>then 方法中的 onfulfilled 执行是同步的<span class=" fw-cl "><span>，</span></span>它在执行时 this.status 仍然为 pending<span class=" fw-cl "><span>，</span></span>并没有做到<span class="fw-op  "><span>「</span></span>2 秒中之后再执行 onfulfilled<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>那该怎么办呢<span class=" fw-cl "><span>？</span></span>我们似乎应该在<span class="fw-op  "><span>「</span></span>合适<span class=" fw-cl "><span>」</span></span>的时间才去调用 onfulfilled 方法<span class=" fw-cl "><span>，</span></span>这个合适的时间就应该是开发者调用 resolve 的时刻<span class=" fw-cl "><span>，</span></span>那么我们先在状态<span class="fw-op  "><span>（</span></span>status<span class=" fw-cl "><span>）</span></span>为 pending 时<span class=" fw-cl "><span>，</span></span>把开发者传进来的 onfulfilled 方法存起来<span class=" fw-cl "><span>，</span></span>在 resolve 方法中再去执行即可<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+ &nbsp;this.onFulfilledFunc = Function.prototype<br>
+ &nbsp;this.onRejectedFunc = Function.prototype<br>
+<br>
+ &nbsp;const resolve = value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'fulfilled'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledFunc(this.value)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const reject = reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'rejected'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedFunc(this.reason)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;executor(resolve, reject)<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;onfulfilled = typeof onfulfilled === 'function' ? onfulfilled : data =&gt; data<br>
+ &nbsp;onrejected = typeof onrejected === 'function' ? onrejected : error =&gt; {throw error}<br>
+<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;onfulfilled(this.value)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;onrejected(this.reason)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;this.onFulfilledFunc = onfulfilled<br>
+ &nbsp;&nbsp;&nbsp;this.onRejectedFunc = onrejected<br>
+ &nbsp;}<br>
+}</code></p>
+<p>测试一下<span class=" fw-cl "><span>，</span></span>发现现在我们的实现也可以支持异步了<span class=" fw-cl "><span>！</span></span></p>
+<p>同时<span class=" fw-cl "><span>，</span></span><strong style="">我们知道 Promise 是异步执行的<span class=" fw-cl "><span>：</span></span></strong></p>
+<p><code>let promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;resolve('data')<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})<br>
+console.log(1)</code></p>
+<p>正常的话<span class=" fw-cl "><span>，</span></span>这里会<strong style="">按照顺序</strong><span class=" fw-cl "><span>，</span></span>输出 1 再输出 data<span class=" fw-cl "><span>。</span></span></p>
+<p>而我们的实现<span class=" fw-cl "><span>，</span></span>却没有考虑这种情况<span class=" fw-cl "><span>，</span></span>先输出 data 再输出 1<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>需要将 resolve 和 reject 的执行<span class=" fw-cl "><span>，</span></span>放到任务队列中<span class=" fw-cl "><span>。</span></span>这里姑且先放到 setTimeout 里<span class=" fw-cl "><span>，</span></span>保证异步执行<span class="fw-op  "><span>（</span></span>这样的做法并不严谨<span class=" fw-cl "><span>，</span></span>为了保证 Promise 属于 microtasks<span class=" fw-cl "><span>，</span></span>很多 Promise 的实现库用了 MutationObserver 来模仿 nextTick<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p><code>const resolve = value =&gt; {<br>
+ &nbsp;if (value instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;return value.then(resolve, reject)<br>
+ &nbsp;}<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'fulfilled'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledFunc(this.value)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})<br>
+}<br>
+<br>
+const reject = reason =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'rejected'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedFunc(this.reason)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})<br>
+}<br>
+<br>
+<br>
+executor(resolve, reject)</code></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>在执行到 executor(resolve, reject) 时<span class=" fw-cl "><span>，</span></span>也能保证在 nextTick 中才去执行<span class=" fw-cl "><span>，</span></span>不会阻塞同步任务<span class=" fw-cl "><span>。</span></span></p>
+<p>同时我们在 resolve 方法中<span class=" fw-cl "><span>，</span></span>加入了对 value 值是一个 Promise 实例的判断<span class=" fw-cl "><span>。</span></span>看一下到目前为止的实现代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+ &nbsp;this.onFulfilledFunc = Function.prototype<br>
+ &nbsp;this.onRejectedFunc = Function.prototype<br>
+<br>
+ &nbsp;const resolve = value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (value instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return value.then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'fulfilled'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledFunc(this.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const reject = reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'rejected'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedFunc(this.reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;executor(resolve, reject)<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;onfulfilled = typeof onfulfilled === 'function' ? onfulfilled : data =&gt; data<br>
+ &nbsp;onrejected = typeof onrejected === 'function' ? onrejected : error =&gt; {throw error}<br>
+<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;onfulfilled(this.value)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;onrejected(this.reason)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;this.onFulfilledFunc = onfulfilled<br>
+ &nbsp;&nbsp;&nbsp;this.onRejectedFunc = onrejected<br>
+ &nbsp;}<br>
+}</code></p>
+<p>这样的实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;resolve('data')<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})<br>
+console.log(1)</code></p>
+<p>也会<strong style="">按照顺序</strong><span class=" fw-cl "><span>，</span></span>输出 1 再输出 data<span class=" fw-cl "><span>。</span></span></p>
+<p><code>let promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;resolve('data')<br>
+})<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+})<br>
+console.log(1)</code></p>
+<p>也会<strong style="">按照顺序</strong><span class=" fw-cl "><span>，</span></span>输出 1 再输出 data<span class=" fw-cl "><span>。</span></span></p>
+<h3>Promise 细节完善</h3>
+<p>到此为止<span class=" fw-cl "><span>，</span></span>似乎我们的 Promise 实现越来越靠谱了<span class=" fw-cl "><span>，</span></span>但是还有些细节需要完善<span class=" fw-cl "><span>。</span></span></p>
+<p>比如当我们在 promise 实例状态变更之前<span class=" fw-cl "><span>，</span></span>添加多个 then 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;resolve('data')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(`1: ${data}`)<br>
+})<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(`2: ${data}`)<br>
+})</code></p>
+<p>应该输出<span class=" fw-cl "><span>：</span></span></p>
+<p><code>1: data<br>
+2: data</code></p>
+<p>而我们的实现<span class=" fw-cl "><span>，</span></span>只会输出 2: data<span class=" fw-cl "><span>，</span></span>这是因为第二个 then 方法中的 onFulfilledFunc 会覆盖第一个 then 方法中的 onFulfilledFunc<span class=" fw-cl "><span>。</span></span></p>
+<p>这个问题也好解决<span class=" fw-cl "><span>，</span></span>只需要将所有 then 方法中的 onFulfilledFunc 储存为一个数组 onFulfilledArray<span class=" fw-cl "><span>，</span></span>在 resolve 时<span class=" fw-cl "><span>，</span></span>依次执行即可<span class=" fw-cl "><span>。</span></span>对于 onRejectedFunc 同理<span class=" fw-cl "><span>，</span></span>改动后的实现为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+ &nbsp;this.onFulfilledArray = []<br>
+ &nbsp;this.onRejectedArray = []<br>
+<br>
+ &nbsp;const resolve = value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (value instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return value.then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'fulfilled'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const reject = reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'rejected'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;executor(resolve, reject)<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;onfulfilled = typeof onfulfilled === 'function' ? onfulfilled : data =&gt; data<br>
+ &nbsp;onrejected = typeof onrejected === 'function' ? onrejected : error =&gt; {throw error}<br>
+<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;onfulfilled(this.value)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;onrejected(this.reason)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;this.onFulfilledArray.push(onfulfilled)<br>
+ &nbsp;&nbsp;&nbsp;this.onRejectedArray.push(onrejected)<br>
+ &nbsp;}<br>
+}</code></p>
+<p>另外一个细节<span class=" fw-cl "><span>，</span></span>在构造函数中如果出错<span class=" fw-cl "><span>，</span></span>将会自动触发 promise 实例状态为 rejected<span class=" fw-cl "><span>，</span></span>我们用 try...catch 块对 executor 进行包裹<span class=" fw-cl "><span>：</span></span></p>
+<p><code>try {<br>
+ &nbsp;executor(resolve, reject)<br>
+} catch(e) {<br>
+ &nbsp;reject(e)<br>
+}</code></p>
+<p>当我们故意写错时<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let promise = new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;setTout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;resolve('data')<br>
+ &nbsp;}, 2000)<br>
+})<br>
+<br>
+promise.then(data =&gt; {<br>
+ &nbsp;console.log(data)<br>
+}, error =&gt; {<br>
+ &nbsp;console.log('got error from promise', error)<br>
+})</code></p>
+<p>就可以对错误进行处理<span class=" fw-cl "><span>，</span></span>捕获到<span class=" fw-cl "><span>：</span></span></p>
+<p><code>got error from promise ReferenceError: setTimeouteout is not defined<br>
+ &nbsp;&nbsp;&nbsp;at <anonymous>:2:3<br>
+ &nbsp;&nbsp;&nbsp;at <anonymous>:33:7<br>
+ &nbsp;&nbsp;&nbsp;at o (web-46c6729d4d8cac92aed8.js:1)</anonymous></anonymous></code></p>
+<h3>总结</h3>
+<p>这一小节<span class=" fw-cl "><span>，</span></span>我们已经初步实现了基本的 Promise<span class=" fw-cl "><span>，</span></span>实现结果固然重要<span class=" fw-cl "><span>，</span></span>但是在实现过程中<span class=" fw-cl "><span>，</span></span>也加深了对 Promise 的理解<span class=" fw-cl "><span>，</span></span>得出了一些重要结论<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">Promise 状态具有凝固性</li>
+  <li style="">Promise 错误处理</li>
+  <li style="">Promise 实例添加多个 then 处理</li>
+</ul>
+<p>最后<span class=" fw-cl "><span>，</span></span>附上到此为止的全部代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Promise(executor) {<br>
+ &nbsp;this.status = 'pending'<br>
+ &nbsp;this.value = null<br>
+ &nbsp;this.reason = null<br>
+ &nbsp;this.onFulfilledArray = []<br>
+ &nbsp;this.onRejectedArray = []<br>
+<br>
+ &nbsp;const resolve = value =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;if (value instanceof Promise) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return value.then(resolve, reject)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'fulfilled'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onFulfilledArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;const reject = reason =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reason = reason<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.status = 'rejected'<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onRejectedArray.forEach(func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func(reason)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+<br>
+ &nbsp;try {<br>
+ &nbsp;&nbsp;&nbsp;executor(resolve, reject)<br>
+ &nbsp;} catch(e) {<br>
+ &nbsp;&nbsp;&nbsp;reject(e)<br>
+ &nbsp;}<br>
+}<br>
+<br>
+Promise.prototype.then = function(onfulfilled, onrejected) {<br>
+ &nbsp;onfulfilled = typeof onfulfilled === 'function' ? onfulfilled : data =&gt; data<br>
+ &nbsp;onrejected = typeof onrejected === 'function' ? onrejected : error =&gt; { throw error}<br>
+<br>
+ &nbsp;if (this.status === 'fulfilled') {<br>
+ &nbsp;&nbsp;&nbsp;onfulfilled(this.value)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'rejected') {<br>
+ &nbsp;&nbsp;&nbsp;onrejected(this.reason)<br>
+ &nbsp;}<br>
+ &nbsp;if (this.status === 'pending') {<br>
+ &nbsp;&nbsp;&nbsp;this.onFulfilledArray.push(onfulfilled)<br>
+ &nbsp;&nbsp;&nbsp;this.onRejectedArray.push(onrejected)<br>
+ &nbsp;}<br>
+}</code></p>
+<p>下一讲我们将会继续实现 Promise<span class=" fw-cl "><span>、</span></span>处理 Promise 实例的返回问题<span class=" fw-cl "><span>，</span></span>以及更多的 Promise 静态方法<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1MGX3jkps4K2O1kIA9x3</span></p>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 21 节React 的现状与未来</h1>
+  <p>React 自推出以来<span class=" fw-cl "><span>，</span></span>一直进行着自身完善和演进<span class=" fw-cl "><span>。</span></span>作为 React 开发者或前端开发者<span class=" fw-cl "><span>，</span></span>有幸见证着一个伟大<span class="fw-op  "><span>「</span></span>框架<span class=" fw-cl "><span>」</span></span>的成长<span class=" fw-cl "><span>，</span></span>是非常幸运的<span class=" fw-cl "><span>。</span></span>那么在这个过程中<span class=" fw-cl "><span>，</span></span>我们应该学些什么<span class=" fw-cl "><span>？</span></span>React 现在处于什么发展阶段<span class=" fw-cl "><span>？</span></span>React 未来又将有哪些规划<span class=" fw-cl "><span>？</span></span></p>
+<p>高级前端工程师不能只停留在使用框架上<span class=" fw-cl "><span>，</span></span>我们自然要思考上述这些问题<span class=" fw-cl "><span>。</span></span>这一讲我们就来聊聊 React 的现状与未来<span class=" fw-cl "><span>，</span></span>如果不熟悉 React<span class=" fw-cl "><span>，</span></span>也并不妨碍大家阅读<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-51850a5949e223c7e99ab4c6a9ccadab.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:25.034770514603615% 0" data-src="https://pic2.zhimg.com/v2-51850a5949e223c7e99ab4c6a9ccadab.png">加载中...</span></figure>
+<h3>React 现状分析</h3>
+<p>React 经过几年的打磨<span class=" fw-cl "><span>，</span></span>目前维持了一个稳定的迭代周期<span class=" fw-cl "><span>，</span></span>并不断给开发者带来惊喜<span class=" fw-cl "><span>。</span></span>其中难能可贵的是在 breaking changes 不多的前提下<span class=" fw-cl "><span>，</span></span>仍在持续输出具有变革精神的特性<span class=" fw-cl "><span>，</span></span>保持着旺盛的生命力<span class=" fw-cl "><span>。</span></span>不管是什么平台的调查<span class=" fw-cl "><span>，</span></span>都显示 React 受众仍然最多<span class=" fw-cl "><span>，</span></span>可以预见的是<span class=" fw-cl "><span>，</span></span>React 未来仍将会统领前端发展<span class=" fw-cl "><span>。</span></span></p>
+<p>关于 React 现状<span class=" fw-cl "><span>，</span></span>我总结出以下几个特点<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">开发模式已经定型<span class=" fw-cl "><span>，</span></span>有利于开发者持续学习</li>
+  <li style="">仍然有强大的开发团队维护<span class=" fw-cl "><span>，</span></span>不断带来改变<span class=" fw-cl "><span>，</span></span>这些改变一方面使 React 更好<span class=" fw-cl "><span>，</span></span>另一方面甚至推动了 JavaScript 语言的发展</li>
+  <li style="">社区生态强大<span class=" fw-cl "><span>，</span></span>有一系列解决方案<span class=" fw-cl "><span>，</span></span>数据状态管理<span class=" fw-cl "><span>、</span></span>组件库<span class=" fw-cl "><span>、</span></span>服务端渲染生态群百花齐放</li>
+</ul>
+<p>在这些特点的背后<span class=" fw-cl "><span>，</span></span>也有一些让开发者担忧的地方<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">概念越来越多<span class=" fw-cl "><span>。</span></span>一定程度上<span class=" fw-cl "><span>，</span></span>新老概念并存<span class=" fw-cl "><span>，</span></span>学习曲线激增</li>
+  <li style="">存在较多 unsafe_ 标记的 APIs<span class=" fw-cl "><span>，</span></span>始终担忧彻底废弃相关 APIs 那一天的到来</li>
+  <li style="">新特性带来了较多<span class="fw-op  "><span>「</span></span>魔法<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>也带来了一些困惑</li>
+</ul>
+<p>当然<span class=" fw-cl "><span>，</span></span>这些让开发者担忧的地方并不足以和 React 的强大相提并论<span class=" fw-cl "><span>，</span></span>这些<span class="fw-op  "><span>「</span></span>问题<span class=" fw-cl "><span>」</span></span>甚至在任何一个框架中都会存在<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>我建议不管是工作需要<span class=" fw-cl "><span>，</span></span>还是自身学习需要<span class=" fw-cl "><span>，</span></span>前端开发者都可以使用并研究 React<span class=" fw-cl "><span>。</span></span></p>
+<h3>从 React Component 看 React 发展史</h3>
+<p>回顾 React 发展历史<span class=" fw-cl "><span>，</span></span>很多 APIs 和特性的演进都很有意思<span class=" fw-cl "><span>，</span></span>比如 refs<span class=" fw-cl "><span>、</span></span>context<span class=" fw-cl "><span>，</span></span>其中任何一点都值得单拎出来深入分析<span class=" fw-cl "><span>。</span></span>但是我挑选了一个开发者一定会使用的 React Component 话题<span class=" fw-cl "><span>：</span></span>从组件的创建和声明方式<span class=" fw-cl "><span>，</span></span>我们来看一个框架的变革<span class=" fw-cl "><span>，</span></span>并由此引出 React 目前最受关注的的 hooks 新特性<span class=" fw-cl "><span>。</span></span></p>
+<p>React Component 的发展主要经历了三个阶段<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">createClass 创建组件时期</li>
+  <li style="">ES class 声明组件时期</li>
+  <li style="">无状态<span class="fw-op  "><span>（</span></span>函数式<span class=" fw-cl "><span>）</span></span>组件 + React hooks 时期</li>
+</ul>
+<p>这一路<span class=" fw-cl "><span>，</span></span>也是 React 从一个纯粹的视图层类库走向成熟完善的解决方案的过程<span class=" fw-cl "><span>。</span></span>我们逐一来看<span class=" fw-cl "><span>。</span></span></p>
+<h4>createClass 创建组件时期</h4>
+<p>相信很多新的开发者都没有使用过 createClass API 创建组件<span class=" fw-cl "><span>，</span></span>createClass 是一个函数<span class=" fw-cl "><span>，</span></span>接受参数并返回组件实例<span class=" fw-cl "><span>，</span></span>用起来并不复杂<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import React from 'react'<br>
+<br>
+const component1 = React.createClass({<br>
+ &nbsp;propTypes: {<br>
+ &nbsp;&nbsp;&nbsp;foo: React.PropTypes.string<br>
+ &nbsp;},<br>
+<br>
+ &nbsp;getDefaultProps() {<br>
+ &nbsp;&nbsp;&nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foo: 'bar'<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;},<br>
+<br>
+<br>
+ &nbsp;getInitialState() { <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;state1: 'lucas'<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;},<br>
+<br>
+ &nbsp;handleClick() {<br>
+<br>
+ &nbsp;},<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><p onclick="{this.handleClick}"></p><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+})</code><p></p>
+<p>看起来很好理解<span class=" fw-cl "><span>，</span></span>但是编写还是有些违背直觉<span class=" fw-cl "><span>。</span></span>从 React 15.5 版本开始<span class=" fw-cl "><span>，</span></span>官方就不再开始推荐<span class=" fw-cl "><span>，</span></span>到了 React 16 版本<span class=" fw-cl "><span>，</span></span>已经彻底废弃<span class=" fw-cl "><span>。</span></span></p>
+<h4>Class 声明组件时期</h4>
+<p>createClass 退出历史舞台的原因是被强势的 class 声明组件方式所取代<span class=" fw-cl "><span>。</span></span>当时 ES6 正在如火如荼地发展<span class=" fw-cl "><span>，</span></span>新增了 class 这一语法糖<span class=" fw-cl "><span>，</span></span>React 团队很快赶时髦<span class=" fw-cl "><span>，</span></span>支持了使用 class 声明组件的方式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Component1 extends React.Component {<br>
+ &nbsp;state = { name: 'Lucas' }<br>
+<br>
+ &nbsp;handleClick = e =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log(e)<br>
+ &nbsp;&nbsp;&nbsp;this.setState({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name: 'Messi',<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div onclick="{this.handleClick}"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{this.state.name}}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<p>代码非常直观清爽<span class=" fw-cl "><span>，</span></span>但是 class 声明方式和早期的 createClass 相比<span class=" fw-cl "><span>，</span></span>有非常重要的两点差别<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">React.createClass 支持在事件处理函数中自动绑定 this<span class=" fw-cl "><span>，</span></span>而 class 声明的组件需要开发者手动绑定</li>
+  <li style="">React.Component 不能使用 React mixins 来实现复用</li>
+</ul>
+<p>这两个显著不同点决定了 React 生态社区发展的方向<span class=" fw-cl "><span>。</span></span></p>
+<p>其中第一点不同<span class=" fw-cl "><span>，</span></span>决定了 React 放弃了<span class="fw-op  "><span>「</span></span>多管闲事<span class=" fw-cl "><span>」</span></span>地绑定 this<span class=" fw-cl "><span>，</span></span>虽然这个行为在很多人看来毫无必要<span class=" fw-cl "><span>，</span></span>很多类 React 框架都会帮助开发者对事件处理函数绑定 this<span class=" fw-cl "><span>，</span></span>Vue 也是如此<span class=" fw-cl "><span>。</span></span></p>
+<p>但是我们一般进行绑定 this 的方案多种多样<span class=" fw-cl "><span>，</span></span>上述代码采用了 ES Next 的属性初始化方法<span class=" fw-cl "><span>，</span></span>对 handleClick 进行了绑定<span class=" fw-cl "><span>。</span></span></p>
+<p>第二点不同<span class=" fw-cl "><span>，</span></span>决定了 React 实现复用的方式发展方向<span class=" fw-cl "><span>。</span></span>首先肯定的是官方认为 mixin 是弊大于利的<span class=" fw-cl "><span>，</span></span>已经被彻底放弃<span class=" fw-cl "><span>。</span></span>那么社区跟进复用方案主要有两种<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">高阶组件</li>
+  <li style="">render prop 模式</li>
+</ul>
+<p>其中高阶组件很好地体现了 React 函数式思想<span class=" fw-cl "><span>，</span></span>是 React 精华之体现<span class=" fw-cl "><span>。</span></span>而 render prop 目前也非常流行<span class=" fw-cl "><span>，</span></span>并最终推动了 React 自身的发展<span class=" fw-cl "><span>：</span></span>新的 context 特性<span class=" fw-cl "><span>，</span></span>其 API 也变革为 render prop 模式<span class=" fw-cl "><span>，</span></span>这是社区反哺 React 的例证<span class=" fw-cl "><span>：</span></span></p>
+<p><code><contextcomponent.consumer><br>
+ &nbsp;{value =&gt; (<br>
+ &nbsp;&nbsp;&nbsp;<component value="{value}"><br>
+ &nbsp;)}<br>
+</component></contextcomponent.consumer></code></p>
+<p>但是使用 class 声明组件不是完美无懈可击的<span class=" fw-cl "><span>。</span></span>React 官方团队认为<span class=" fw-cl "><span>，</span></span>这种方式<span class="fw-op  "><span>「</span></span>已经背离了 React 的初衷<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>我总结下来<span class=" fw-cl "><span>，</span></span>class 声明组件的问题有以下两个<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">带来了<span class="fw-op  "><span>「</span></span>面向生命周期编程<span class=" fw-cl "><span>」</span></span>的困扰<span class=" fw-cl "><span>，</span></span>随着逻辑变复杂<span class=" fw-cl "><span>，</span></span>组件的生命周期函数随之变得很难维护和理解<span class=" fw-cl "><span>。</span></span>我们想理清楚 componentDidMount<span class=" fw-cl "><span>、</span></span>componentDidUpdate<span class=" fw-cl "><span>、</span></span>componentWillUnmount<span class=" fw-cl "><span>、</span></span>componentWillRecieveProps 这些钩子的逻辑并不困难<span class=" fw-cl "><span>。</span></span>但是这些生命周期函数中的代码和 render 中的 state 以及 props 有什么关系<span class=" fw-cl "><span>？</span></span>这些问题将会随着应用的复杂被无限放大<span class=" fw-cl "><span>，</span></span></li>
+  <li style="">React 是函数式的<span class=" fw-cl "><span>，</span></span>而 class 声明组件这种面向对象的行为显得不伦不类<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>基于这两点<span class=" fw-cl "><span>，</span></span>React 很快推出了函数式组件<span class=" fw-cl "><span>，</span></span>或无状态组件<span class="fw-op  "><span>（</span></span>下面统称函数式组件<span class=" fw-cl "><span>，</span></span>因为无状态组件在 hooks 特性下也会有状态<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<h4>函数式组件</h4>
+<p>函数式组件非常简单<span class=" fw-cl "><span>，</span></span>我们用函数定义一个组件<span class=" fw-cl "><span>，</span></span>该函数接受 props 作为参数<span class=" fw-cl "><span>，</span></span>只负责渲染<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const component = props =&gt; </code></p><div><code> { props.name } </code></div><p></p>
+<p>这样的实现看上去棒极了<span class=" fw-cl "><span>，</span></span>组件只负责接收数据并渲染<span class=" fw-cl "><span>，</span></span>难得如此清爽和直接<span class=" fw-cl "><span>。</span></span>然而它是完全无法取代 class 组件的<span class=" fw-cl "><span>，</span></span>因为它不存在生命周期<span class=" fw-cl "><span>，</span></span>完全的无状态让我们无法处理必要的逻辑<span class=" fw-cl "><span>。</span></span></p>
+<p>因此<span class=" fw-cl "><span>，</span></span>class 声明组件结合函数式组件的方案<span class=" fw-cl "><span>，</span></span>类似容器组件结合木偶组件<span class=" fw-cl "><span>，</span></span>成为现在的主流方式<span class=" fw-cl "><span>。</span></span></p>
+<p>从 React component 的发展<span class=" fw-cl "><span>，</span></span>我们能够管中窥豹<span class=" fw-cl "><span>：</span></span>从中可以发现 React 绑定 this 的设计<span class=" fw-cl "><span>、</span></span>React 实现复用的方案等一系列知识点<span class=" fw-cl "><span>，</span></span>它无疑是 React 类库的主干<span class=" fw-cl "><span>。</span></span>不过我们继续设想<span class=" fw-cl "><span>，</span></span>能不能赋予函数式组件以类似生命周期的能力<span class=" fw-cl "><span>，</span></span>完美解决 class 组件的问题<span class=" fw-cl "><span>？</span></span>这就是 React 近期带来的 React hooks 特性<span class=" fw-cl "><span>。</span></span>请继续阅读<span class=" fw-cl "><span>。</span></span></p>
+<h3>颠覆性的 React hooks</h3>
+<p>说起 React hooks<span class=" fw-cl "><span>，</span></span>想必大家已经了解了它出现的背景<span class=" fw-cl "><span>，</span></span>那么它是如何解决问题的呢<span class=" fw-cl "><span>？</span></span></p>
+<p>简单来说<span class=" fw-cl "><span>，</span></span>它使得开发者可以按业务逻辑拆分代码<span class=" fw-cl "><span>，</span></span>而不是生命周期<span class=" fw-cl "><span>。</span></span>这样如果想实现复用<span class=" fw-cl "><span>，</span></span>直接在任何组件中引入相关 hooks 即可<span class=" fw-cl "><span>。</span></span>Hooks 把代码按照业务逻辑的相关性进行拆分<span class=" fw-cl "><span>，</span></span>把同一业务的代码集中在一起<span class=" fw-cl "><span>，</span></span>不同业务的代码独立开来<span class=" fw-cl "><span>，</span></span>维护起来就清楚很多<span class=" fw-cl "><span>。</span></span></p>
+<p>这里我们不会科普 hooks 的使用方案<span class=" fw-cl "><span>，</span></span>因为官网上介绍的一定最好<span class=" fw-cl "><span>、</span></span>最详尽<span class=" fw-cl "><span>，</span></span>我们从原理和设计的角度来进行分析<span class=" fw-cl "><span>。</span></span></p>
+<h4>轻量级 useState</h4>
+<p>事实上<span class=" fw-cl "><span>，</span></span>setState API 并没有什么问题<span class=" fw-cl "><span>，</span></span>它也足够轻量<span class=" fw-cl "><span>，</span></span>真正笨重的是 class 组件结合 setState<span class=" fw-cl "><span>。</span></span>而使用 useState hook<span class=" fw-cl "><span>，</span></span>使得函数式组件也具备了操作 state 的能力<span class=" fw-cl "><span>，</span></span>且不需要引入生命周期函数<span class=" fw-cl "><span>。</span></span></p>
+<p>useState 是一个函数<span class=" fw-cl "><span>，</span></span>入参是 initialState<span class=" fw-cl "><span>；</span></span>它返回一个数组<span class=" fw-cl "><span>，</span></span>第一值是 state<span class=" fw-cl "><span>，</span></span>第二个值是改变 state 的函数<span class=" fw-cl "><span>。</span></span></p>
+<p>这里我来插播一个细节<span class=" fw-cl "><span>，</span></span>为什么 useState 返回一个数组呢<span class="fw-op  "><span>（</span></span>其实返回的是 tuple<span class=" fw-cl "><span>，</span></span>但是 JavaScript 还没有这个概念<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>？</span></span></p>
+<p><code>let [name, setName]= useState('lucas')</code></p>
+<p>如果返回的是一个对象是否更合适呢<span class=" fw-cl "><span>？</span></span></p>
+<p><code>let { state: name, setState: setName } = useState('lucas')</code></p>
+<p>这样表意更加清晰<span class=" fw-cl "><span>，</span></span>而简单<span class=" fw-cl "><span>。</span></span>也支持我们自动设置别名<span class=" fw-cl "><span>。</span></span>事实上 React RFC 确实有相关讨论<span class=" fw-cl "><span>：</span></span><a href="https://github.com/reactjs/rfcs/pull/68#issuecomment-433135283" title="RFC: React Hooks<span class=" apple-converted-space"="">&nbsp;"&gt;RFC: React Hooks </a><span class=" fw-cl "><span>。</span></span></p>
+<p>useState 其实很好实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const React = (function() {<br>
+ &nbsp;let stateValue<br>
+<br>
+ &nbsp;return Object.assign(React, {<br>
+ &nbsp;&nbsp;&nbsp;useState(initialStateValue) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stateValue = stateValue || initialStateValue<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function setState(value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stateValue = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return [stateValue, setState]<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})<br>
+})()</code></p>
+<p>我们使用 stateValue 闭包变量储存 state<span class=" fw-cl "><span>，</span></span>并提供修改 stateValue 的方法 setState<span class=" fw-cl "><span>，</span></span>一并作为数组返回<span class=" fw-cl "><span>。</span></span></p>
+<h4>useEffect 和生命周期那些事儿</h4>
+<p>函数式组件通过 useState 具备了操控 state 的能力<span class=" fw-cl "><span>，</span></span>修改 state 需要在适当的场景进行<span class=" fw-cl "><span>：</span></span>class 声明的组件在组件生命周期中进行 state 更迭<span class=" fw-cl "><span>，</span></span>那么在函数式组件中呢<span class=" fw-cl "><span>？</span></span>我们需要用 useEffect 模拟生命周期<span class=" fw-cl "><span>，</span></span>目前 useEffect 相当于 class Component 中的 componentDidMount<span class=" fw-cl "><span>、</span></span>componentDidUpdate<span class=" fw-cl "><span>、</span></span>componentWillUnmount 三个生命周期的综合<span class=" fw-cl "><span>。</span></span></p>
+<p>也就是说<span class=" fw-cl "><span>：</span></span>useEffect 声明的回调函数会在组件挂载<span class=" fw-cl "><span>、</span></span>更新<span class=" fw-cl "><span>、</span></span>卸载的时候执行<span class=" fw-cl "><span>。</span></span>为了避免每次渲染都执行所有的 useEffect 回调<span class=" fw-cl "><span>，</span></span>useEffect 提供了第二个参数<span class=" fw-cl "><span>，</span></span>该参数是数组类型<span class=" fw-cl "><span>。</span></span>只有在渲染时数组中的值发生了变化<span class=" fw-cl "><span>，</span></span>才会执行该 useEffect 回调<span class=" fw-cl "><span>。</span></span>如果传的是个空数组<span class=" fw-cl "><span>，</span></span>也就是说并不依赖任何其它值<span class=" fw-cl "><span>，</span></span>因此这样只会在组件第一次 Mount 后和 Unmount 前调用<span class=" fw-cl "><span>。</span></span></p>
+<p>我们尝试实现 useEffect<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const React = (function() {<br>
+ &nbsp;let deps<br>
+<br>
+ &nbsp;return Object.assign(React, {<br>
+ &nbsp;&nbsp;&nbsp;useEffect(callback, depsArray) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const shouldUpdate = !depsArray<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const depsChange = deps ? !deps.every((depItem, index) =&gt; depItem === depsArray[index]) : true<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (shouldUpdate || depsChange) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;callback()<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;deps = depsArray || []<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})<br>
+})()</code></p>
+<p>我们看闭包变量 deps 存储前一刻 useEffect 的依赖数组值<span class=" fw-cl "><span>。</span></span>在每次调用 useEffect 时<span class=" fw-cl "><span>，</span></span>我们都会遍历 deps 数组和当前 depsArray 数组值<span class=" fw-cl "><span>，</span></span>如果其中的任何一项有变化<span class=" fw-cl "><span>，</span></span>depsChange 将为 true<span class=" fw-cl "><span>，</span></span>进而执行 useEffect 的回调<span class=" fw-cl "><span>。</span></span></p>
+<p>有读者可能会想到<span class=" fw-cl "><span>，</span></span>那么生命周期 shouldComponentUpdate 如何模拟呢<span class=" fw-cl "><span>？</span></span>事实上<span class=" fw-cl "><span>，</span></span>我们不需要用 useEffect 来实现 shouldComponentUpdate<span class=" fw-cl "><span>。</span></span>React 新特性中专门提供了 React.memo 来帮助开发者进行性能优化<span class=" fw-cl "><span>。</span></span>另外<span class=" fw-cl "><span>，</span></span>useEffect 是无法模拟 getSnapshotBeforeUpdate 和 componentDidCatch 这两个生命周期函数的<span class=" fw-cl "><span>。</span></span></p>
+<p>上述两种实现都是简易版的<span class=" fw-cl "><span>，</span></span>旨在剖析这两个 hooks 的工作原理<span class=" fw-cl "><span>，</span></span>更多细节都没有实现<span class=" fw-cl "><span>。</span></span>最重要的一点是<span class=" fw-cl "><span>：</span></span>如果组件内多次调用 useState 或 useEffect<span class=" fw-cl "><span>，</span></span>我们的实现为了区分每次 useState 调用之前不同的 state 值及 setter<span class=" fw-cl "><span>，</span></span>需要额外使用一个数组来存储每次调用的配对值<span class=" fw-cl "><span>，</span></span>比如<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const React = (function() {<br>
+ &nbsp;let hooks = []<br>
+ &nbsp;let currentHook = 0<br>
+<br>
+ &nbsp;return Object.assign(React, {<br>
+ &nbsp;&nbsp;&nbsp;useState(initialStateValue) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hooks[currentHook] = hooks[currentHook] || initialStateValue<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function setState(value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hooks[currentHook] = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return [hooks[currentHook++], setState]<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+ &nbsp;&nbsp;&nbsp;useEffect(callback, depsArray) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const shouldUpdate = !depsArray<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const depsChange = hooks[currentHook] ? !hooks[currentHook].every((depItem, index) =&gt; depItem === depsArray[index]) : true<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (shouldUpdate || depsChange) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;callback()<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hooks[currentHook++] = depsArray || []<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;})<br>
+})()</code></p>
+<p>这也是为什么 hooks 只可以在顶层使用<span class=" fw-cl "><span>，</span></span>不能写在循环体<span class=" fw-cl "><span>、</span></span>条件渲染<span class=" fw-cl "><span>，</span></span>或者嵌套 function 里<span class=" fw-cl "><span>。</span></span>因为 React 内部实现需要按调用顺序来记录每个 useState 的调用<span class=" fw-cl "><span>，</span></span>以做区分<span class=" fw-cl "><span>。</span></span></p>
+<h4>useReducer 和 Redux</h4>
+<p>我们知道<span class=" fw-cl "><span>，</span></span>如果 State 的变化有比较复杂的状态流转<span class=" fw-cl "><span>，</span></span>可以使用新的 hooks<span class=" fw-cl "><span>：</span></span>useReducer 让应用更加 Redux 化<span class=" fw-cl "><span>，</span></span>使得逻辑更加清晰<span class=" fw-cl "><span>。</span></span>那么首先思考一个问题<span class=" fw-cl "><span>：</span></span>到底是该用 useState 还是 useReducer 呢<span class=" fw-cl "><span>？</span></span></p>
+<p>为此<span class=" fw-cl "><span>，</span></span>我总结如下<span class=" fw-cl "><span>。</span></span></p>
+<p>使用 useState 的情况<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">state 为基本类型<span class="fw-op  "><span>（</span></span>也要看情况<span class=" fw-cl "><span>）</span></span></li>
+  <li style="">state 转换逻辑简单的场景</li>
+  <li style="">state 转换只会在当前组件中出现<span class=" fw-cl "><span>，</span></span>其他组件不需要感知这个 state</li>
+  <li style="">多个 useState hooks 之间的 state 并没有关联关系</li>
+</ul>
+<p>使用 useReducer 的情况<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">state 为引用类型<span class="fw-op  "><span>（</span></span>也要看情况<span class=" fw-cl "><span>）</span></span></li>
+  <li style="">state 转换逻辑比较复杂的场景</li>
+  <li style="">不同 state 之间存在较强的关联关系<span class=" fw-cl "><span>，</span></span>应该作为一个 object<span class=" fw-cl "><span>，</span></span>用一个 state 来表示的场景</li>
+  <li style="">如果需要更好的可维护性和可测试性</li>
+</ul>
+<p>其实翻看 React 源码 useState 实现<span class=" fw-cl "><span>，</span></span>useState 本质是 useReducer 的一个语法糖<span class=" fw-cl "><span>。</span></span></p>
+<p>第二个问题<span class=" fw-cl "><span>：</span></span>useReducer 是否代表着 React 内置了 Redux<span class=" fw-cl "><span>，</span></span>我们就可以脱离 Redux 了呢<span class=" fw-cl "><span>？</span></span>事实上<span class=" fw-cl "><span>，</span></span>确实可以用简单的 React 代码<span class=" fw-cl "><span>，</span></span>借助 context API 实现全局 Redux 或者局部 Redux<span class=" fw-cl "><span>：</span></span></p>
+<p>store.js 文件<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import React from 'react'<br>
+const store = React.createContext(null)<br>
+<br>
+export const initialState = { <br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+}<br>
+<br>
+export const reducer = (state, action) =&gt; {<br>
+ &nbsp;switch (action.type) {<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;}<br>
+}<br>
+export default store</code></p>
+<p>Provider 根组件挂载<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import React, { useReducer } from 'react'<br>
+import store, { reducer, initialState } from './store'<br>
+<br>
+function App() {<br>
+ &nbsp;const [state, dispatch] = useReducer(reducer, initialState)<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;<store.provider value="{{" state,="" dispatch="" }}=""><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</store.provider></code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>业务组件就可以直接使用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import React, { useContext } from 'react'<br>
+import store from './store'<br>
+<br>
+cosnt Child = props =&gt; {<br>
+ &nbsp;const { state, dispatch } = useContext(store)<br>
+ &nbsp;// ...<br>
+}</code></p>
+<p>但是这样的行为尚不足以完全取代 Redux<span class=" fw-cl "><span>，</span></span>我们这里不做展开<span class=" fw-cl "><span>。</span></span></p>
+<h4>React hooks 之 Hooks 之所以可以设计为 Hooks 的原因</h4>
+<p>我们现在了解了<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">useState 让函数式组件能够使用 state</li>
+  <li style="">useEffect 让函数式组件可以模拟生命周期方法<span class=" fw-cl "><span>，</span></span>并进行副作用操作</li>
+  <li style="">useReducer 让我们能够更清晰地处理状态数据</li>
+  <li style="">useContext 可以获取 context 值</li>
+</ul>
+<p>那么为什么其他的一些 APIs<span class=" fw-cl "><span>，</span></span>比如 React.memo 并没有成为一个 hook 呢<span class=" fw-cl "><span>？</span></span>事实上 React 认为能够成为 hooks 的条件有两个特定<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style=""><br></li>
+</ul>
+<p>composition<span class=" fw-cl "><span>：</span></span>这个新特性需要具有组合能力<span class=" fw-cl "><span>，</span></span>也就是说需要有复用价值<span class=" fw-cl "><span>，</span></span>因为 hooks 的一大目标就是完成组件的复用<span class=" fw-cl "><span>。</span></span>针对于此<span class=" fw-cl "><span>，</span></span>开发者可以自定义 hooks<span class=" fw-cl "><span>，</span></span>而不必官方束缚指定的 hooks<span class=" fw-cl "><span>，</span></span>这样反倒可能会发成冲突<span class=" fw-cl "><span>；</span></span></p>
+<ul>
+  <li style=""><br></li>
+</ul>
+<p>debugging<span class=" fw-cl "><span>：</span></span>hooks 一大特性就是能够调试<span class=" fw-cl "><span>，</span></span>如果应用出现差错<span class=" fw-cl "><span>，</span></span>我们能够从错误的 props 和 state 当中找到错误的组件或逻辑<span class=" fw-cl "><span>，</span></span>能够具有这样调试功能的特性<span class=" fw-cl "><span>，</span></span>才应该成为一个 hooks<span class=" fw-cl "><span>。</span></span></p>
+<p>为此 Dan abramov 专门写了篇文章来讲述<span class=" fw-cl "><span>：</span></span><a href="https://overreacted.io/why-isnt-x-a-hook/" title="Why Isn』t X a Hook?">Why Isn<span class=" fw-cl "><span>』</span></span>t X a Hook?</a><span class=" fw-cl "><span>，</span></span>这里我们不再赘述<span class=" fw-cl "><span>。</span></span></p>
+<h3>值得关注的其他 React 特性</h3>
+<p>我认为在众多新特性中<span class=" fw-cl "><span>，</span></span>还有一个可能会对社区带来较大影响的是 React v16.6 发布的 React.Suspense 和 React.lazy<span class=" fw-cl "><span>。</span></span>具体用法我们不再讲解<span class=" fw-cl "><span>，</span></span>读者可自行补充基础知识<span class=" fw-cl "><span>。</span></span>React.Suspens 给了 React 组件异步<span class="fw-op  "><span>（</span></span>中断<span class=" fw-cl "><span>）</span></span>渲染的能力<span class=" fw-cl "><span>，</span></span>打破了 React 组件之前<span class="fw-op  "><span>「</span></span>一鼓作气<span class=" fw-cl "><span>」</span></span>渲染的格局<span class=" fw-cl "><span>。</span></span>而 React.lazy 带来了延迟加载的能力<span class=" fw-cl "><span>，</span></span>可以很好地取代社区上的一些轮子实现<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来看一个场景<span class=" fw-cl "><span>，</span></span>React.Suspense 结合 React.lazy<span class=" fw-cl "><span>，</span></span>实现代码分割和按需加载<span class=" fw-cl "><span>。</span></span></p>
+<p>目前按需加载一般都采用 react-lodable<span class=" fw-cl "><span>，</span></span>这个库稳定优雅且支持服务端渲染<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const Loading = ({ delay }) =&gt; {<br>
+ &nbsp;if (delay) {<br>
+ &nbsp;&nbsp;&nbsp;return <spinner><br>
+ &nbsp;}<br>
+ &nbsp;return null<br>
+}<br>
+<br>
+export const AsyncComponent = Loadable({<br>
+ &nbsp;loader: () =&gt; import(/* webpackChunkName: "Component1" */ './component1'),<br>
+ &nbsp;loading: Loading,<br>
+ &nbsp;delay: 500<br>
+})</spinner></code></p>
+<p>这段代码定义了一个 Loading 组件<span class=" fw-cl "><span>，</span></span>在请求返回之前进行渲染<span class=" fw-cl "><span>；</span></span>delay 参数表示时间超过 500 毫秒才显示 Loading<span class=" fw-cl "><span>，</span></span>防止闪烁 Loading 的出现<span class=" fw-cl "><span>。</span></span></p>
+<p>如果换成 React.Suspense + React.lazy<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const Component = React.lazy(() =&gt; import(/* webpackChunkName: "Component1" */ './component1'))<br>
+<br>
+export const AsyncComponent = props =&gt; (<br>
+ &nbsp;<react.suspense fallback="{<Loading">}&gt;<br>
+ &nbsp;&nbsp;&nbsp;<component {...props}=""><br>
+ &nbsp;</component></react.suspense><br>
+);</code></p>
+<p>React.lazy 封装动态 import 的 React 组件<span class=" fw-cl "><span>，</span></span>它要求 import() 必须返回一个会 Promise 对象<span class=" fw-cl "><span>，</span></span>并且这个 Promise 对象会 resolve 为一个 ES 模块<span class=" fw-cl "><span>，</span></span>模块中 export default 必须是一个合法的 React 组件<span class=" fw-cl "><span>。</span></span></p>
+<p>React.Suspense 组件设置 fallback prop<span class=" fw-cl "><span>，</span></span>当发现我们的 Component 是一个 Promise 类型时<span class=" fw-cl "><span>，</span></span>且这个 Promise 没有被 resolved<span class=" fw-cl "><span>，</span></span>那么就启用 fallback prop 所提供的组件<span class=" fw-cl "><span>，</span></span>以便在我们等待网络返回结果时进行渲染<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<p>我们可以结合 Error Boundary 特性<span class=" fw-cl "><span>，</span></span>对于网络或者其他错误时<span class=" fw-cl "><span>，</span></span>进行错误处理<span class=" fw-cl "><span>：</span></span></p>
+<p><code><mycustomerrorboundary><br>
+ &nbsp;<asynccomponent><br>
+</asynccomponent></mycustomerrorboundary></code></p>
+<p>这样一来我们就实现了简单的 react-loadable 库<span class=" fw-cl "><span>。</span></span>当然在 React.suspense 正式发布之前<span class=" fw-cl "><span>，</span></span>我们当然可以自己手动实现一个 React.Suspense 组件<span class=" fw-cl "><span>，</span></span>这里提供一个简单的版本<span class=" fw-cl "><span>，</span></span>未考虑边界情况<span class=" fw-cl "><span>：</span></span></p>
+<p><code>export class Suspense extends React.Component {<br>
+ &nbsp;&nbsp;&nbsp;state = {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;isLoading: false<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;componentDidCatch(error) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof error.then === 'function') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.setState({ isLoading: true })<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;error.then(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.setState({ isLoading: false })<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const { children, fallback } = this.props<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const { isLoading } = this.state<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return isLoading ? fallback : children<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>核心思路就是在首次渲染 Promise 出错时<span class=" fw-cl "><span>，</span></span>使用 componentDidCatch 进行捕获<span class=" fw-cl "><span>，</span></span>转而通过状态切换渲染 fallback 组件<span class=" fw-cl "><span>；</span></span>在 Promise resolve 之后<span class=" fw-cl "><span>，</span></span>通过状态切换渲染目标组件<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>这一讲我们梳理了 React 发展史上重要的里程碑<span class=" fw-cl "><span>，</span></span>并展望了 React 未来发展<span class=" fw-cl "><span>。</span></span>任何一门框架其实都免不了从问世到巅峰<span class=" fw-cl "><span>、</span></span>再到逐步退出的过程<span class=" fw-cl "><span>。</span></span>一个框架的兴衰<span class=" fw-cl "><span>，</span></span>印证着技术潮流的更迭<span class=" fw-cl "><span>，</span></span>作为开发者<span class=" fw-cl "><span>，</span></span>合理分析框架发展背后的技术趋势<span class=" fw-cl "><span>，</span></span>就非常重要了<span class=" fw-cl "><span>。</span></span></p>
+<h3><br></h3><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1yLrxzrzCjAgXwzFk9NJ</span></p></div>
+</body>
+</html>

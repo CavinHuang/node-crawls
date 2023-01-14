@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 4 节老司机也会在闭包相关知识点翻车（2）</h1>
+  <p>有了上一课的理论知识<span class=" fw-cl "><span>，</span></span>这一课我们来分析例题<span class=" fw-cl "><span>。</span></span></p>
+<p>我们再次列出<span class="fw-op  "><span>「</span></span>闭包<span class=" fw-cl "><span>」</span></span>主题的知识点<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-69d8c0db11b9c6d126d21c30563f8808.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:36.51933701657459% 0" data-src="https://pic2.zhimg.com/v2-69d8c0db11b9c6d126d21c30563f8808.png">加载中...</span></figure>
+<h3>例题分析</h3>
+<p>接下来<span class=" fw-cl "><span>，</span></span>我们通过几道题目来加深理解闭包<span class=" fw-cl "><span>。</span></span></p>
+<h4>实战例题 1<span class=" fw-cl "><span>：</span></span>求下面代码的输出</h4>
+<p><code>const foo = (function() {<br>
+ &nbsp;&nbsp;&nbsp;var v = 0<br>
+ &nbsp;&nbsp;&nbsp;return () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return v++<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}())<br>
+<br>
+for (let i = 0; i &lt; 10; i++) {<br>
+ &nbsp;&nbsp;&nbsp;foo()<br>
+}<br>
+<br>
+console.log(foo())</code></p>
+<p>答案<span class=" fw-cl "><span>：</span></span>10</p>
+<h5><strong style="">例题 1 分析</strong></h5>
+<p><code>foo</code> 是一个立即执行函数<span class=" fw-cl "><span>，</span></span>我们尝试打印 <code>foo</code><span class=" fw-cl "><span>：</span></span></p>
+<p><code>const foo = (function() {<br>
+ &nbsp;&nbsp;&nbsp;var v = 0<br>
+ &nbsp;&nbsp;&nbsp;return () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return v++<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}())<br>
+<br>
+console.log(foo)</code></p>
+<p>输出<span class=" fw-cl "><span>：</span></span></p>
+<p><code>() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;return v++<br>
+}</code></p>
+<p>在循环执行时<span class=" fw-cl "><span>，</span></span>执行 <code>foo()</code><span class=" fw-cl "><span>，</span></span>这样引用自由变量 10 次<span class=" fw-cl "><span>，</span></span><code>v</code> 自增 10 次<span class=" fw-cl "><span>，</span></span>最后执行 <code>foo</code> 时<span class=" fw-cl "><span>，</span></span>得到 10<span class=" fw-cl "><span>。</span></span><span class="fw-op  fw--collapsed"><span>（</span></span>自由变量是指没有在相关函数作用域中声明<span class=" fw-cl "><span>，</span></span>但是使用了的变量<span class=" fw-cl fw--collapsed"><span>。</span></span><span class=" fw-cl "><span>）</span></span>&nbsp;</p>
+<h4>实战例题 2<span class=" fw-cl "><span>：</span></span>求下面代码的输出</h4>
+<p><code>const foo = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;var arr = []<br>
+ &nbsp;&nbsp;&nbsp;var i<br>
+<br>
+ &nbsp;&nbsp;&nbsp;for (i = 0; i &lt; 10; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arr[i] = function () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(i)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return arr[0]<br>
+}<br>
+<br>
+foo()()</code></p>
+<p>答案<span class=" fw-cl "><span>：</span></span>10<span class=" fw-cl "><span>，</span></span>这时自由变量为 <code>i</code><span class=" fw-cl "><span>，</span></span>分析类似例题 1<span class=" fw-cl "><span>：</span></span><code>foo()</code> 执行返回的是 <code>arr[0]</code>, <code>arr[0]</code> 此时是函数<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function () {<br>
+ &nbsp;&nbsp;&nbsp;console.log(i)<br>
+}</code></p>
+<p>变量 <code>i</code> 值为 10<span class=" fw-cl "><span>。</span></span></p>
+<h4>实战例题 3<span class=" fw-cl "><span>：</span></span>求下面代码的输出</h4>
+<p><code>var fn = null<br>
+const foo = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;var a = 2<br>
+ &nbsp;&nbsp;&nbsp;function innerFoo() { <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(a)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;fn = innerFoo &nbsp;&nbsp;&nbsp;<br>
+}<br>
+<br>
+const bar = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;fn()<br>
+}<br>
+<br>
+foo()<br>
+bar()</code></p>
+<p>答案<span class=" fw-cl "><span>：</span></span>2</p>
+<h5><strong style="">例题 3 分析</strong></h5>
+<p>正常来讲<span class=" fw-cl "><span>，</span></span>根据调用栈的知识<span class=" fw-cl "><span>，</span></span><code>foo</code> 函数执行完毕之后<span class=" fw-cl "><span>，</span></span>其执行环境生命周期会结束<span class=" fw-cl "><span>，</span></span>所占内存被垃圾收集器释放<span class=" fw-cl "><span>，</span></span>上下文消失<span class=" fw-cl "><span>。</span></span>但是通过 <code>innerFoo</code> 函数赋值给 <code>fn</code><span class=" fw-cl "><span>，</span></span><code>fn</code> 是全局变量<span class=" fw-cl "><span>，</span></span>这就导致了 <code>foo</code> 的变量对象 <code>a</code> 也被保留了下来<span class=" fw-cl "><span>。</span></span>所以函数 <code>fn</code> 在函数 <code>bar</code> 内部执行时<span class=" fw-cl "><span>，</span></span>依然可以访问这个被保留下来的变量对象<span class=" fw-cl "><span>，</span></span>输出结果为 <code>2</code><span class=" fw-cl "><span>。</span></span></p>
+<h4>实战例题 4<span class=" fw-cl "><span>：</span></span>求下面代码的输出</h4>
+<p>我们将上面的例子稍作修改<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var fn = null<br>
+const foo = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;var a = 2<br>
+ &nbsp;&nbsp;&nbsp;function innerFoo() { <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(c) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(a)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;fn = innerFoo<br>
+}<br>
+<br>
+const bar = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;var c = 100<br>
+ &nbsp;&nbsp;&nbsp;fn() &nbsp;&nbsp;&nbsp;<br>
+}<br>
+<br>
+foo()<br>
+bar()</code></p>
+<p>执行结果<span class=" fw-cl "><span>：</span></span>报错<span class=" fw-cl "><span>。</span></span></p>
+<h5><strong style="">例题 4 分析</strong></h5>
+<p>在 <code>bar</code> 中执行 <code>fn()</code> 时<span class=" fw-cl "><span>，</span></span><code>fn()</code> 已经被复制为 <code>innerFoo</code><span class=" fw-cl "><span>，</span></span>变量 <code>c</code> 并不在其作用域链上<span class=" fw-cl "><span>，</span></span><code>c</code> 只是 <code>bar</code> 函数的内部变量<span class=" fw-cl "><span>。</span></span>因此报错 ReferenceError: c is not defined<span class=" fw-cl "><span>。</span></span></p>
+<p>图示分析<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-6104004b58ac03aedef2d810b0dd4f5b.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:51.29032258064517% 0" data-src="https://pic2.zhimg.com/v2-6104004b58ac03aedef2d810b0dd4f5b.png">加载中...</span></figure>
+<h4>思考例题 5<span class=" fw-cl "><span>：</span></span>如何利用闭包实现单例模式</h4>
+<p>单例模式<span class=" fw-cl "><span>，</span></span>是一种常用的软件设计模式<span class=" fw-cl "><span>。</span></span>GoF 在<span class="fw-op  "><span>《</span></span>设计模式<span class=" fw-cl "><span>：</span></span>可复用面向对象软件的基础<span class=" fw-cl "><span>》</span></span>一书中给出了如下定义<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>Ensure a class only has one instance, and provide a global point of access to it.</p>
+<p>保证一个类只有一个实例<span class=" fw-cl "><span>，</span></span>并提供一个访问它的全局访问点<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<p>使用闭包我们可以保持对实例的引用<span class=" fw-cl "><span>，</span></span>不被垃圾回收机制回收<span class=" fw-cl "><span>，</span></span>因此<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Person() {<br>
+ &nbsp;&nbsp;&nbsp;this.name = 'lucas'<br>
+}<br>
+<br>
+const getSingleInstance = (function(){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;var singleInstance<br>
+ &nbsp;&nbsp;&nbsp;return function() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (singleInstance) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return singleInstance<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return singleInstance = new Person()<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+})()<br>
+<br>
+const instance1 = new getSingleInstance()<br>
+const instance2 = new getSingleInstance()</code></p>
+<p>事实上<span class=" fw-cl "><span>，</span></span>我们有 instance1 === instance2<span class=" fw-cl "><span>。</span></span>因为借助闭包变量 singleInstance<span class=" fw-cl "><span>，</span></span>instance1 和 instance2 是同一引用的<span class="fw-op  "><span>（</span></span>singleInstance<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>这正是单例模式的体现<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>本课我们通过介绍理论知识加例题实战的方式梳理了 JavaScript 中闭包<span class=" fw-cl "><span>、</span></span>内存<span class=" fw-cl "><span>、</span></span>执行上下文<span class=" fw-cl "><span>、</span></span>作用域<span class=" fw-cl "><span>、</span></span>作用域链等概念<span class=" fw-cl "><span>。</span></span></p>
+<p>这些内容说基础<span class=" fw-cl "><span>，</span></span>确实不算很难<span class=" fw-cl "><span>；</span></span>说复杂<span class=" fw-cl "><span>，</span></span>它绝对又能衍生出很多知识点<span class=" fw-cl "><span>。</span></span>这些知识点不是 JavaScript 所特有的<span class=" fw-cl "><span>，</span></span>但是在前端开发中又极具自身语言风格<span class=" fw-cl "><span>。</span></span>它绝不只是纯理论概念<span class=" fw-cl "><span>，</span></span>只有解决真实的开发问题才有实际意义<span class=" fw-cl "><span>。</span></span></p>
+<p>一个合格的高级前端工程师需要做的并不是如数家珍地背诵<span class="fw-op  "><span>「</span></span>闭包和 GC 原理<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>而是根据面临的场景<span class=" fw-cl "><span>，</span></span>凭借扎实的基础<span class=" fw-cl "><span>，</span></span>能够通过查阅资料<span class=" fw-cl "><span>，</span></span>提升应用性能<span class=" fw-cl "><span>，</span></span>分析内存事故和突破瓶颈<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX18ZybPx0CPZAB61sbdLe</span></p>
+</body>
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 13 节究竟该如何学习与时俱进的 ES Next</h1>
+  <p>JavaScript 语言规范始终在与时俱进<span class=" fw-cl "><span>，</span></span>除了过于激进的 ES4 被<span class="fw-op  "><span>「</span></span>废除<span class=" fw-cl "><span>」</span></span>之外<span class=" fw-cl "><span>，</span></span>ES Next 始终茁壮发展<span class=" fw-cl "><span>。</span></span>到如今<span class=" fw-cl "><span>，</span></span>TC39<span class="fw-op  "><span>（</span></span>Technical Committee 39<span class=" fw-cl "><span>，</span></span>JavaScript 委员会<span class=" fw-cl "><span>）</span></span>已经明确表示每年更新一个版本<span class=" fw-cl "><span>，</span></span>因此使用 ES Next 表示那些<span class="fw-op  "><span>「</span></span>正在演进<span class=" fw-cl "><span>、</span></span>正在发展<span class=" fw-cl "><span>」</span></span>的新特性集<span class=" fw-cl "><span>。</span></span></p>
+<p>作为前端开发者<span class=" fw-cl "><span>，</span></span>我们该如何看待每年一版的 ES Next<span class=" fw-cl "><span>，</span></span>又该如何去保持学习呢<span class=" fw-cl "><span>？</span></span>这一讲<span class=" fw-cl "><span>，</span></span>我们就来谈谈 ES Next<span class=" fw-cl "><span>。</span></span>我认为列举新特性没有价值<span class=" fw-cl "><span>，</span></span>这些东西随处可见<span class=" fw-cl "><span>，</span></span>更重要的是分析新特性的由来<span class=" fw-cl "><span>，</span></span>剖析如何学习新特性<span class=" fw-cl "><span>，</span></span>分析如何利用新特性<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-a8a8c671f158df08af4b8eb2392fe0ab.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:26.43524699599466% 0" data-src="https://pic1.zhimg.com/v2-a8a8c671f158df08af4b8eb2392fe0ab.png">加载中...</span></figure>
+<h3>新特性添加的必要性</h3>
+<p>有很多人不幸患上了<span class="fw-op  "><span>「</span></span>JavaScript fatigue<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>表示我<span class="fw-op  "><span>「</span></span>再也学不动了<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>求<span class="fw-op  "><span>「</span></span>不要再更新<span class=" fw-cl "><span>」</span></span>了<span class=" fw-cl "><span>。</span></span>到底要不要更新<span class=" fw-cl "><span>？</span></span>我们来从一处细节看看 ES Next 发展的必要性<span class=" fw-cl "><span>。</span></span></p>
+<p>ES7 规范中定义了一个新的数组 API<span class=" fw-cl "><span>，</span></span>签名如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Array.prototype.includes(value : any): boolean</code></p>
+<p>它用起来就像这样<span class=" fw-cl "><span>：</span></span></p>
+<p><code>[1, 2, 3].includes(3)<br>
+// true</code></p>
+<p>从命名上就不难理解<span class=" fw-cl "><span>，</span></span>这是判断数组中是否含有一个元素的方法<span class=" fw-cl "><span>，</span></span>该方法最终返回一个布尔值<span class=" fw-cl "><span>。</span></span>有的开发者可能会问<span class=" fw-cl "><span>，</span></span>判断数组中是否含有一个元素<span class=" fw-cl "><span>，</span></span>不是有很多现成的方法可以使用吗<span class=" fw-cl "><span>？</span></span>我能列举出来很多<span class=" fw-cl "><span>：</span></span></p>
+<p><code>[1, 2, 3].findIndex(i =&gt; i === 2) <br>
+// 1<br>
+<br>
+[1, 2, 3].find(i =&gt; i == 2) <br>
+// 2<br>
+<br>
+[1, 2, 3].indexOf(2) <br>
+<br>
+// 1</code></p>
+<p>难道这还不够吗<span class=" fw-cl "><span>？</span></span>我们甚至完全可以实现一个<span class="fw-op  "><span>「</span></span>一模一样<span class=" fw-cl "><span>」</span></span>的 API<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const includes = (array, target) =&gt; &nbsp;!!~ array.indexOf(target)<br>
+<br>
+includes([1,2,3], 3)<br>
+// true<br>
+<br>
+includes([1,2,3], 4)<br>
+// false</code></p>
+<p>对于任何 ES Next 的新特性<span class=" fw-cl "><span>，</span></span>开发者若有疑问<span class=" fw-cl "><span>，</span></span>都可以在 TC39 提议的 GitHub 中找到<span class=" fw-cl "><span>，</span></span>这个也不例外<span class=" fw-cl "><span>。</span></span>我们就来分析这一新特性的意义<span class=" fw-cl "><span>：</span></span>首先<span class=" fw-cl "><span>，</span></span>在语义上它直观明朗<span class=" fw-cl "><span>，</span></span>这是 indexof 所无法取代的<span class=" fw-cl "><span>。</span></span>当然还有更深层次的必要性和不可替代性<span class=" fw-cl "><span>。</span></span></p>
+<p>我们认真审视 Array.prototype.includes 这个 API<span class=" fw-cl "><span>，</span></span>它用来判断数组是否包含某一元素<span class=" fw-cl "><span>，</span></span>那么<span class="fw-op  "><span>「</span></span>是否包含<span class=" fw-cl "><span>」</span></span>必然有判断<span class="fw-op  "><span>「</span></span>是否相等<span class=" fw-cl "><span>」</span></span>的逻辑<span class=" fw-cl "><span>。</span></span>那么这个<span class="fw-op  "><span>「</span></span>相等<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>又是如何定义的呢<span class=" fw-cl "><span>？</span></span>最简单的<span class=" fw-cl "><span>，</span></span>是 == 还是 ===<span class=" fw-cl "><span>？</span></span></p>
+<p><strong style="">这里可以说明的是<span class=" fw-cl "><span>：</span></span>Array.prototype.indexOf 采用的是 === 比较<span class=" fw-cl "><span>，</span></span>而 Array.prototype.includes 不同<span class=" fw-cl "><span>，</span></span>它采用了 SameValueZero() 比较<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>SameValueZero() 是什么呢<span class=" fw-cl "><span>？</span></span>这个是引擎内置的比较方式<span class=" fw-cl "><span>，</span></span>并没有对外接口<span class=" fw-cl "><span>，</span></span>其实现采用了 Map 和 Set<span class=" fw-cl "><span>。</span></span>采用这种比较<span class=" fw-cl "><span>，</span></span>最直接的收益就是可以判断 NaN<span class=" fw-cl "><span>：</span></span></p>
+<p><code>[NaN].includes(NaN) // true<br>
+[NaN].indexOf(NaN) // -1</code></p>
+<p>因为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>NaN === NaN<br>
+// false</code></p>
+<p>而 SameValueZero() 却不受干扰<span class=" fw-cl "><span>，</span></span>可以准确地判断 NaN === NaN<span class=" fw-cl "><span>。</span></span></p>
+<p>这就是新特性区别于老传统的不同<span class=" fw-cl "><span>，</span></span>很多都体现在细节上<span class=" fw-cl "><span>，</span></span>需要开发者用心体会<span class=" fw-cl "><span>，</span></span>这也是学习 ES Next 的<span class="fw-op  "><span>「</span></span>正确姿势<span class=" fw-cl "><span>」</span></span>之一<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>新特性除了体现在这些细节上<span class=" fw-cl "><span>，</span></span>也体现在更多更有意义的方面<span class=" fw-cl "><span>，</span></span>比如异步处理<span class=" fw-cl "><span>，</span></span>相信学习过前面课程的读者已经能有所体会了<span class=" fw-cl "><span>。</span></span>想想异步处理从回调到 Promise<span class=" fw-cl "><span>，</span></span>再到 generator 和 async/await<span class=" fw-cl "><span>，</span></span>也许你就会明白语言发展的必要性<span class=" fw-cl "><span>。</span></span></p>
+<h3>学习新特性的正确姿势</h3>
+<p>前面我们已经通过剖析一个细节<span class=" fw-cl "><span>，</span></span>为大家介绍了学习的<span class="fw-op  "><span>「</span></span>正确姿势<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>除了认真<span class=" fw-cl "><span>、</span></span>事无巨细以外<span class=" fw-cl "><span>，</span></span>有的时候还需要一些<span class="fw-op  "><span>「</span></span>刨根问底<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>吹毛求疵<span class=" fw-cl "><span>」</span></span>的态度<span class=" fw-cl "><span>。</span></span>我们来进入场景<span class=" fw-cl "><span>。</span></span></p>
+<h4>Object Spread VS Object.assign</h4>
+<p>Object Spread 和 Object.assign 在很多情况下做的事情是一致的<span class=" fw-cl "><span>，</span></span>它们都属于 ES Next 的新特性<span class=" fw-cl "><span>，</span></span>当然 Object Spread 更新<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>规范说明中<span class=" fw-cl "><span>，</span></span>也告诉我们 <span class="fw-op  "><span>「</span></span>object spread<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>：</span></span>{... obj} 和 Object.assign<span class="fw-op  "><span>（</span></span>{}<span class=" fw-cl "><span>，</span></span>obj<span class=" fw-cl "><span>）</span></span> 是等价的<span class=" fw-cl "><span>。</span></span></p>
+<p>但是一定还具有区别<span class=" fw-cl "><span>。</span></span>实际上<span class=" fw-cl "><span>，</span></span>Object.assign() 将会修改它的第一个参数对象<span class=" fw-cl "><span>，</span></span>这个修改可以触发其第一个参数对象的 setter<span class=" fw-cl "><span>。</span></span>熟悉函数式编程<span class=" fw-cl "><span>，</span></span>了解 React/Redux 技术栈的读者<span class=" fw-cl "><span>，</span></span>可能会听说过<span class="fw-op  "><span>「</span></span>不可变性<span class=" fw-cl "><span>」</span></span>的概念<span class=" fw-cl "><span>。</span></span>从这个层面上讲<span class=" fw-cl "><span>，</span></span>Object spread 操作符会创建一个对象副本<span class=" fw-cl "><span>，</span></span>而不会修改任何值<span class=" fw-cl "><span>，</span></span>这也许是更好的选择<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>喜欢<span class="fw-op  "><span>「</span></span>抬杠<span class=" fw-cl "><span>」</span></span>的读者可以说<span class=" fw-cl "><span>，</span></span>如果使用 Object.assign()<span class=" fw-cl "><span>，</span></span>我们始终保证一个空对象作为第一个参数<span class=" fw-cl "><span>，</span></span>也能实现同样的<span class="fw-op  "><span>「</span></span>不可变性<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>话虽是如此<span class=" fw-cl "><span>，</span></span>但是既然你<span class="fw-op  "><span>「</span></span>抬杠<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>那我也<span class="fw-op  "><span>「</span></span>抬杠<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>我就告诉你这么做的话<span class=" fw-cl "><span>，</span></span>性能比 Object Spread 就差的比较多了<span class=" fw-cl "><span>。</span></span></p>
+<p>采用 <a href="http://thecodebarbarian.com/object-assign-vs-object-spread.html" title="object-assign-vs-object-spread">object-assign-vs-object-spread</a> 提供的 benchmark<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const Benchmark = require('benchmark');<br>
+<br>
+const suite = new Benchmark.Suite;<br>
+<br>
+const obj = { foo: 1, bar: 2 };<br>
+<br>
+suite.<br>
+ &nbsp;add('Object spread', function() {<br>
+ &nbsp;&nbsp;&nbsp;({ baz: 3, ...obj });<br>
+ &nbsp;}).<br>
+ &nbsp;add('Object.assign()', function() {<br>
+ &nbsp;&nbsp;&nbsp;Object.assign({}, obj, { baz: 3 });<br>
+ &nbsp;})</code></p>
+<p>得出结果<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Object spread x 3,065,831 ops/sec +-2.12% (85 runs sampled)<br>
+Object.assign() x 2,461,926 ops/sec +-1.52% (88 runs sampled)<br>
+Fastest is Object spread</code></p>
+<p>使用 Object spread 性能要明显领先于 Object.assign<span class=" fw-cl "><span>。</span></span></p>
+<h4>箭头函数不适用的场景</h4>
+<p>我们再来分析一道思考题<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span><strong style="">哪些场景下不适合使用 ES6 箭头函数<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>？</span></span></strong></p>
+<p>这个问题不是死板地考察队 ES Next 箭头函数的理解<span class=" fw-cl "><span>，</span></span>而是反其道行之<span class=" fw-cl "><span>，</span></span>考察其不适用的场景<span class=" fw-cl "><span>。</span></span> 回答这个问题<span class=" fw-cl "><span>，</span></span>我们思考<span class=" fw-cl "><span>：</span></span>开发者习惯使用箭头函数来对 this 指向进行干预<span class=" fw-cl "><span>，</span></span>那么反过来说<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>不需要进行 this 指向干预的情况下<span class=" fw-cl "><span>，</span></span>我们就不适合使用箭头函数<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>总结下来<span class=" fw-cl "><span>，</span></span>有<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">构造函数的原型方法上</li>
+</ul>
+<p>构造函数的原型方法需要通过 this 获得实例<span class=" fw-cl "><span>，</span></span>因此箭头函数不可以出现在构造函数的原型方法上<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Person.prototype = () =&gt; {<br>
+ &nbsp;// ...<br>
+}</code></p>
+<p>这样的做法是错误的<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">需要获得 arguments 时</li>
+</ul>
+<p>箭头函数不具有 arguments<span class=" fw-cl "><span>，</span></span>因此在其函数体内无法访问这一特殊的伪数组<span class=" fw-cl "><span>，</span></span>那么相关场景下也不适合使用箭头函数<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">使用对象方法时</li>
+</ul>
+<p><code>const person = {<br>
+ &nbsp;name: 'lucas',<br>
+ &nbsp;getName: () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log(this.name)<br>
+ &nbsp;}<br>
+};<br>
+person.getName()</code></p>
+<p>上述代码中<span class=" fw-cl "><span>，</span></span>getName 函数体内的 this 指向 window<span class=" fw-cl "><span>，</span></span>显然不符合其用意<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">使用动态回调时</li>
+</ul>
+<p>同理<span class=" fw-cl "><span>，</span></span>类似下面这种对回调函数的 this 有特殊场景需求的用法<span class=" fw-cl "><span>，</span></span>箭头函数的 this 无法满足要求<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const btn = document.getElementById('btn')<br>
+<br>
+btn.addEventListener('click', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log(this === window)<br>
+});</code></p>
+<p>当点击 id 为 btn 的按钮时<span class=" fw-cl "><span>，</span></span>将会输出<span class=" fw-cl "><span>：</span></span>true<span class=" fw-cl "><span>，</span></span>事件绑定函数的 this 指向了 window<span class=" fw-cl "><span>，</span></span>而无法获取事件对象<span class=" fw-cl "><span>。</span></span></p>
+<p><span class="fw-op  "><span>「</span></span>箭头函数<span class=" fw-cl "><span>」</span></span>不适用的场景社区上也有相关文章分析<span class=" fw-cl "><span>，</span></span>我个人认为这是一个很好的切入点<span class=" fw-cl "><span>。</span></span>思考<span class="fw-op  "><span>「</span></span>哪些场景不适用<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>不仅能够全面了解学习新特性<span class=" fw-cl "><span>，</span></span>也能够和老知识融会贯通<span class=" fw-cl "><span>，</span></span>可谓学习 ES Next 的正确姿势之一了<span class=" fw-cl "><span>。</span></span></p>
+<h3>新特性可以做些什么有趣的事儿</h3>
+<p>可能有开发者有这样的体会<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>ES Next<span class=" fw-cl "><span>」</span></span>那么多新特性<span class=" fw-cl "><span>，</span></span>但是我使用的来来回回都是那么几项<span class=" fw-cl "><span>，</span></span>很多感觉并用不上啊<span class=" fw-cl "><span>？</span></span></p>
+<p>同时<span class=" fw-cl "><span>，</span></span>讲了这么多细节<span class=" fw-cl "><span>，</span></span>我们可以用新特性实现哪些很 cool 的操作呢<span class=" fw-cl "><span>？</span></span>其实除了日常用到的新特性以外<span class=" fw-cl "><span>，</span></span>一些不为大家所熟知的特性往往在框架开发<span class=" fw-cl "><span>，</span></span>或者实现更深层次行为操作的场景中<span class=" fw-cl "><span>，</span></span>应用比比皆是<span class=" fw-cl "><span>。</span></span>比如 Proxy<span class=" fw-cl "><span>，</span></span>它可以用来定义对象各种基本操作的自定义行为<span class=" fw-cl "><span>，</span></span>比如 Vue 双向绑定的实现<span class=" fw-cl "><span>，</span></span>就可以借助 Proxy 完成<span class=" fw-cl "><span>。</span></span></p>
+<h4>Proxy 代理</h4>
+<p>我们先来看一些简单的场景<span class=" fw-cl "><span>，</span></span>借用上节课的例子<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Person {<br>
+ &nbsp;constructor (name) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.name = name<br>
+ &nbsp;}<br>
+}<br>
+<br>
+let proxyPersonClass = new Proxy(Person, {<br>
+ &nbsp;apply (target, context, args) {<br>
+ &nbsp;&nbsp;&nbsp;throw new Error(`hello: Function ${target.name} cannot be invoked without 'new'`)<br>
+ &nbsp;}<br>
+})</code></p>
+<p>我们对 Person 构造函数进行了代理<span class=" fw-cl "><span>，</span></span>这样就可以防止非构造函数实例化的调用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>proxyPersonClass('lucas')<br>
+<br>
+// VM173058:9 Uncaught Error: hello: Function Person cannot be invoked without 'new'<br>
+ &nbsp;&nbsp;&nbsp;at <anonymous>:1:1<br>
+<br>
+new proxyPersonClass('lucas')<br>
+// {name: "lucas"}</anonymous></code></p>
+<p>同样道理<span class=" fw-cl "><span>，</span></span>也可以静默处理非构造函数实例化的调用<span class=" fw-cl "><span>，</span></span>将其强制转换为 new 调用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Person {<br>
+ &nbsp;constructor (name) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.name = name<br>
+ &nbsp;}<br>
+}<br>
+<br>
+let proxyPersonClass = new Proxy(Person, {<br>
+ &nbsp;apply (target, context, args) {<br>
+ &nbsp;&nbsp;&nbsp;return new (target.bind(context, ...args))()<br>
+ &nbsp;}<br>
+})</code></p>
+<p>这样即便在不使用 new 关键字时<span class=" fw-cl "><span>，</span></span>仍然可以得到 new 调用的实例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>proxyPersonClass('lucas')<br>
+// Person {name: "lucas"}</code></p>
+<p>另外一个场景<span class=" fw-cl "><span>：</span></span>熟悉前端测试的读者<span class=" fw-cl "><span>，</span></span>可能对断言 assert 并不陌生<span class=" fw-cl "><span>，</span></span>一种常用的使用方式是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const lucas = {<br>
+ &nbsp;&nbsp;&nbsp;age: 23<br>
+}<br>
+assert['lucas is older than 22!!!'] = 22 &gt; lucas.age<br>
+<br>
+// Error: lucas is older than 22!!!</code></p>
+<p>我们看 assert 赋值语句右侧表达式结果为一个布尔值<span class=" fw-cl "><span>，</span></span>当表达式成立时<span class=" fw-cl "><span>，</span></span>断言不会抛出<span class=" fw-cl "><span>；</span></span>如果 assert 赋值语句右侧表达式不成立时<span class=" fw-cl "><span>，</span></span>也就是断言失败时<span class=" fw-cl "><span>，</span></span>断言抛出错误<span class=" fw-cl "><span>。</span></span></p>
+<p>乍看上去这是不是很神奇<span class=" fw-cl "><span>？</span></span>如果面试过程中<span class=" fw-cl "><span>，</span></span>面试官要求你实现一个 assert<span class=" fw-cl "><span>，</span></span>该怎么做呢<span class=" fw-cl "><span>？</span></span>这样一个断言库本质上还是拦截 assert 对象的赋值<span class="fw-op  "><span>（</span></span>set<span class=" fw-cl "><span>）</span></span>操作<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const assert = new Proxy({}, {<br>
+ &nbsp;set (target, warning, value) {<br>
+ &nbsp;&nbsp;&nbsp;if (!value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.error(warning)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+})</code></p>
+<p>这样我们只需要判读对 assert 的赋值值是否为 true<span class=" fw-cl "><span>，</span></span>如果不为 true<span class=" fw-cl "><span>，</span></span>则打印错误<span class=" fw-cl "><span>。</span></span></p>
+<p>是不是很简单<span class=" fw-cl "><span>？</span></span>这样我们就可以随意进行断言<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const weather = 'cold'<br>
+assert['The weather is not good!!!'] = weather === 'good'<br>
+<br>
+// Error: The weather is not good!!!</code></p>
+<p>这些只是 Proxy 实现的一些很简单的例子<span class=" fw-cl "><span>，</span></span>这里抛砖引玉<span class=" fw-cl "><span>，</span></span>大家可以充分发挥想象力<span class=" fw-cl "><span>，</span></span>创造更多的玩法<span class=" fw-cl "><span>。</span></span></p>
+<h4>Decorator 那些事</h4>
+<p>除此之外<span class=" fw-cl "><span>，</span></span>介绍给大家的就是 ES7 中的装饰器 Decorator<span class=" fw-cl "><span>。</span></span></p>
+<blockquote><br></blockquote>
+<p>装饰器<span class="fw-op  "><span>（</span></span>Decorators<span class=" fw-cl "><span>）</span></span>让你可以在设计时对类和类的属性进行<span class="fw-op  "><span>「</span></span>注解<span class=" fw-cl "><span>」</span></span>和修改<span class=" fw-cl "><span>。</span></span></p>
+<p>说直白一些<span class=" fw-cl "><span>，</span></span>Decorator 就是给类添加或者修改类的属性与方法的<span class=" fw-cl "><span>。</span></span>这么听上去似乎跟我们刚刚介绍的 proxy 似乎有异曲同工之秒<span class=" fw-cl "><span>。</span></span>一些开发者可能已经在使用 Decorator 了<span class=" fw-cl "><span>，</span></span>这里我借助 autobind 这个类库的实现<span class=" fw-cl "><span>，</span></span>介绍一下 Decorator 的玩法<span class=" fw-cl "><span>。</span></span></p>
+<p>我们知道<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Person {<br>
+ &nbsp;constructor (name) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.name = name<br>
+ &nbsp;}<br>
+ &nbsp;getPersonName() {<br>
+ &nbsp;&nbsp;&nbsp;return this.name<br>
+ &nbsp;}<br>
+}<br>
+<br>
+const person = new Person('lucas')<br>
+<br>
+const fn = person.getPersonName<br>
+<br>
+fn()<br>
+<br>
+// &nbsp;Cannot read property 'name' of undefined<br>
+ &nbsp;&nbsp;&nbsp;at getPersonName (<anonymous>:6:17)<br>
+ &nbsp;&nbsp;&nbsp;at <anonymous>:3:1</anonymous></anonymous></code></p>
+<p>这里在执行 fn() 时<span class=" fw-cl "><span>，</span></span>this 已经指向了 window<span class=" fw-cl "><span>，</span></span>使用 autobind 可以完成对 this 的绑定<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Person {<br>
+ &nbsp;constructor (name) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.name = name<br>
+ &nbsp;}<br>
+ &nbsp;@autobind<br>
+ &nbsp;getPersonName() {<br>
+ &nbsp;&nbsp;&nbsp;return this.name<br>
+ &nbsp;}<br>
+}</code></p>
+<p>那么 autobind 怎么实现呢<span class=" fw-cl "><span>？</span></span>伪代码如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>&nbsp;function autobind(target, key, { value: fn, configurable, enumerable }) {<br>
+ &nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;configurable,<br>
+ &nbsp;&nbsp;&nbsp;enumerable,<br>
+ &nbsp;&nbsp;&nbsp;get() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const boundFn = fn.bind(this);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;defineProperty(this, key, {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;configurable: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;writable: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: false,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value: boundFn<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return boundFn;<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;set: createDefaultSetter(key)<br>
+ &nbsp;};<br>
+}</code></p>
+<p>autobind 这个 decorator 接受以下三个参数<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">target<span class=" fw-cl "><span>：</span></span>目标对象<span class=" fw-cl "><span>，</span></span>这里是作用于 Person 中的函数<span class=" fw-cl "><span>、</span></span>属性的</li>
+  <li style="">key<span class=" fw-cl "><span>：</span></span>属性名称</li>
+  <li style="">descriptor<span class=" fw-cl "><span>：</span></span>属性原本的描述符</li>
+</ul>
+<p>autobind decorator 函数最终返回描述符<span class=" fw-cl "><span>，</span></span>这个描述符运行时相当于调用 Object.defineProperty() 修改原有属性<span class=" fw-cl "><span>，</span></span>我们看最终修改的结果为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;configurable,<br>
+ &nbsp;&nbsp;&nbsp;enumerable,<br>
+ &nbsp;&nbsp;&nbsp;get() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const boundFn = fn.bind(this);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;defineProperty(this, key, {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;configurable: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;writable: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: false,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value: boundFn<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return boundFn;<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;set: createDefaultSetter(key)<br>
+}</code></p>
+<p>这样在使用 get 赋值时<span class="fw-op  "><span>（</span></span>const fn = person.getPersonName<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>赋值结果通过 const boundFn = fn.bind(this) 进行对 this 绑定<span class=" fw-cl "><span>，</span></span>并返回绑定 this 后的结果<span class=" fw-cl "><span>，</span></span>因此达到了我们对 getPersonName 属性方法绑定 this 的目的<span class=" fw-cl "><span>。</span></span></p>
+<p>这就是 decorator 在 autobind 这个库中的应用<span class=" fw-cl "><span>，</span></span>这个库大家接触的不多<span class=" fw-cl "><span>，</span></span>也许有 React 开发者使用 autobind 来对事件处理函数进行 this 绑定<span class=" fw-cl "><span>。</span></span>总之<span class=" fw-cl "><span>，</span></span>autobind 源码实现很好地利用了 decorator 特性<span class=" fw-cl "><span>。</span></span></p>
+<h3>Babel 编译对代码做了什么</h3>
+<p>为了能够使用到新鲜出炉的 ES Next 新特性<span class=" fw-cl "><span>，</span></span>必不可少的一环就是 Babel<span class=" fw-cl "><span>，</span></span>相信每个前端开发者都听说过它的大名<span class=" fw-cl "><span>。</span></span>虽然 Babel 目前已经是个丰富的生态社区了<span class=" fw-cl "><span>，</span></span>但是它刚出道时的目标<span class=" fw-cl "><span>，</span></span>以及目前最核心的能力就是<span class=" fw-cl "><span>：</span></span>编译 ES Next 代码<span class=" fw-cl "><span>，</span></span>进行降级处理<span class=" fw-cl "><span>，</span></span>进而规避了兼容性问题<span class=" fw-cl "><span>。</span></span></p>
+<p>那么 Babel 编译到底是施展了什么魔法呢<span class=" fw-cl "><span>？</span></span>它的核心原理是使用 AST<span class="fw-op  "><span>（</span></span>抽象语法树<span class=" fw-cl "><span>）</span></span>将源码进行分析并转为目标代码<span class=" fw-cl "><span>，</span></span>这中间的细节部分我们会在工程化章节中有所涉及<span class=" fw-cl "><span>。</span></span>在上一讲中<span class=" fw-cl "><span>，</span></span>我们已经对 ES6 class 的编译产出进行了分析<span class=" fw-cl "><span>，</span></span>这里再分析一些比较典型的编译结果<span class=" fw-cl "><span>。</span></span></p>
+<h4>const<span class=" fw-cl "><span>、</span></span>let 编译分析</h4>
+<p>简单来说<span class=" fw-cl "><span>，</span></span>const<span class=" fw-cl "><span>、</span></span>let 一律转成 var<span class=" fw-cl "><span>。</span></span>为了保证 const 的不可变性<span class=" fw-cl "><span>：</span></span>Babel 如果在编译过程中发现对 const 声明的变量进行了二次赋值<span class=" fw-cl "><span>，</span></span>将会直接报错<span class=" fw-cl "><span>，</span></span>这样就在编译阶段进行了处理<span class=" fw-cl "><span>。</span></span>至于 let 的块级概念<span class=" fw-cl "><span>，</span></span>ES5 中<span class=" fw-cl "><span>，</span></span>我们一般通过 IIFE 实现块级作用域<span class=" fw-cl "><span>，</span></span>但是 Babel 处理非常取巧<span class=" fw-cl "><span>，</span></span>那就是在块内给变量换一个名字<span class=" fw-cl "><span>，</span></span>块外自然就无法访问到<span class=" fw-cl "><span>。</span></span></p>
+<p>在之前的课程中我们介绍使用 let 或者 const 声明的变量<span class=" fw-cl "><span>，</span></span>存在暂时性死区<span class="fw-op  "><span>（</span></span>TDZ<span class=" fw-cl "><span>）</span></span>现象<span class=" fw-cl "><span>。</span></span>简单回顾下<span class=" fw-cl "><span>：</span></span>代码声明变量所在的区块中<span class=" fw-cl "><span>，</span></span>会形成一个封闭区域<span class=" fw-cl "><span>。</span></span>在这个区域中<span class=" fw-cl "><span>，</span></span>只要是在声明变量前使用这些变量<span class=" fw-cl "><span>，</span></span>就会报错<span class=" fw-cl "><span>。</span></span></p>
+<p><code>var foo = 123<br>
+<br>
+{<br>
+ &nbsp;foo = 'abc'<br>
+ &nbsp;let foo<br>
+}</code></p>
+<p>将会报错<span class=" fw-cl "><span>：</span></span>Uncaught ReferenceError: Cannot access 'foo' before initialization<span class=" fw-cl "><span>。</span></span></p>
+<p>那么 Babel 怎么编译模拟这种行为呢<span class=" fw-cl "><span>？</span></span>其实我们提到 Babel 编译会将 let<span class=" fw-cl "><span>、</span></span>const 变量重新命名<span class=" fw-cl "><span>，</span></span>同时在 <strong style="">JavaScript 严格模式<span class="fw-op  "><span>（</span></span>strict mode<span class=" fw-cl "><span>）</span></span>不允许使用未声明的变量</strong><span class=" fw-cl "><span>，</span></span>这样在声明前使用这个变量<span class=" fw-cl "><span>，</span></span>也会报错<span class=" fw-cl "><span>。</span></span>如下代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"use strict";<br>
+var foo = 123<br>
+{<br>
+ &nbsp;_foo = 'abc'<br>
+ &nbsp;var _foo<br>
+}</code></p>
+<p>我们加上严格模式的标记<span class=" fw-cl "><span>，</span></span>自然就可以实现了 TDZ 的效果<span class=" fw-cl "><span>。</span></span></p>
+<p>对于经典的 for 循环问题<span class=" fw-cl "><span>，</span></span>Babel 的处理并不让我们感到意外<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let array = []<br>
+for (let i = 0; i &lt; 10; i++) {<br>
+ &nbsp;array[i] = function () {<br>
+ &nbsp;&nbsp;&nbsp;console.log(i)<br>
+ &nbsp;}<br>
+}<br>
+array[6]()<br>
+// 6<br>
+<br>
+let array = []<br>
+for (var i = 0; i &lt; 10; i++) {<br>
+ &nbsp;array[i] = function () {<br>
+ &nbsp;&nbsp;&nbsp;console.log(i)<br>
+ &nbsp;}<br>
+}<br>
+array[6]()<br>
+// 10</code></p>
+<p>为了保存每一个循环变量 i 的值<span class=" fw-cl "><span>，</span></span>Babel 也使用了闭包<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"use strict";<br>
+var array = [];<br>
+<br>
+var _loop = function _loop(i) {<br>
+ &nbsp;array[i] = function () {<br>
+ &nbsp;&nbsp;&nbsp;console.log(i);<br>
+ &nbsp;};<br>
+};<br>
+<br>
+for (var i = 0; i &lt; 10; i++) {<br>
+ &nbsp;_loop(i);<br>
+}<br>
+array[6]();</code></p>
+<p>细心的同学可能还会想到<span class=" fw-cl "><span>：</span></span>使用 const 声明的变量一旦声明<span class=" fw-cl "><span>，</span></span>其变量<span class="fw-op  "><span>（</span></span>内存地址<span class=" fw-cl "><span>）</span></span>是不可改变的<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const foo = 0<br>
+foo = 1<br>
+<br>
+// VM982:2 Uncaught TypeError: Assignment to constant variable</code></p>
+<p>对此 Babel 的处理有比较有意思<span class=" fw-cl "><span>：</span></span></p>
+<p><code>"use strict";<br>
+function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }<br>
+<br>
+var foo = 0;<br>
+foo = (_readOnlyError("a"), 1);</code></p>
+<p>我们看编译结果<span class=" fw-cl "><span>，</span></span>Babel 检测到 const 声明的变量被改变赋值<span class=" fw-cl "><span>，</span></span>就会主动插入了一个 &nbsp;<code>_readOnlyError</code> 函数<span class=" fw-cl "><span>，</span></span>并执行此函数<span class=" fw-cl "><span>。</span></span>这个函数的执行内容就是报错<span class=" fw-cl "><span>，</span></span>因此代码执行时就会直接抛出异常<span class=" fw-cl "><span>。</span></span></p>
+<h4>箭头函数的编译分析</h4>
+<p>对于箭头函数的转换<span class=" fw-cl "><span>，</span></span>也不难理解<span class=" fw-cl "><span>，</span></span>看代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var obj = {<br>
+ &nbsp;&nbsp;&nbsp;prop: 1,<br>
+ &nbsp;&nbsp;&nbsp;func: function() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var _this = this;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var innerFunc = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prop = 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var innerFunc1 = function() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prop = 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+<br>
+};</code></p>
+<p>转换为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var obj = {<br>
+ &nbsp;&nbsp;&nbsp;prop: 1,<br>
+ &nbsp;&nbsp;&nbsp;func: function func() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var _this2 = this;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var _this = this;<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var innerFunc = function innerFunc() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_this2.prop = 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var innerFunc1 = function innerFunc1() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prop = 1;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+};</code></p>
+<p>通过 <code>var _this2 = this;</code> 保存当前环境的 this 为 <code>_this2</code><span class=" fw-cl "><span>，</span></span>在调用 innerFunc 时<span class=" fw-cl "><span>，</span></span>用新储存的 <code>_this2</code> 进行替换函数体内的 this 即可<span class=" fw-cl "><span>。</span></span></p>
+<h4>Decorators 的编译分析</h4>
+<p>上面的内容中<span class=" fw-cl "><span>，</span></span>我们介绍了 decorators 新特性<span class=" fw-cl "><span>，</span></span>那么 Babel 又是怎么编译 decorators 的呢<span class=" fw-cl "><span>？</span></span></p>
+<p>使用方式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Person{<br>
+ &nbsp;@log<br>
+ &nbsp;say(){}<br>
+}</code></p>
+<p>我们有一个名为 log 的 decorators<span class=" fw-cl "><span>，</span></span>Babel 编译<span class=" fw-cl "><span>：</span></span></p>
+<p><code>_applyDecoratedDescriptor(<br>
+ &nbsp;Person.prototype, <br>
+ &nbsp;'say', <br>
+ &nbsp;[log],<br>
+ &nbsp;Object.getOwnPropertyDescriptor(Person.prototype, 'say'),<br>
+ &nbsp;Person.prototype)<br>
+)<br>
+<br>
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {<br>
+ &nbsp;var desc = {};<br>
+ &nbsp;Object['ke' + 'ys'](descriptor).forEach(function (key) {<br>
+ &nbsp;&nbsp;&nbsp;desc[key] = descriptor[key];<br>
+ &nbsp;});<br>
+ &nbsp;desc.enumerable = !!desc.enumerable;<br>
+ &nbsp;desc.configurable = !!desc.configurable;<br>
+<br>
+ &nbsp;if ('value' in desc || desc.initializer) {<br>
+ &nbsp;&nbsp;&nbsp;desc.writable = true;<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;desc = decorators.slice().reverse().reduce(function (desc, decorator) {<br>
+ &nbsp;&nbsp;&nbsp;return decorator(target, property, desc) || desc;<br>
+ &nbsp;}, desc);<br>
+<br>
+ &nbsp;if (context &amp;&amp; desc.initializer !== void 0) {<br>
+ &nbsp;&nbsp;&nbsp;desc.value = desc.initializer ? desc.initializer.call(context) : void 0;<br>
+ &nbsp;&nbsp;&nbsp;desc.initializer = undefined;<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;if (desc.initializer === void 0) {<br>
+ &nbsp;&nbsp;&nbsp;Object['define' + 'Property'](target, property, desc);<br>
+ &nbsp;&nbsp;&nbsp;desc = null;<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;return desc;<br>
+}</code></p>
+<p>我们看这里主要依赖了 _applyDecoratedDescriptor 方法<span class=" fw-cl "><span>。</span></span>这个方法将返回描述符 desc<span class=" fw-cl "><span>，</span></span>具体执行逻辑为<span class=" fw-cl "><span>：</span></span>先把所有 decorators 包装成一个数组<span class=" fw-cl "><span>，</span></span>作为 _applyDecoratedDescriptor 方法的第三个参数传入<span class=" fw-cl "><span>，</span></span>对于 decorators 这个数组<span class=" fw-cl "><span>，</span></span>我们将 target<span class=" fw-cl "><span>、</span></span>property<span class=" fw-cl "><span>、</span></span>desc 作为参数<span class=" fw-cl "><span>，</span></span>依次遍历执行数组中的每一个 decorator 函数<span class=" fw-cl "><span>。</span></span>执行后返回每一个 decorator 产生的属性描述符<span class=" fw-cl "><span>。</span></span>上述代码样例就是<span class=" fw-cl "><span>：</span></span>decorators 这个数组只有一项<span class=" fw-cl "><span>：</span></span>log<span class=" fw-cl "><span>。</span></span>[log]<span class=" fw-cl "><span>，</span></span>遍历数组时<span class=" fw-cl "><span>，</span></span>我们将 target<span class=" fw-cl "><span>、</span></span>property<span class=" fw-cl "><span>、</span></span>desc 作为参数传给 log 函数并执行<span class=" fw-cl "><span>：</span></span>log(target, property, desc)<span class=" fw-cl "><span>，</span></span>返回结果即是新的属性描述符<span class=" fw-cl "><span>。</span></span></p>
+<p>如果读者对于 decorators 特性能够熟练掌握<span class=" fw-cl "><span>，</span></span>上述源码的理解并不困难<span class=" fw-cl "><span>。</span></span></p>
+<p>再加上上一节课对 class 编译结果的分析<span class=" fw-cl "><span>，</span></span>我们可以知道<span class=" fw-cl "><span>：</span></span>Babel 并没有什么<span class="fw-op  "><span>「</span></span>深不可测<span class=" fw-cl "><span>」</span></span>的魔法<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以翻看各种 ES Next 的编译结果<span class=" fw-cl "><span>，</span></span>通过对编译结果的学习<span class=" fw-cl "><span>，</span></span>对于基础的提高<span class=" fw-cl "><span>，</span></span>具有帮助作用<span class=" fw-cl "><span>。</span></span></p>
+<p>本小节对 Babel 编译结果的进行分析<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>抛砖引玉<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>希望感兴趣的读者可以自行研究更多内容<span class=" fw-cl "><span>。</span></span>值得提醒大家的一个细节是<span class=" fw-cl "><span>：</span></span>Babel 编译产出结果主要分为两种模式<span class=" fw-cl "><span>，</span></span>normal 模式的转换更贴近 ES Next 的写法<span class=" fw-cl "><span>，</span></span>力求编译转换的更少<span class=" fw-cl "><span>，</span></span>更<span class="fw-op  "><span>「</span></span>激进<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>而另一种模式<span class=" fw-cl "><span>，</span></span>loose 模式则更贴近 ES5 或者现有 ES 老规范的写法<span class=" fw-cl "><span>，</span></span>也就是说在兼容性上更加有保障<span class=" fw-cl "><span>，</span></span>因此转换代码结果也可能会更加的复杂<span class=" fw-cl "><span>。</span></span></p>
+<h3>来自群里一个问题的延伸</h3>
+<p>前两天本课程的核心群里<span class=" fw-cl "><span>，</span></span>有读者问了一个关于 ES6 尾递归调用的问题<span class=" fw-cl "><span>。</span></span>我解释了什么样的行为算是尾递归调用优化<span class=" fw-cl "><span>，</span></span>什么行为不能算尾递归调用优化<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-aeda5b1c71e23bb09775ffa1b5fdfbe9.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:32.97682709447415% 0" data-src="https://pic3.zhimg.com/v2-aeda5b1c71e23bb09775ffa1b5fdfbe9.png">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-bf7fdb02a418b69043f01bd9d8249b59.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:32.97682709447415% 0" data-src="https://pic4.zhimg.com/v2-bf7fdb02a418b69043f01bd9d8249b59.png">加载中...</span></figure>
+<p>简而言之<span class=" fw-cl "><span>：</span></span>递归非常耗费内存<span class=" fw-cl "><span>，</span></span>也很容易发生<span class="fw-op  "><span>「</span></span>栈溢出<span class=" fw-cl "><span>」</span></span>错误<span class=" fw-cl "><span>。</span></span>但是对于尾递归来说<span class=" fw-cl "><span>，</span></span>之所以可能形成优化<span class=" fw-cl "><span>，</span></span>是因为全部执行过程中不会在调用栈上增加新的堆栈帧<span class=" fw-cl "><span>，</span></span>而是直接更新调用栈<span class=" fw-cl "><span>，</span></span>进而永远不会发生<span class="fw-op  "><span>「</span></span>栈溢出<span class=" fw-cl "><span>」</span></span>错误<span class=" fw-cl "><span>。</span></span>因此真正实现尾递归调用优化<span class=" fw-cl "><span>，</span></span>最关键的是改写递归函数<span class=" fw-cl "><span>，</span></span>确保最后只调用自身<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来看 fibonacci 数列求和的例子<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const fibonacci = n =&gt; {<br>
+ &nbsp;if (n === 0) return 0<br>
+ &nbsp;if (n === 1) return 1<br>
+ &nbsp;return fibonacci(n - 1) + fibonacci(n - 2)<br>
+}</code></p>
+<p>fibonacci 数列求和非常耗费内存<span class=" fw-cl "><span>，</span></span>如果用尾递归进行优化<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const fibonacciTail = (n, a = 0, b = 1) =&gt; {<br>
+ &nbsp;if (n === 0) return a<br>
+ &nbsp;return fibonacciTail(n - 1, b, a + b)<br>
+}</code></p>
+<p>我们看<span class=" fw-cl "><span>，</span></span>每次调用 fibonacciTail 函数后<span class=" fw-cl "><span>，</span></span>会继续递归调用 fibonacciTail<span class=" fw-cl "><span>，</span></span>函数的 n 会依次递减 1<span class=" fw-cl "><span>，</span></span>它实际上是用来记录递归剩余求和的次数<span class=" fw-cl "><span>。</span></span>而 a 和 b 两个参数在每次递归时也会在计算后再次传入 fibonacciTail 函数<span class=" fw-cl "><span>，</span></span>最终返回值为 a<span class=" fw-cl "><span>，</span></span>a 是上一次 a + b 的结果<span class=" fw-cl "><span>。</span></span>这样每次递归都不会增加调用栈的长度<span class=" fw-cl "><span>，</span></span>只是更新当前的堆栈帧而已<span class=" fw-cl "><span>。</span></span>也就避免了内存的浪费和爆栈的危险<span class=" fw-cl "><span>。</span></span></p>
+<p>然而可惜的是<span class=" fw-cl "><span>，</span></span>据我所知<span class=" fw-cl "><span>，</span></span>很多浏览器引擎并没有支持尾递归调用优化<span class=" fw-cl "><span>，</span></span>即便支持<span class=" fw-cl "><span>，</span></span>也要求代码运行环境在 strict mode 下<span class=" fw-cl "><span>。</span></span></p>
+<p>那么<span class=" fw-cl "><span>，</span></span>对于不支持尾递归调用优化的场景<span class=" fw-cl "><span>，</span></span>我们可以做些什么实现类似的优化呢<span class=" fw-cl "><span>？</span></span>答案一般有两个<span class=" fw-cl "><span>：</span></span>蹦床函数和改为循环<span class=" fw-cl "><span>。</span></span>改为循环<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const fibonacciLoop = (n, a = 0, b = 1) =&gt; {<br>
+ &nbsp;while(n--) {<br>
+ &nbsp;&nbsp;&nbsp;[a, b] = [b, a + b]<br>
+ &nbsp;}<br>
+ &nbsp;return a<br>
+}</code></p>
+<p>这样一来就不存在函数的多次调用<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>将递归改为循环<span class=" fw-cl "><span>，</span></span>是防止递归暴栈的重要优化点之一<span class=" fw-cl "><span>。</span></span></p>
+<p>另外一个优化手段是使用蹦床函数<span class=" fw-cl "><span>，</span></span>我们来看蹦床函数<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const trampoline = func =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;while(func &amp;&amp; func instanceof Function){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;func = func()<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return func<br>
+}</code></p>
+<p>蹦床函数其实并没有实现真正的尾递归<span class=" fw-cl "><span>，</span></span>它只是将整个执行过程拆散<span class=" fw-cl "><span>，</span></span>还是类似循环的效果<span class=" fw-cl "><span>：</span></span>每次产生一个结果<span class=" fw-cl "><span>，</span></span>该结果将会对下一次执行产生影响<span class=" fw-cl "><span>，</span></span>就像蹦床一样<span class=" fw-cl "><span>，</span></span>越蹦越高<span class=" fw-cl "><span>。</span></span>我们看蹦床函数接受一个函数作为参数<span class=" fw-cl "><span>，</span></span>在蹦床函数内部执行这个函数<span class=" fw-cl "><span>，</span></span>如果执行结果<span class=" fw-cl "><span>，</span></span>也就是该函数的返回值还是一个函数<span class=" fw-cl "><span>，</span></span>那么就继续执行<span class=" fw-cl "><span>。</span></span>一直到返回值不再是一个函数时<span class=" fw-cl "><span>，</span></span>我们返回最终的结果<span class=" fw-cl "><span>。</span></span></p>
+<p>在使用蹦床函数时<span class=" fw-cl "><span>，</span></span>我们的 fibonacci 函数需要进行一定的改动<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const fibonacciFunc = (n, a = 0, b = 1) =&gt; {<br>
+ &nbsp;if (n &gt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;[a, b] = [b, a + b]<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return fibonacciFunc.bind(null, n - 1, a , b)<br>
+ &nbsp;}<br>
+ &nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;return a <br>
+ &nbsp;}<br>
+}</code></p>
+<p>在使用时<span class=" fw-cl "><span>：</span></span></p>
+<p><code>trampoline(fibonacciFunc(10))</code></p>
+<p>就能带到良好的优化效果<span class=" fw-cl "><span>。</span></span></p>
+<p>这是一种比较<span class="fw-op  "><span>「</span></span>取巧<span class=" fw-cl "><span>」</span></span>的方式<span class=" fw-cl "><span>，</span></span>并不是实现了真正的尾递归调用优化<span class=" fw-cl "><span>。</span></span>那么有没有真正实现尾递归调用优化的手段呢<span class=" fw-cl "><span>？</span></span>答案也是有的<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const tailCallOpt = func =&gt; {<br>
+ &nbsp;let result<br>
+ &nbsp;let started = false<br>
+<br>
+ &nbsp;const accumulated = []<br>
+<br>
+ &nbsp;return function accumulator() {<br>
+ &nbsp;&nbsp;&nbsp;accumulated.push(arguments)<br>
+ &nbsp;&nbsp;&nbsp;if (!started) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;started = true<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (accumulated.length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result = func.apply(this, accumulated.shift())<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;started = false<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>同样<span class=" fw-cl "><span>，</span></span>我们改动相应的 fibonacci 函数为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const fibonacciTailOpt = tailCallOpt(function (n, a = 0, b = 1) {<br>
+ &nbsp;if (n === 0) return a<br>
+<br>
+ &nbsp;return fibonacciTailOpt(n - 1, b, a + b)<br>
+})<br>
+<br>
+fibonacciTailOpt(5)</code></p>
+<p>我们观察整个实现过程<span class=" fw-cl "><span>，</span></span>结合修改后的 fibonacciTailOpt 函数尝试理解<span class=" fw-cl "><span>：</span></span>tailCallOpt 接受一个待优化的函数 func<span class=" fw-cl "><span>，</span></span>返回一个新的 accumulator 函数<span class=" fw-cl "><span>。</span></span>执行 fibonacciTailOpt(5) 就是第一步执行 accumulator<span class=" fw-cl "><span>。</span></span></p>
+<p>第一次执行 accumulator 时<span class=" fw-cl "><span>，</span></span>先将参数推入 accumulated 数组当中<span class=" fw-cl "><span>，</span></span>started 标记为 true<span class=" fw-cl "><span>。</span></span>然后进入 while 循环<span class=" fw-cl "><span>，</span></span>循环中执行待优化的 func 函数<span class=" fw-cl "><span>，</span></span>func 这个函数执行过程中需要保证调用 tailCallOpt 函数的返回值<span class=" fw-cl "><span>，</span></span>这里为 fibonacciTailOpt<span class=" fw-cl "><span>；</span></span>第二次执行 accumulator<span class=" fw-cl "><span>，</span></span>将新的参数加入 accumulated 数组<span class=" fw-cl "><span>；</span></span>这样 accumulated 数组长度始终不为零<span class=" fw-cl "><span>，</span></span>循环继续进行<span class=" fw-cl "><span>。</span></span></p>
+<p>整个过程就是 accumulated 数组放进去一个参数<span class=" fw-cl "><span>，</span></span>执行一次<span class=" fw-cl "><span>，</span></span>得到结果<span class=" fw-cl "><span>，</span></span>accumulated 清空<span class=" fw-cl "><span>；</span></span>再放进去新的参数<span class=" fw-cl "><span>，</span></span>执行得到结果<span class=" fw-cl "><span>，</span></span>accumulated 再清空<span class=" fw-cl "><span>，</span></span>以此类推<span class=" fw-cl "><span>。</span></span>直到 func 返回了基本类型值<span class="fw-op  "><span>（</span></span>非函数值<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>这时候 accumulated 数组不会再有新的参数进来<span class=" fw-cl "><span>，</span></span>因此返回最终结果<span class=" fw-cl "><span>。</span></span></p>
+<p>   这是一个通用的尾递归调用优化的轮子实现<span class=" fw-cl "><span>。</span></span>核心原理就是不增加调用栈<span class=" fw-cl "><span>，</span></span>拆成调用单元去分布执行<span class=" fw-cl "><span>。</span></span>理解起来相对晦涩<span class=" fw-cl "><span>。</span></span>不过这只是一点延伸<span class=" fw-cl "><span>，</span></span>和 ES Next 并不太强相关<span class=" fw-cl "><span>，</span></span>读者简单了解一下即可<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>JavaScript 语言<span class=" fw-cl "><span>、</span></span>ES 规范总是在不断进步<span class=" fw-cl "><span>、</span></span>发展<span class=" fw-cl "><span>，</span></span>那么每个开发者都要做到时刻学习<span class=" fw-cl "><span>、</span></span>跟进<span class=" fw-cl "><span>。</span></span>在这个过程中<span class=" fw-cl "><span>，</span></span>除了了解新特性之外<span class=" fw-cl "><span>，</span></span>新老知识相结合<span class=" fw-cl "><span>，</span></span>融会贯通<span class=" fw-cl "><span>，</span></span>不断去思考<span class="fw-op  "><span>「</span></span>是什么<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>为什么<span class=" fw-cl "><span>」</span></span>非常重要<span class=" fw-cl "><span>。</span></span>这节课程挑选了几个典型的特性<span class=" fw-cl "><span>、</span></span>分析了 Babel 编译结果<span class=" fw-cl "><span>、</span></span>最后从尾调用优化展开<span class=" fw-cl "><span>，</span></span>内容并不算太深<span class=" fw-cl "><span>，</span></span>但却是一个很好的的切入角度<span class=" fw-cl "><span>。</span></span></p>
+<p>希望大家能够掌握学习的正确<span class="fw-op  "><span>「</span></span>姿势<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>保持好的心态<span class=" fw-cl "><span>，</span></span>这也是进阶路上至关重要的一点<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1XkLP5OkuGeZ6LvFJ5YQ</span></p>
+</body>
+</html>

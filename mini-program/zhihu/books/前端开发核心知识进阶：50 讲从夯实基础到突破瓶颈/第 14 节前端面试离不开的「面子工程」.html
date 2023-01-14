@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 14 节前端面试离不开的「面子工程」</h1>
+  <p>我们都知道前端开发中的<span class="fw-op  "><span>「</span></span>三驾马车<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>：</span></span>HTML + CSS + JavaScript<span class=" fw-cl "><span>。</span></span>从难易程度<span class=" fw-cl "><span>、</span></span>受关注程度上来讲<span class=" fw-cl "><span>，</span></span>显然 JavaScript 始终处于核心地位<span class=" fw-cl "><span>。</span></span>但是这并不意味着 HTML 和 CSS 不重要<span class=" fw-cl "><span>，</span></span>如果你轻视它们<span class=" fw-cl "><span>，</span></span>那么也许会在工作开发中<span class=" fw-cl "><span>、</span></span>甚至面试中吃亏<span class=" fw-cl "><span>。</span></span></p>
+<p>作为多年的面试官<span class=" fw-cl "><span>，</span></span>我的考察重点无疑是 JavaScript<span class=" fw-cl "><span>，</span></span>但在面试过程中<span class=" fw-cl "><span>，</span></span>每次也总是会<span class="fw-op  "><span>「</span></span>蜻蜓点水<span class=" fw-cl "><span>」</span></span>下<span class=" fw-cl "><span>，</span></span>这足以了解候选者对待 HTML 和 CSS 的态度以及了解程度<span class=" fw-cl "><span>。</span></span>其实事实上<span class=" fw-cl "><span>，</span></span>HTML 和 CSS 也有很多有趣的内容<span class=" fw-cl "><span>，</span></span>下面就让我们在复习重点知识的同时<span class=" fw-cl "><span>，</span></span>了解一些前沿用法<span class=" fw-cl "><span>。</span></span></p>
+<p>这一讲<span class=" fw-cl "><span>，</span></span>我挑选出了 HTML 和 CSS 几个关键概念<span class=" fw-cl "><span>，</span></span>不去力求<span class="fw-op  "><span>「</span></span>面面俱到<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>但希望给大家带来新的启发<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-c0312e1022dc7b5f3ff2ba904469e89e.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:21.482035928143713% 0" data-src="https://pic1.zhimg.com/v2-c0312e1022dc7b5f3ff2ba904469e89e.png">加载中...</span></figure>
+<h3>如何理解 HTML 语义化</h3>
+<p>HTML 语义化——这个概念其实诞生了挺长时间<span class=" fw-cl "><span>，</span></span>我经常发现在面试 JD<span class="fw-op  "><span>（</span></span>Job Description<span class=" fw-cl "><span>）</span></span> 中出现要求候选者<span class="fw-op  "><span>「</span></span>了解 HTML 语义化<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>对 HTML 语义化有深刻认知<span class=" fw-cl "><span>」</span></span>的需求<span class=" fw-cl "><span>。</span></span>对于这么一句 JD 范式标配<span class=" fw-cl "><span>，</span></span>如果面试官真的问起<span class=" fw-cl "><span>，</span></span>该如何回答呢<span class=" fw-cl "><span>？</span></span></p>
+<h4>语义化是什么<span class=" fw-cl "><span>、</span></span>为什么<span class=" fw-cl "><span>、</span></span>怎么做</h4>
+<p>简单来说<span class=" fw-cl "><span>，</span></span>HTML 语义化就是<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>根据结构化的内容<span class=" fw-cl "><span>，</span></span>选择合适的标签<span class=" fw-cl "><span>。</span></span></p>
+<p>那么为什么要做到语义化呢<span class=" fw-cl "><span>？</span></span></p>
+<p>直观上很好理解<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>合适的标签<span class=" fw-cl "><span>」</span></span>是内容表达的高度概括<span class=" fw-cl "><span>，</span></span>这样浏览器爬虫或者任何机器在读取 HTML 时<span class=" fw-cl "><span>，</span></span>都能更好地理解<span class=" fw-cl "><span>，</span></span>进而解析效率更高<span class=" fw-cl "><span>。</span></span>这样带来的收益如下<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">有利于 SEO</li>
+  <li style="">开发维护体验更好</li>
+  <li style="">用户体验更好<span class="fw-op  "><span>（</span></span>如使用 alt 标签用于解释图片信息<span class=" fw-cl "><span>）</span></span></li>
+  <li style="">更好的 accessibility<span class=" fw-cl "><span>，</span></span>方便任何设备解析<span class="fw-op  "><span>（</span></span>如盲人阅读器<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p>那么如何做到语义化呢<span class=" fw-cl "><span>？</span></span></p>
+<p>其实很简单<span class=" fw-cl "><span>，</span></span>这就要求我们实时跟进<span class=" fw-cl "><span>、</span></span>学习并使用语义化标签<span class=" fw-cl "><span>。</span></span>这里我帮大家总结了一些典型的 HTML 标签<span class=" fw-cl "><span>，</span></span>并进行分类<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-4802469f36ad9072abe9c6b063b7e9e5.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:8.613264427217917% 0" data-src="https://pic1.zhimg.com/v2-4802469f36ad9072abe9c6b063b7e9e5.png">加载中...</span></figure>
+<p>我将 HTML 标签分为 9 大类别<span class=" fw-cl "><span>，</span></span>每一种类别都包含有语义化的标签内容<span class=" fw-cl "><span>，</span></span>小图如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-32a5c101342f3d427fea1f122639a382.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:19.73555337904016% 0" data-src="https://pic4.zhimg.com/v2-32a5c101342f3d427fea1f122639a382.png">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-d245539955c6efb08830025ccd582de0.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:25.35575679172057% 0" data-src="https://pic4.zhimg.com/v2-d245539955c6efb08830025ccd582de0.png">加载中...</span></figure>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-51549e64c426db74a07185944f36e7ca.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:37.47126436781609% 0" data-src="https://pic1.zhimg.com/v2-51549e64c426db74a07185944f36e7ca.png">加载中...</span></figure>
+<p>了解了这些语义化的标签<span class=" fw-cl "><span>，</span></span>我们就可以按照<span class="fw-op  "><span>「</span></span>适合内容与否<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>进行使用<span class=" fw-cl "><span>。</span></span>关于选取标准<span class=" fw-cl "><span>，</span></span>我也简单总结了一下<span class=" fw-cl "><span>，</span></span>抽象成代码表达为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>if (导航) {<br>
+ &nbsp;return </code></p><nav><code><br>
+}<br>
+else if (文稿内容<span class=" fw-cl "><span>、</span></span>博客内容<span class=" fw-cl "><span>、</span></span>评论内容...包含标题元素的内容) {<br>
+ &nbsp;return </code><article><code><br>
+}<br>
+else if (目录抽象<span class=" fw-cl "><span>、</span></span>边栏<span class=" fw-cl "><span>、</span></span>广告<span class=" fw-cl "><span>、</span></span>批注) {<br>
+ &nbsp;return </code><aside><code><br>
+}<br>
+else if (含有附录<span class=" fw-cl "><span>、</span></span>图片<span class=" fw-cl "><span>、</span></span>代码<span class=" fw-cl "><span>、</span></span>图形) {<br>
+ &nbsp;return </code><figure><code><br>
+}<br>
+else if (含有多个标题或内容的区块) {<br>
+ return </code><section><code><br>
+}<br>
+else if (含有段落<span class=" fw-cl "><span>、</span></span>语法意义) {<br>
+ &nbsp;return <p> || </p></code><address><code> || </code><blockquote><code> || </code><pre><code> || ...<br>
+}<br>
+else {<br>
+ &nbsp;return </code><div><code><br>
+}<p></p>
+<h4>语义化的发展和高级玩法</h4>
+<p>说到语义化的发展<span class=" fw-cl "><span>，</span></span>我这里指向重点提一个概念<span class=" fw-cl "><span>：</span></span>Microformats<span class=" fw-cl "><span>，</span></span>如果面试官问的语义化时<span class=" fw-cl "><span>，</span></span>你能把这个概念搬出来<span class=" fw-cl "><span>，</span></span>效果是非常好的<span class=" fw-cl "><span>。</span></span>那什么是 Microformats 呢<span class=" fw-cl "><span>？</span></span></p>
+<blockquote><br></blockquote>
+<p>Microformats<span class=" fw-cl "><span>，</span></span>翻译为微格式<span class=" fw-cl "><span>，</span></span>是 HTML 标记某些实体的小模式<span class=" fw-cl "><span>，</span></span>这些实体包括人<span class=" fw-cl "><span>、</span></span>组织<span class=" fw-cl "><span>、</span></span>事件<span class=" fw-cl "><span>、</span></span>地点<span class=" fw-cl "><span>、</span></span>博客<span class=" fw-cl "><span>、</span></span>产品<span class=" fw-cl "><span>、</span></span>评论<span class=" fw-cl "><span>、</span></span>简历<span class=" fw-cl "><span>、</span></span>食谱等<span class=" fw-cl "><span>。</span></span>它们是在 HTML 中嵌套语义的简单协议<span class=" fw-cl "><span>，</span></span>且能迅速地提供一套可被搜索引擎<span class=" fw-cl "><span>、</span></span>聚合器等其他工具使用的 API<span class=" fw-cl "><span>。</span></span></p>
+<p>除了 hCard 和 hCalendar<span class=" fw-cl "><span>，</span></span>有好几个库特别开发了微格式<span class=" fw-cl "><span>。</span></span></p>
+<p>是不是看的一脸懵逼<span class=" fw-cl "><span>？</span></span>其实很简单<span class=" fw-cl "><span>，</span></span>Microformats 的原理就是扩展 HTML 元素或者属性<span class=" fw-cl "><span>，</span></span>来增强 HTML 的语义表达能力<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来看一个案例<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-3a2684881c3cb1c0ff3f7f7ab9a7415e.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:28.306451612903228% 0" data-src="https://pic2.zhimg.com/v2-3a2684881c3cb1c0ff3f7f7ab9a7415e.png">加载中...</span></figure>
+<p>Wikipedia 的页面中<span class=" fw-cl "><span>，</span></span>给某一部分加上了 vCard 的 class<span class=" fw-cl "><span>，</span></span>这是用来做什么的呢<span class=" fw-cl "><span>？</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-b35e120bb44cf92e95bba6ef781a9290.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:29.919354838709676% 0" data-src="https://pic1.zhimg.com/v2-b35e120bb44cf92e95bba6ef781a9290.png">加载中...</span></figure>
+<p>Google 搜索引擎可以通过 Wikipedia 页面 vCard 这个 class<span class=" fw-cl "><span>，</span></span>读取相关内容<span class=" fw-cl "><span>，</span></span>在呈现搜索结果时<span class=" fw-cl "><span>，</span></span>匹配展现出人物信息<span class=" fw-cl "><span>。</span></span>从而语义化的 class<span class=" fw-cl "><span>，</span></span>帮助了机器<span class="fw-op  "><span>（</span></span>搜索爬出<span class=" fw-cl "><span>）</span></span>学习到更多信息<span class=" fw-cl "><span>，</span></span>展现出了更好的结果页面<span class=" fw-cl "><span>。</span></span></p>
+<p>Microdata 属于 WHATWG<span class="fw-op  "><span>（</span></span>网页超文本应用技术工作小组<span class=" fw-cl "><span>：</span></span>Web Hypertext Application Technology Working<span class=" fw-cl "><span>）</span></span> HTML 规范<span class=" fw-cl "><span>，</span></span>它并不是标准<span class=" fw-cl "><span>，</span></span>但这是一个很典型的语义化发展和应用尝试<span class=" fw-cl "><span>。</span></span></p>
+<h3>BFC 背后的布局问题</h3>
+<p>CSS 给人的感觉就是 simple<span class=" fw-cl "><span>，</span></span>但是前端开发者一定深有体会<span class=" fw-cl "><span>：</span></span>simple 并不意味着 easy<span class=" fw-cl "><span>。</span></span>我们这里不一一列举各种 CSS <span class="fw-op  "><span>「</span></span>疑难杂症<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>而是深入一个概念 —— BFC<span class=" fw-cl "><span>。</span></span>BFC 是前端面试中的一个超级热点<span class=" fw-cl "><span>，</span></span>今日头条某部门曾经就问过我<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>请解释一下 BFC 是什么<span class=" fw-cl "><span>？</span></span></p>
+<p>回答这个问题并不困难<span class=" fw-cl "><span>，</span></span>但是我们可以继续追问<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>BFC 会引起哪些布局现象<span class=" fw-cl "><span>？</span></span></p>
+<p>这一小节<span class=" fw-cl "><span>，</span></span>我们通过对 BFC 的分析<span class=" fw-cl "><span>，</span></span>也顺带回顾一下那些 CSS 常考的小细节<span class=" fw-cl "><span>。</span></span></p>
+<h4>BFC 是什么</h4>
+<p>简单来说<span class=" fw-cl "><span>，</span></span>BFC 就是<span class=" fw-cl "><span>：</span></span></p>
+<p>BFC 是 Block Formatting Context 的简写<span class=" fw-cl "><span>，</span></span>我们可以直接翻译成<span class="fw-op  "><span>「</span></span>块级格式化上下文<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>它会创建一个特殊的区域<span class=" fw-cl "><span>，</span></span>在这个区域中<span class=" fw-cl "><span>，</span></span>只有 block box 参与布局<span class=" fw-cl "><span>。</span></span>而 BFC 的一套特点和规则就规定了在这个特殊的区域中如何进行布局<span class=" fw-cl "><span>，</span></span>如何进行定位<span class=" fw-cl "><span>，</span></span>区域内元素的相互关系和相互作用<span class=" fw-cl "><span>。</span></span>这个特殊的区域不受外界影响<span class=" fw-cl "><span>。</span></span></p>
+<p>上面提到了 block box 的概念<span class=" fw-cl "><span>，</span></span>block box 是指 display 属性为 block<span class=" fw-cl "><span>、</span></span>list-item<span class=" fw-cl "><span>、</span></span>table 的元素<span class=" fw-cl "><span>。</span></span></p>
+<p>顺便插一个问题<span class=" fw-cl "><span>：</span></span>那你还知道其他哪些 box 类型呢<span class=" fw-cl "><span>？</span></span></p>
+<p>相应地<span class=" fw-cl "><span>，</span></span>我们有 inline box<span class=" fw-cl "><span>，</span></span>它是指 display 属性为 inline<span class=" fw-cl "><span>、</span></span>inline-block<span class=" fw-cl "><span>、</span></span>inline-table 的元素<span class=" fw-cl "><span>。</span></span>CSS3 规范中又加入了 run in box<span class=" fw-cl "><span>，</span></span>这里我们不再展开<span class=" fw-cl "><span>。</span></span></p>
+<h4>如何形成 BFC</h4>
+<p>那么什么样的情况会创建一个 BFC 呢<span class=" fw-cl "><span>？</span></span>MDN 总结如下<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">根元素或其他包含它的元素</li>
+  <li style="">浮动元素 (元素的 float 不是 none)</li>
+  <li style="">绝对定位元素 (元素具有 position 为 absolute 或 fixed)</li>
+  <li style="">内联块 (元素具有 display: inline-block)</li>
+  <li style="">表格单元格 (元素具有 display: table-cell<span class=" fw-cl "><span>，</span></span>HTML 表格单元格默认属性)</li>
+  <li style="">表格标题 (元素具有 display: table-caption, HTML 表格标题默认属性)</li>
+  <li style="">具有 overflow 且值不是 visible 的块元素</li>
+  <li style="">display: flow-root 的元素</li>
+  <li style="">column-span: all 的元素</li>
+</ul>
+<h4>BFC 决定了什么</h4>
+<p>我们上面谈到了 BFC 的一套规则<span class=" fw-cl "><span>，</span></span>那么这些规则都有哪些呢<span class=" fw-cl "><span>？</span></span></p>
+<ul>
+  <li style="">内部的 box 将会独占宽度<span class=" fw-cl "><span>，</span></span>且在垂直方向<span class=" fw-cl "><span>，</span></span>一个接一个排列</li>
+  <li style="">box 垂直方向的间距由 margin 属性决定<span class=" fw-cl "><span>，</span></span>但是同一个 BFC 的两个相邻 box 的 margin 会出现边距折叠现象</li>
+  <li style="">每个 box 水平方向上左边缘<span class=" fw-cl "><span>，</span></span>与 BFC 左边缘相对齐<span class=" fw-cl "><span>，</span></span>即使存在浮动也是如此</li>
+  <li style="">BFC 区域不会与浮动元素重叠<span class=" fw-cl "><span>，</span></span>而是会依次排列</li>
+  <li style="">BFC 区域内是一个独立的渲染容器<span class=" fw-cl "><span>，</span></span>容器内元素和 BFC 区域外元素不会形成任何干扰</li>
+  <li style="">浮动元素的高度也参与到 BFC 高度的计算当中</li>
+</ul>
+<p>从这些规则中<span class=" fw-cl "><span>，</span></span>我们至少能总结出一些关键要点<span class=" fw-cl "><span>，</span></span>比如<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">边距折叠</li>
+  <li style="">清除浮动</li>
+  <li style="">自适应多栏布局</li>
+</ul>
+<p>这也是我选取 BFC 这个概念来剖析的原因<span class=" fw-cl "><span>，</span></span>理解了 BFC<span class=" fw-cl "><span>，</span></span>这些常见<span class=" fw-cl "><span>、</span></span>常考知识点我们都可以融会贯通<span class=" fw-cl "><span>，</span></span>具体来看下下面的场景<span class=" fw-cl "><span>。</span></span></p>
+<h4>BFC 实战应用</h4>
+<ul>
+  <li style="">例题 1</li>
+</ul>
+<p>给出如下代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code><style><br>
+ &nbsp;&nbsp;&nbsp;body {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;width: 600px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;position: relative;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;.left {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;width: 80px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;height: 150px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;float: left;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;background: blue;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;.right {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;height: 200px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;background: red;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+</style><br>
+<br>
+<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div class="left"></div><code><br>
+ &nbsp;&nbsp;&nbsp;<div class="right"></div><br>
+</code><p></p>
+<p>我们得到布局如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-b0d96bc2ee52377c08aabaa45f28154c.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:17.15686274509804% 0" data-src="https://pic4.zhimg.com/v2-b0d96bc2ee52377c08aabaa45f28154c.png">加载中...</span></figure>
+<p>请在不修改已有内容情况下<span class=" fw-cl "><span>，</span></span>加入样式<span class=" fw-cl "><span>，</span></span>实现自适应<span class="fw-op  "><span>（</span></span>.left 宽度固定<span class=" fw-cl "><span>，</span></span>.right 占满剩下宽度<span class=" fw-cl "><span>）</span></span>两栏布局<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来思考<span class=" fw-cl "><span>：</span></span>根据 BFC 布局规则<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>每个 box 水平方向上左边缘<span class=" fw-cl "><span>，</span></span>与 BFC 左边缘相对齐<span class=" fw-cl "><span>。</span></span>即使存在浮动也是如此<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>因此 .left 和 .right 的左边相接触<span class=" fw-cl "><span>。</span></span>出现如此布局结果并不意外<span class=" fw-cl "><span>。</span></span></p>
+<p>同时<span class=" fw-cl "><span>，</span></span>再想想 BFC 布局规则<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>BFC 区域不会与浮动元素重叠<span class=" fw-cl "><span>，</span></span>而是会依次排列<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>因此我们可以使 .right 形成 BFC<span class=" fw-cl "><span>，</span></span>来实现自适应两栏布局<span class=" fw-cl "><span>。</span></span>如何形成 BFC 前面已经做过介绍了<span class=" fw-cl "><span>，</span></span>于是添加<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.right {<br>
+ &nbsp;&nbsp;&nbsp;overflow: hidden;<br>
+}</code></p>
+<p>就可以得到<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-c5f0e8e58003a472459a22c81b0ea68b.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:17.598684210526315% 0" data-src="https://pic4.zhimg.com/v2-c5f0e8e58003a472459a22c81b0ea68b.png">加载中...</span></figure>
+<p>当然<span class=" fw-cl "><span>，</span></span>这种布局可以用更先进的 flex 或者 grid 手段解决<span class=" fw-cl "><span>，</span></span>但是对于 BFC 这些 CSS 基础知识<span class=" fw-cl "><span>，</span></span>同样要做到了然于胸<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">例题 2</li>
+</ul>
+<p>看代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code><style><br>
+ &nbsp;&nbsp;&nbsp;.root {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;border: 5px solid blue;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;width: 300px;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;.child {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;border: 5px solid red;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;width:100px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;height: 100px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;float: left;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+</style><br>
+<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div class="root"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="child child1"></div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="child child2"></div><br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+</code><p></p>
+<p>首先来回答第一个问<span class=" fw-cl "><span>：</span></span><strong style="">.root 的高度是多少<span class=" fw-cl "><span>？</span></span></strong></p>
+<p>事实上<span class=" fw-cl "><span>，</span></span>因为 .child 为浮动元素<span class=" fw-cl "><span>，</span></span>因此造成了<span class="fw-op  "><span>「</span></span>高度塌陷<span class=" fw-cl "><span>」</span></span>现象<span class=" fw-cl "><span>，</span></span>.root 的高度为 0<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-2fd51f4556df001e29b02c5610e58184.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:42.58064516129032% 0" data-src="https://pic1.zhimg.com/v2-2fd51f4556df001e29b02c5610e58184.png">加载中...</span></figure>
+<p>那么如何解决<span class="fw-op  "><span>「</span></span>高度塌陷<span class=" fw-cl "><span>」</span></span>问题呢<span class=" fw-cl "><span>？</span></span></p>
+<p>想想 BFC 规则<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>浮动元素的高度也参与到 BFC 高度的计算当中<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>因此使 .root 形成 BFC<span class=" fw-cl "><span>，</span></span>就能解决问题<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.root {<br>
+ &nbsp;&nbsp;&nbsp;overflow: hidden;<br>
+}</code></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-e21e091582d4093020b5bc97ce982e11.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:47.74193548387097% 0" data-src="https://pic1.zhimg.com/v2-e21e091582d4093020b5bc97ce982e11.png">加载中...</span></figure>
+<p>我们看此时高度已经被你撑开了<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">例题 3</li>
+</ul>
+<p>代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code><style><br>
+ &nbsp;&nbsp;&nbsp;p {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color: blue;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;background: red;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;width: 400px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;line-height: 100px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text-align:center;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;margin: 40px;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+</style><br>
+<br>
+ &nbsp;&nbsp;&nbsp;</code></p><p><code>paragraph 1</code></p><code><br>
+ &nbsp;&nbsp;&nbsp;<p>paragraph 2</p><br>
+</code><p></p>
+<p>首先回答问题<span class=" fw-cl "><span>：</span></span><strong style="">两段之间的垂直距离为多少<span class=" fw-cl "><span>？</span></span></strong> 想想 BFC 规则<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>box 垂直方向的间距由 margin 属性决定<span class=" fw-cl "><span>，</span></span>但是<strong style="">同一个</strong>BFC 的两个相邻 box 的 margin 会出现边距折叠现象<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>因为边距折叠现象<span class=" fw-cl "><span>，</span></span>答案为 40px<span class=" fw-cl "><span>。</span></span></p>
+<p>那么如何解决这个问题呢<span class=" fw-cl "><span>？</span></span></p>
+<p>最简单地<span class=" fw-cl "><span>，</span></span>我们可以在 p 标签再包裹一个元素<span class=" fw-cl "><span>，</span></span>并触发该元素形成一个 BFC<span class=" fw-cl "><span>。</span></span>那么这两个 p 标签<span class=" fw-cl "><span>，</span></span>不再属于同一个 BFC<span class=" fw-cl "><span>，</span></span>从而解决问题<span class=" fw-cl "><span>。</span></span></p>
+<p><code><style><br>
+ &nbsp;&nbsp;&nbsp;p {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color: blue;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;background: red;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;width: 400px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;line-height: 100px;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text-align:center;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;margin: 40px;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;.wrapper {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;overflow: hidden<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+</style><br>
+<br>
+ &nbsp;&nbsp;&nbsp;</code></p><p><code>paragraph 1</code></p><code><br>
+ &nbsp;&nbsp;&nbsp;<div class="wrapper"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<p>paragraph 2</p><br>
+ &nbsp;&nbsp;&nbsp;</div><br>
+</code><p></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-9a1011508bb3d3dc58884ff67f30d135.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:36.08870967741936% 0" data-src="https://pic1.zhimg.com/v2-9a1011508bb3d3dc58884ff67f30d135.png">加载中...</span></figure>
+<p><strong style="">总结</strong><span class=" fw-cl "><span>：</span></span>我们通过分析 BFC 是什么<span class=" fw-cl "><span>、</span></span>如何形成<span class=" fw-cl "><span>、</span></span>布局规则<span class=" fw-cl "><span>，</span></span>融会贯通了 CSS 当中很多关键问题<span class=" fw-cl "><span>。</span></span>也许不少读者能够解决<span class="fw-op  "><span>「</span></span>边距折叠<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>多栏自适应<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>高度塌陷<span class=" fw-cl "><span>」</span></span>等问题<span class=" fw-cl "><span>，</span></span>但是并不能说出解决问题的原理<span class=" fw-cl "><span>。</span></span>通过这一环节的学习<span class=" fw-cl "><span>，</span></span>我们对 CSS 加深了理解<span class=" fw-cl "><span>，</span></span>我更希望地是能够启发大家思考<span class=" fw-cl "><span>：</span></span>我们到底应该如何对待 CSS<span class=" fw-cl "><span>、</span></span>如何学习 CSS<span class=" fw-cl "><span>。</span></span></p>
+<h3>多种方式实现居中</h3>
+<p><span class="fw-op  "><span>「</span></span>实现居中<span class=" fw-cl "><span>」</span></span>也是一道必考题<span class=" fw-cl "><span>。</span></span>参考代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code><style><br>
+.wp {<br>
+ &nbsp;&nbsp;&nbsp;border: 1px solid red;<br>
+ &nbsp;&nbsp;&nbsp;width: 300px;<br>
+ &nbsp;&nbsp;&nbsp;height: 300px;<br>
+}<br>
+<br>
+.box {<br>
+ &nbsp;&nbsp;&nbsp;background: green; &nbsp;&nbsp;&nbsp;<br>
+}<br>
+<br>
+.box .fixed-size {<br>
+ &nbsp;&nbsp;&nbsp;width: 100px;<br>
+ &nbsp;&nbsp;&nbsp;height: 100px;<br>
+}<br>
+</style><br>
+<br>
+<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div class="wp"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="box fixed-size">text</div><br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+</code><p></p>
+<p>如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-2d4bea08c716e372f2776bf309804322.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:49.382716049382715% 0" data-src="https://pic1.zhimg.com/v2-2d4bea08c716e372f2776bf309804322.png">加载中...</span></figure>
+<p>如何让绿色的块水平垂直居中呢<span class=" fw-cl "><span>？</span></span></p>
+<p>总结一下<span class=" fw-cl "><span>：</span></span></p>
+<h4>仅适用于居中元素定宽高</h4>
+<ul>
+  <li style="">absolute + 负 margin</li>
+</ul>
+<p><code>.wp {<br>
+ &nbsp;&nbsp;&nbsp;position: relative;<br>
+}<br>
+.box {<br>
+ &nbsp;&nbsp;&nbsp;position: absolute;;<br>
+ &nbsp;&nbsp;&nbsp;top: 50%;<br>
+ &nbsp;&nbsp;&nbsp;left: 50%;<br>
+ &nbsp;&nbsp;&nbsp;margin-left: -50px;<br>
+ &nbsp;&nbsp;&nbsp;margin-top: -50px;<br>
+}</code></p>
+<p>绝对定位的百分比是相对于父元素的宽高<span class=" fw-cl "><span>，</span></span>我们设置<span class=" fw-cl "><span>：</span></span></p>
+<p><code>top: 50%;<br>
+left: 50%;</code></p>
+<p>使得元素偏移后<span class=" fw-cl "><span>，</span></span>在修正元素自身宽高的一半即可<span class=" fw-cl "><span>：</span></span></p>
+<p><code>margin-left: -50px;<br>
+margin-top: -50px;</code></p>
+<p>这其实是一个简单的数学几何运算<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">absolute + margin auto</li>
+</ul>
+<p><code>.wp {<br>
+ &nbsp;&nbsp;&nbsp;position: relative;<br>
+}<br>
+.box {<br>
+ &nbsp;&nbsp;&nbsp;position: absolute;;<br>
+ &nbsp;&nbsp;&nbsp;top: 0;<br>
+ &nbsp;&nbsp;&nbsp;left: 0;<br>
+ &nbsp;&nbsp;&nbsp;right: 0;<br>
+ &nbsp;&nbsp;&nbsp;bottom: 0;<br>
+ &nbsp;&nbsp;&nbsp;margin: auto;<br>
+}</code></p>
+<p>这种方式将设置各个方向的距离都是 0<span class=" fw-cl "><span>，</span></span>此时配合 margin 为 auto<span class=" fw-cl "><span>，</span></span>就可以在各个方向上居中了<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">absolute + calc</li>
+</ul>
+<p><code>.root {<br>
+ &nbsp;&nbsp;&nbsp;position: relative;<br>
+}<br>
+.textBox {<br>
+ &nbsp;&nbsp;&nbsp;position: absolute;;<br>
+ &nbsp;&nbsp;&nbsp;top: calc(50% - 50px);<br>
+ &nbsp;&nbsp;&nbsp;left: calc(50% - 50px);<br>
+}</code></p>
+<p>此种方法和第一种类似<span class=" fw-cl "><span>，</span></span>不再展开<span class=" fw-cl "><span>。</span></span></p>
+<h4>居中元素不定宽高</h4>
+<p>对于剧中元素不定宽高的情况<span class=" fw-cl "><span>：</span></span></p>
+<p><code><style><br>
+.wp {<br>
+ &nbsp;&nbsp;&nbsp;border: 1px solid red;<br>
+ &nbsp;&nbsp;&nbsp;width: 300px;<br>
+ &nbsp;&nbsp;&nbsp;height: 300px;<br>
+}<br>
+<br>
+.box {<br>
+ &nbsp;&nbsp;&nbsp;background: green; &nbsp;&nbsp;&nbsp;<br>
+}<br>
+</style><br>
+<br>
+<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div class="wp"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="box ">text</div><br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+</code><p></p>
+<p>我们依然也有很多方法<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">absolute + transform</li>
+</ul>
+<p>不定宽高时<span class=" fw-cl "><span>，</span></span>利用 CSS3 新增的 transform<span class=" fw-cl "><span>，</span></span>transform 的 translate 属性也可以设置百分比<span class=" fw-cl "><span>，</span></span>这个百分比是相对于自身的宽和高<span class=" fw-cl "><span>，</span></span>因此可以将 translate 设置为 ﹣50%<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.wp {<br>
+ &nbsp;&nbsp;&nbsp;position: relative;<br>
+}<br>
+.box {<br>
+ &nbsp;&nbsp;&nbsp;position: absolute;<br>
+ &nbsp;&nbsp;&nbsp;top: 50%;<br>
+ &nbsp;&nbsp;&nbsp;left: 50%;<br>
+ &nbsp;&nbsp;&nbsp;transform: translate(-50%, -50%);<br>
+}</code></p>
+<p>原理和第一种方法也类似<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">lineheight</li>
+</ul>
+<p>把 box 设置为行内元素<span class=" fw-cl "><span>，</span></span>通过 text-align 也可以做到水平居中<span class=" fw-cl "><span>，</span></span>同时通过 vertical-align 做到垂直方向上的居中<span class=" fw-cl "><span>，</span></span>代码如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.wp {<br>
+ &nbsp;&nbsp;&nbsp;line-height: 300px;<br>
+ &nbsp;&nbsp;&nbsp;text-align: center;<br>
+ &nbsp;&nbsp;&nbsp;font-size: 0px;<br>
+}<br>
+.box {<br>
+ &nbsp;&nbsp;&nbsp;font-size: 16px;<br>
+ &nbsp;&nbsp;&nbsp;display: inline-block;<br>
+ &nbsp;&nbsp;&nbsp;vertical-align: middle;<br>
+ &nbsp;&nbsp;&nbsp;line-height: initial;<br>
+ &nbsp;&nbsp;&nbsp;text-align: left; /* 修正文字 */<br>
+}</code></p>
+<p>这个方法充分利用了行内 / 块级元素的特点<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">table</li>
+</ul>
+<p>其实历史上 table 经常被用来做页面布局<span class=" fw-cl "><span>，</span></span>这么做的缺点是会增加很多冗余代码<span class=" fw-cl "><span>，</span></span>并且性能也不友好<span class=" fw-cl "><span>。</span></span>不过处理居中问题<span class=" fw-cl "><span>，</span></span>它可是能手<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><code><br>
+ &nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code><br>
+ &nbsp;&nbsp;&nbsp;</code><code><br>
+</code><table><tbody><tr><td class="wp"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div class="box">test</div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr></tbody></table><code><br>
+<br>
+.wp {<br>
+ &nbsp;&nbsp;&nbsp;text-align: center;<br>
+}<br>
+.box {<br>
+ &nbsp;&nbsp;&nbsp;display: inline-block;<br>
+}</code><p></p>
+<ul>
+  <li style="">css-table</li>
+</ul>
+<p>如何使用 table 布局的特性效果<span class=" fw-cl "><span>，</span></span>但是不采用 table 元素呢<span class=" fw-cl "><span>？</span></span>答案是 css-table<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.wp {<br>
+ &nbsp;&nbsp;&nbsp;display: table-cell;<br>
+ &nbsp;&nbsp;&nbsp;text-align: center;<br>
+ &nbsp;&nbsp;&nbsp;vertical-align: middle;<br>
+}<br>
+.box {<br>
+ &nbsp;&nbsp;&nbsp;display: inline-block;<br>
+}</code></p>
+<p>我们使用了 display: table-cell<span class=" fw-cl "><span>，</span></span>同时和 table 布局相比<span class=" fw-cl "><span>，</span></span>减少了很多冗余代码<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">flex</li>
+</ul>
+<p>flex 是非常现代的布局方案<span class=" fw-cl "><span>，</span></span>只需几行代码就可以优雅地做到居中<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.wp {<br>
+ &nbsp;&nbsp;&nbsp;display: flex;<br>
+ &nbsp;&nbsp;&nbsp;justify-content: center;<br>
+ &nbsp;&nbsp;&nbsp;align-items: center;<br>
+}</code></p>
+<ul>
+  <li style="">grid</li>
+</ul>
+<p>grid 布局非常超前<span class=" fw-cl "><span>，</span></span>虽然兼容性不好<span class=" fw-cl "><span>，</span></span>但是能力超强<span class=" fw-cl "><span>：</span></span></p>
+<p><code>.wp {<br>
+ &nbsp;&nbsp;&nbsp;display: grid;<br>
+}<br>
+.box {<br>
+ &nbsp;&nbsp;&nbsp;align-self: center;<br>
+ &nbsp;&nbsp;&nbsp;justify-self: center;<br>
+}</code></p>
+<p>我们总结一下<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">PC 端有兼容性要求<span class=" fw-cl "><span>，</span></span>宽高固定<span class=" fw-cl "><span>，</span></span>推荐 absolute + 负 margin</li>
+  <li style="">PC 端有兼容要求<span class=" fw-cl "><span>，</span></span>宽高不固定<span class=" fw-cl "><span>，</span></span>推荐 css-table</li>
+  <li style="">PC 端无兼容性要求<span class=" fw-cl "><span>，</span></span>推荐 flex</li>
+  <li style="">移动端推荐使用 flex</li>
+</ul>
+<p>最后整理一个列表<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-7817d37a163e710afaf13de3d8f627b3.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:30.201612903225804% 0" data-src="https://pic4.zhimg.com/v2-7817d37a163e710afaf13de3d8f627b3.png">加载中...</span></figure>
+<h3>总结</h3>
+<p>HTML 和 CSS 面试中考察较少<span class=" fw-cl "><span>，</span></span>但是如果答的不好<span class=" fw-cl "><span>，</span></span>将是致命性的<span class=" fw-cl "><span>。</span></span>同时工作中<span class=" fw-cl "><span>，</span></span>如果这方面知识存在短板<span class=" fw-cl "><span>，</span></span>往往会造成不必要的效率消耗<span class=" fw-cl "><span>。</span></span>我们应该正视前端领域这两个离不开的<span class="fw-op  "><span>「</span></span>面子工程<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>为了更好的面试结果<span class=" fw-cl "><span>，</span></span>更为了自己的技能<span class=" fw-cl "><span>。</span></span><br>
+<br>
+</p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1eY6Xa3pc6PKaxpFD0Lp</span></p></code></div></pre></blockquote></address></section></figure></aside></article></nav>
+</body>
+</html>

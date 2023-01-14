@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 36 节以 React 为例，说说框架和性能（1）</h1>
+  <p>在上一节课中<span class=" fw-cl "><span>，</span></span>我们提到了性能优化<span class=" fw-cl "><span>。</span></span>在这个话题上<span class=" fw-cl "><span>，</span></span>除了工程化层面的优化和语言层面的优化以外<span class=" fw-cl "><span>，</span></span>框架性能也备受瞩目<span class=" fw-cl "><span>。</span></span>这一节课<span class=" fw-cl "><span>，</span></span>我们就来聊聊框架的性能话题<span class=" fw-cl "><span>，</span></span>并以 React 为例进行分析<span class=" fw-cl "><span>。</span></span></p>
+<p>主要知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-dd13793859debac5bc9930e68b38fc48.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:18.917819365337674% 0" data-src="https://pic2.zhimg.com/v2-dd13793859debac5bc9930e68b38fc48.png">加载中...</span></figure>
+<h3>框架性能到底指什么</h3>
+<p>说起框架的性能话题<span class=" fw-cl "><span>，</span></span>很多读者可能会想到<span class="fw-op  "><span>「</span></span>不要过早地做优化<span class=" fw-cl "><span>」</span></span>这条原则<span class=" fw-cl "><span>。</span></span>实际上<span class=" fw-cl "><span>，</span></span>大部分应用的复杂度并不会对性能和产品体验构成挑战<span class=" fw-cl "><span>。</span></span>毕竟在之前课程中我们学习到<span class=" fw-cl "><span>，</span></span>现代化的框架凭借高效的虚拟 DOM diff 算法和<span class="fw-op  "><span>（</span></span>或<span class=" fw-cl "><span>）</span></span>响应式理念<span class=" fw-cl "><span>，</span></span>以及框架内部引擎<span class=" fw-cl "><span>，</span></span>已经做得较为完美了<span class=" fw-cl "><span>，</span></span>一般项目需求对性能的压力并不大<span class=" fw-cl "><span>。</span></span></p>
+<p>但是对于一些极其复杂的需求<span class=" fw-cl "><span>，</span></span>性能优化是无法回避的<span class=" fw-cl "><span>。</span></span>如果你开发的是图形处理应用<span class=" fw-cl "><span>、</span></span>DNA 检测实验应用<span class=" fw-cl "><span>、</span></span>富文本编辑器或者功能丰富的表单型应用<span class=" fw-cl "><span>，</span></span>则很容易触碰到性能瓶颈<span class=" fw-cl "><span>。</span></span>同样<span class=" fw-cl "><span>，</span></span>作为框架的使用者<span class=" fw-cl "><span>，</span></span>也需要对性能优化有所了解<span class=" fw-cl "><span>，</span></span>这对于理解框架本身也是有很大帮助的<span class=" fw-cl "><span>。</span></span></p>
+<p>前端开发自然离不开浏览器<span class=" fw-cl "><span>，</span></span>而性能优化大都在和浏览器打交道<span class=" fw-cl "><span>。</span></span>我们知道<span class=" fw-cl "><span>，</span></span>页面每一帧的变化都是由浏览器绘制出来的<span class=" fw-cl "><span>，</span></span>并且这个绘制频率受限于显示器的刷新频率<span class=" fw-cl "><span>，</span></span>因此一个重要的性能数据指标是每秒 60 帧的绘制频率<span class=" fw-cl "><span>。</span></span>这样进行简单的换算之后<span class=" fw-cl "><span>，</span></span>每一帧只有 16.6ms 的绘制时间<span class=" fw-cl "><span>。</span></span></p>
+<p>如果一个应用对用户的交互响应处理过慢<span class=" fw-cl "><span>，</span></span>则需要花费很长的时间来计算更新数据<span class=" fw-cl "><span>，</span></span>这就造成了应用缓慢<span class=" fw-cl "><span>、</span></span>性能低下的问题<span class=" fw-cl "><span>，</span></span>被用户感知造成极差的用户体验<span class=" fw-cl "><span>。</span></span>对于框架来说<span class=" fw-cl "><span>，</span></span>以 React 为例<span class=" fw-cl "><span>，</span></span>开发者不需要额外关注 DOM 层面的操作<span class=" fw-cl "><span>。</span></span>因为 React 通过维护虚拟 DOM 及其高效的 diff 算法<span class=" fw-cl "><span>，</span></span>可以决策出每次更新的最小化 DOM batch 操作<span class=" fw-cl "><span>。</span></span><strong style="">但实际上<span class=" fw-cl "><span>，</span></span>使用 React 能完成的性能优化<span class=" fw-cl "><span>，</span></span>使用纯原生的 JavaScript 都能做到<span class=" fw-cl "><span>，</span></span>甚至做得更好<span class=" fw-cl "><span>。</span></span>只不过经过 React 统一处理后<span class=" fw-cl "><span>，</span></span>大大节省了开发成本<span class=" fw-cl "><span>，</span></span>同时也降低了应用性能对开发者优化技能的依赖<span class=" fw-cl "><span>。</span></span></strong></p>
+<p><strong style="">因此现代框架的性能表现<span class=" fw-cl "><span>，</span></span>除了想办法缩减自身的 bundle size 之外<span class=" fw-cl "><span>，</span></span>主要优化点就在于框架本身运行时对 DOM 层操作的合理性以及自身引擎计算的高效性<span class=" fw-cl "><span>。</span></span></strong>这一点我们会通过两节课程来慢慢展开<span class=" fw-cl "><span>。</span></span></p>
+<h3>React 的虚拟 DOM diff</h3>
+<p>React 主要通过以下几种方式来保证虚拟的 DOM diff 算法和更新的高效性能<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">高效的 diff 算法</li>
+  <li style="">Batch 操作</li>
+  <li style="">摒弃脏检测更新方式</li>
+</ul>
+<p>当任何一个组件使用 setState 方法时<span class=" fw-cl "><span>，</span></span>React 都会认为该组件变<span class="fw-op  "><span>「</span></span>脏<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>触发组件本身的重新渲染<span class="fw-op  "><span>（</span></span>re-render<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span>同时因其始终维护两套虚拟的 DOM<span class=" fw-cl "><span>，</span></span>其中一套是更新后的虚拟的 DOM<span class=" fw-cl "><span>；</span></span>另一套是前一个状态的虚拟的 DOM<span class=" fw-cl "><span>。</span></span>通过对这两套虚拟的 DOM 的 diff 算法<span class=" fw-cl "><span>，</span></span>找到需要变化的最小单元集<span class=" fw-cl "><span>，</span></span>然后把这个最小单元集应用在真实的 DOM 当中<span class=" fw-cl "><span>。</span></span></p>
+<p>而通过 diff 算法找到这个最小单元集后<span class=" fw-cl "><span>，</span></span>React 采用启发式的思路进行了一些假设<span class=" fw-cl "><span>，</span></span>将两棵 DOM 树之间的 diff 成本由 O(n3) 缩减到 O(n)<span class=" fw-cl "><span>。</span></span></p>
+<p>说到这里<span class=" fw-cl "><span>，</span></span>你一定很想知道 React 的那些大胆假设吧<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">DOM 节点跨层级移动忽略不计</li>
+  <li style="">拥有相同类的两个组件生成相似的树形结构<span class=" fw-cl "><span>，</span></span>拥有不同类的两个组件生成不同的树形结构</li>
+</ul>
+<p>根据这些假设<span class=" fw-cl "><span>，</span></span>ReactJS 采取的策略如下<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">React 对组件树进行分层比较<span class=" fw-cl "><span>，</span></span>两棵树只会对同一层级的节点进行比较</li>
+  <li style="">当对同一层级节点进行比较时<span class=" fw-cl "><span>，</span></span>对于不同的组件类型<span class=" fw-cl "><span>，</span></span>直接将整个组件替换为新类型组件</li>
+</ul>
+<p>对于下图所示的组件结构<span class=" fw-cl "><span>，</span></span>我们可以想象<span class=" fw-cl "><span>：</span></span>如果子组件 B 和 H 的类型同时发生变化<span class=" fw-cl "><span>，</span></span>当遍历到 B 组件时<span class=" fw-cl "><span>，</span></span>直接进行新组件的替换<span class=" fw-cl "><span>，</span></span>减少了不必要的消耗<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-b644b6f994240e2dfbeda94bb23a47bd.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:33.60049321824908% 0" data-src="https://pic2.zhimg.com/v2-b644b6f994240e2dfbeda94bb23a47bd.png">加载中...</span></figure>
+<ul>
+  <li style="">当对同一层级节点进行比较时<span class=" fw-cl "><span>，</span></span>对于相同的组件类型<span class=" fw-cl "><span>，</span></span>如果组件的 state 或 props 发生变化<span class=" fw-cl "><span>，</span></span>则直接重新渲染组件本身<span class=" fw-cl "><span>。</span></span>开发者可以尝试使用 shouldComponentUpdate 生命周期函数来规避不必要的渲染<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">当对同一层级节点进行比较时<span class=" fw-cl "><span>，</span></span>开发者可以使用 key 属性来<span class="fw-op  "><span>「</span></span>声明<span class=" fw-cl "><span>」</span></span>同一层级节点的更新方式<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>另外<span class=" fw-cl "><span>，</span></span>setState 方法引发了<span class="fw-op  "><span>「</span></span>蝴蝶效应<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>并通过创新的 diff 算法找到需要更新的最小单元集<span class=" fw-cl "><span>，</span></span>但是这些变更也并不一定立即同步产生<span class=" fw-cl "><span>。</span></span>实际上<span class=" fw-cl "><span>，</span></span>React 会进行 setState 的 batch 操作<span class=" fw-cl "><span>，</span></span>通俗地讲就是<span class="fw-op  "><span>「</span></span>积攒归并<span class=" fw-cl "><span>」</span></span>一批变化后<span class=" fw-cl "><span>，</span></span>再统一进行更新<span class=" fw-cl "><span>。</span></span>显然这是出于对性能的考虑<span class=" fw-cl "><span>。</span></span></p>
+<h3>提升 React 应用性能的建议</h3>
+<p>我们知道<span class=" fw-cl "><span>，</span></span>React 渲染真实的 DOM 节点的过程由两个主要过程组成<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">对 React 内部维护的虚拟的 DOM 进行更新</li>
+  <li style="">前后两个虚拟 DOM 比对<span class=" fw-cl "><span>，</span></span>并将 diff 所得结果应用于真实的 DOM 中的过程</li>
+</ul>
+<p>这两步极其关键<span class=" fw-cl "><span>，</span></span>设想一下<span class=" fw-cl "><span>，</span></span>如果虚拟的 DOM 更新很慢<span class=" fw-cl "><span>，</span></span>那么重新渲染势必会很耗时<span class=" fw-cl "><span>。</span></span>本节我们就针对此问题<span class=" fw-cl "><span>，</span></span>对症下药<span class=" fw-cl "><span>，</span></span>来了解更多的性能优化小技巧<span class=" fw-cl "><span>。</span></span></p>
+<h4>最大限度地减少 re-render</h4>
+<p>为了提升 React 应用性能<span class=" fw-cl "><span>，</span></span>我们首先想到的就是最大限度地规避不必要的 re-render<span class=" fw-cl "><span>。</span></span>但是当状态发生变化时<span class=" fw-cl "><span>，</span></span>重新渲染是 React 内部的默认行为<span class=" fw-cl "><span>，</span></span>我们如何保证不必要的渲染呢<span class=" fw-cl "><span>？</span></span></p>
+<p>最先想到的一定是使用 shouldComponentUpdate 生命周期函数<span class=" fw-cl "><span>，</span></span>它旨在对比前后状态 state/props 是否出现了变更<span class=" fw-cl "><span>，</span></span>根据是否变更来决定组件是否需要重新渲染<span class=" fw-cl "><span>。</span></span></p>
+<p>实际上<span class=" fw-cl "><span>，</span></span>还有很多方式<span class=" fw-cl "><span>，</span></span>开发者都可以给 React 发送<span class="fw-op  "><span>「</span></span>不需要渲染<span class=" fw-cl "><span>」</span></span>的信号<span class=" fw-cl "><span>。</span></span></p>
+<p>比如<span class=" fw-cl "><span>，</span></span>无状态组件返回同一个 element 实例<span class=" fw-cl "><span>：</span></span>如果 render 方法返回同一个 element 实例<span class=" fw-cl "><span>，</span></span>React 会认为组件并没有发生变化<span class=" fw-cl "><span>。</span></span>请参考以下代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class MyComponent extends Component {<br>
+ &nbsp;text = "";<br>
+ &nbsp;renderedElement = null;<br>
+ &nbsp;_render() {<br>
+ &nbsp;&nbsp;&nbsp;return </code></p><div><code>{this.props.text}</code></div><code><br>
+ &nbsp;}<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;if (!this.renderedElement || this.props.text !== this.text) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.text = this.props.text;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.renderedElement = _render();<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return this.renderedElement;<br>
+ &nbsp;}</code><p></p>
+<p>熟悉 lodash 库的读者<span class=" fw-cl "><span>，</span></span>可能会想到其带来的 memoize 函数<span class=" fw-cl "><span>，</span></span>同样可以用来简化上述代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import memoize from 'lodash/memoize'<br>
+<br>
+class MyComponent extends Component {<br>
+ &nbsp;_render = memoize((text) =&gt; </code></p><div><code>{text}</code></div><code>)<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return _render(this.props.text)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<p>在之前介绍的高阶组件的基础上<span class=" fw-cl "><span>，</span></span>我们不妨设想这样一类高阶组件<span class=" fw-cl "><span>：</span></span>它能够细粒度地控制组件的渲染行为<span class=" fw-cl "><span>。</span></span>比如<span class=" fw-cl "><span>，</span></span>某个组件仅仅在某一项 props 变化时才会触发 re-render<span class=" fw-cl "><span>。</span></span>这样一来<span class=" fw-cl "><span>，</span></span>开发者可以完全掌控组件渲染时机<span class=" fw-cl "><span>，</span></span>更有针对性地进行渲染优化<span class=" fw-cl "><span>。</span></span></p>
+<p>这样的方法有点类似于农业灌溉上的<span class="fw-op  "><span>「</span></span>滴灌<span class=" fw-cl "><span>」</span></span>技术<span class=" fw-cl "><span>，</span></span>它规避了代价昂贵的粗暴型灌溉<span class=" fw-cl "><span>，</span></span>而是精准地定位需求<span class=" fw-cl "><span>，</span></span>从而达到节约水资源的目的<span class=" fw-cl "><span>。</span></span></p>
+<p>在社区中<span class=" fw-cl "><span>，</span></span>优秀的 recompose 库恰好可以满足我们的需求<span class=" fw-cl "><span>。</span></span>请参考如下代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>@onlyUpdateForKeys(['prop1', 'prop2'])<br>
+class MyComponent2 extends Component {<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//...<br>
+ &nbsp;}<br>
+}</code></p>
+<p>使用 @onlyUpdateForKeys 修饰器<span class=" fw-cl "><span>，</span></span>MyComponent2 组件只在 prop1 和 prop2 变化时才进行渲染<span class=" fw-cl "><span>；</span></span>否则其他的 props 发生任何改变<span class=" fw-cl "><span>，</span></span>都不会触发 re-render<span class=" fw-cl "><span>。</span></span></p>
+<p>藏在 onlyUpdateForKeys 背后的<span class="fw-op  "><span>「</span></span>黑魔法<span class=" fw-cl "><span>」</span></span>其实并不难理解<span class=" fw-cl "><span>，</span></span>只需要在高阶组件中调用 shouldComponentUpdate 方法<span class=" fw-cl "><span>，</span></span>在 shouldComponentUpdate 方法中比较对象由完整的 props 转为传入的指定 props 即可<span class=" fw-cl "><span>。</span></span>有兴趣的读者<span class=" fw-cl "><span>，</span></span>可以翻阅 recompose 源码进行了解<span class=" fw-cl "><span>，</span></span>其实思路即是如此<span class=" fw-cl "><span>。</span></span></p>
+<h4>规避 inline function 反模式</h4>
+<p>我们需要注意一个<span class="fw-op  "><span>「</span></span>反模式<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>当使用 render 方法时<span class=" fw-cl "><span>，</span></span>要留意 render 方法内创建的函数或者数组等<span class=" fw-cl "><span>，</span></span>这些创建可能是显式地<span class=" fw-cl "><span>，</span></span>也可能是隐式生成<span class=" fw-cl "><span>。</span></span>因为这些新生成的函数或数组<span class=" fw-cl "><span>，</span></span>在量大时会造成一定的性能负担<span class=" fw-cl "><span>。</span></span>同时 render 方法经常被反复执行多次<span class=" fw-cl "><span>，</span></span>也就是说总有新的函数或数组被创建<span class=" fw-cl "><span>，</span></span>这样造成内存无意义开销<span class=" fw-cl "><span>。</span></span>往往性能更友好的做法只需要它们创建一次即可<span class=" fw-cl "><span>，</span></span>而不是每次渲染都被创建<span class=" fw-cl "><span>。</span></span>比如<span class=" fw-cl "><span>：</span></span></p>
+<p><code>render() {<br>
+ &nbsp;return <myinput onchange="{this.props.update.bind(this)}">;<br>
+}</myinput></code></p>
+<p>或者<span class=" fw-cl "><span>：</span></span></p>
+<p><code>render() {<br>
+ &nbsp;return <myinput onchange="{()" ==""> this.props.update()} /&gt;;<br>
+}</myinput></code></p>
+<p>对于 render 方法内产生数组或其他类型的情况<span class=" fw-cl "><span>，</span></span>也存在类似问题<span class=" fw-cl "><span>：</span></span></p>
+<p><code>render() {<br>
+ &nbsp;return <subcomponent items="{this.props.items" ||="" []}=""><br>
+}</subcomponent></code></p>
+<p>这样做会在每次渲染且 this.props.items 不存在时创建一个空数组<span class=" fw-cl "><span>。</span></span>更好的做法是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const EMPTY_ARRAY = []<br>
+render() {<br>
+ &nbsp;&nbsp;&nbsp;return <subcomponent items="{this.props.items" ||="" empty_array}=""><br>
+}</subcomponent></code></p>
+<p>事实上<span class=" fw-cl "><span>，</span></span>不得不说<span class=" fw-cl "><span>，</span></span>这些性能副作用或者优化手段都<span class="fw-op  "><span>「</span></span>微乎其微<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>并不是性能恶化的<span class="fw-op  "><span>「</span></span>罪魁祸首<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>但是理解这些内容对我们编写出高质量的代码还是有帮助的<span class=" fw-cl "><span>。</span></span>我们后续课程会针对这种情况进行框架层面上的启发式探索<span class=" fw-cl "><span>。</span></span></p>
+<h4>使用 PureComponent 保证开发性能</h4>
+<p>PureComponent 大体与 Component 相同<span class=" fw-cl "><span>，</span></span>唯一不同的地方是 PureComponent 会自动帮助开发者使用 shouldComponentUpdate 生命周期方法<span class=" fw-cl "><span>。</span></span>也就是说<span class=" fw-cl "><span>，</span></span>当组件 state 或者 props 发生变化时<span class=" fw-cl "><span>，</span></span>正常的 Component 都会自动进行 re-render<span class=" fw-cl "><span>，</span></span>在这种情况下<span class=" fw-cl "><span>，</span></span>shouldComponentUpdate 默认都会返回 true<span class=" fw-cl "><span>。</span></span>但是 PureComponent 会先进行对比<span class=" fw-cl "><span>，</span></span>即比较前后两次 state 和 props 是否相等<span class=" fw-cl "><span>。</span></span>需要注意的是<span class=" fw-cl "><span>，</span></span>这种对比是浅比较<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function shallowEqual (objA: mixed, objB: mixed) {<br>
+ &nbsp;&nbsp;&nbsp;if (is(objA, objB)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return true;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (typeof objA !== 'object' || objA === null ||<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;typeof objB !== 'object' || objB === null) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;const keysA = Object.keys(objA);<br>
+ &nbsp;&nbsp;&nbsp;const keysB = Object.keys(objB);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (keysA.length !== keysB.length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;for (let i = 0; i &lt; keysA.length; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!hasOwnProperty.call(objB, keysA[i]) ||<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!is(objA[keysA[i]], objB[keysA[i]])<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return true;<br>
+}</code></p>
+<p>基于以上代码<span class=" fw-cl "><span>，</span></span>我们总结出使用 PureComponent 需要注意如下细节<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">既然是浅比较<span class=" fw-cl "><span>，</span></span>也就是说<span class=" fw-cl "><span>，</span></span>当与前一状态下的 props 和 state 比对时<span class=" fw-cl "><span>，</span></span>如果比较对象是 JavaScript 基本类型<span class=" fw-cl "><span>，</span></span>则会对其值是否相等进行判断<span class=" fw-cl "><span>；</span></span>如果比较对象是 JavaScript 引用类型<span class=" fw-cl "><span>，</span></span>比如 object 或者 array<span class=" fw-cl "><span>，</span></span>则会判断其引用是否相同<span class=" fw-cl "><span>，</span></span>而不会进行值比较<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">开发者需要避免共享<span class="fw-op  "><span>（</span></span>mutate<span class=" fw-cl "><span>）</span></span>带来的问题<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>如果在一个父组件中对 object 进行了 mutate 的操作<span class=" fw-cl "><span>，</span></span>若子组件依赖此数据<span class=" fw-cl "><span>，</span></span>且采用 PureComponent 声明<span class=" fw-cl "><span>，</span></span>那么子组件将无法进行更新<span class=" fw-cl "><span>。</span></span>尽管 props 中的某一项值发生了变化<span class=" fw-cl "><span>，</span></span>但是它的引用并没有发生变化<span class=" fw-cl "><span>，</span></span>因此 PureComponent 的 shouldComponentUpdate 也就返回了 false<span class=" fw-cl "><span>。</span></span>更好的做法是在更新 props 或 state 时<span class=" fw-cl "><span>，</span></span>返回一个新的对象或数组<span class=" fw-cl "><span>。</span></span></p>
+<h4>分析一个真实案例</h4>
+<p>设想一下<span class=" fw-cl "><span>，</span></span>如果应用组件非常复杂<span class=" fw-cl "><span>，</span></span>含有一个具有很长 list 的组件<span class=" fw-cl "><span>，</span></span>如果只是其中一个子组件发生了变化<span class=" fw-cl "><span>，</span></span>那么使用 PureComponent 进行对比<span class=" fw-cl "><span>，</span></span>有选择性地进行渲染<span class=" fw-cl "><span>，</span></span>一定是比所有列表项目都重新渲染划算很多<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来看一个案例<span class=" fw-cl "><span>：</span></span>简易实现一个采用 PureComponent 和不采用 PureComponent 的性能差别对比试验<span class=" fw-cl "><span>。</span></span>假如在页面中需要渲染非常多的用户信息<span class=" fw-cl "><span>，</span></span>所有的用户信息都被维护在一个 users 数组当中<span class=" fw-cl "><span>，</span></span>数组的每一项为一个 JavaScript 对象<span class=" fw-cl "><span>，</span></span>表示一个用户的基本信息<span class=" fw-cl "><span>。</span></span>User 组件负责渲染每一个用户的信息内容<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import User from './User'<br>
+const Users = ({users}) =&gt;<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{users.map(user =&gt; <user {...user}="">}<br>
+ &nbsp;&nbsp;&nbsp;</user></code></div><p></p>
+<p>这样做存在的问题是<span class=" fw-cl "><span>：</span></span>users 数组作为 Users 组件的 props 出现<span class=" fw-cl "><span>，</span></span>users 数组的第 K 项发生变化时<span class=" fw-cl "><span>，</span></span>users 数组即发生变化<span class=" fw-cl "><span>，</span></span>Users 组件重新渲染导致所有的 User 组件都会进行渲染<span class=" fw-cl "><span>。</span></span>某个 User 组件<span class=" fw-cl "><span>，</span></span>即使非 K 项并没有发生变化<span class=" fw-cl "><span>，</span></span>这个 User 组件不需要重新渲染<span class=" fw-cl "><span>，</span></span>但也不得不必要的渲染<span class=" fw-cl "><span>。</span></span></p>
+<p>在测试中<span class=" fw-cl "><span>，</span></span>我们渲染了一个有 200 项的数组<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const arraySize = 200;<br>
+const getUsers = () =&gt;<br>
+ &nbsp;Array(arraySize)<br>
+ &nbsp;&nbsp;&nbsp;.fill(1)<br>
+ &nbsp;&nbsp;&nbsp;.map((_, index) =&gt; ({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name: 'John Doe',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hobby: 'Painting',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;age: index === 0 ? Math.random() * 100 : 50<br>
+ &nbsp;&nbsp;&nbsp;}));</code></p>
+<p>注意<span class=" fw-cl "><span>：</span></span>在 getUsers 方法中<span class=" fw-cl "><span>，</span></span>对 age 属性进行了判断<span class=" fw-cl "><span>，</span></span>保证每次调用时<span class=" fw-cl "><span>，</span></span>getUsers 返回的数组只有第一项的 age 属性不同<span class=" fw-cl "><span>，</span></span>其余的全部为 50<span class=" fw-cl "><span>。</span></span>在测试组件中<span class=" fw-cl "><span>，</span></span>在 componentDidUpdate 中保证数组将会触发 400 次 re-render<span class=" fw-cl "><span>，</span></span>并且每一次只改变数组第一项的 age 属性<span class=" fw-cl "><span>，</span></span>其他的均保持不变<span class=" fw-cl "><span>。</span></span></p>
+<p><code>&nbsp;&nbsp;const repeats = 400;<br>
+ &nbsp;componentDidUpdate() {<br>
+ &nbsp;&nbsp;&nbsp;++this.renderCount;<br>
+ &nbsp;&nbsp;&nbsp;this.dt += performance.now() - this.startTime;<br>
+ &nbsp;&nbsp;&nbsp;if (this.renderCount % repeats === 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.componentUnderTestIndex &gt; -1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.dts[componentsToTest[this.componentUnderTestIndex]] = this.dt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'dt',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;componentsToTest[this.componentUnderTestIndex],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.dt<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;++this.componentUnderTestIndex;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.dt = 0;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.componentUnderTest = componentsToTest[this.componentUnderTestIndex];<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;if (this.componentUnderTest) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.startTime = performance.now();<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.setState({ users: getUsers() });<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, 0);<br>
+ &nbsp;&nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alert(`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Render Performance ArraySize: ${arraySize} Repeats: ${repeats}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Functional: ${Math.round(this.dts.Functional)} ms<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PureComponent: ${Math.round(this.dts.PureComponent)} ms<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Component: ${Math.round(this.dts.Component)} ms<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}</code></p>
+<p>下面对三种组件声明方式进行对比<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">函数式方式</li>
+</ul>
+<p><code>export const Functional = ({ name, age, hobby }) =&gt; (<br>
+ &nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;<span>{name}</span><br>
+ &nbsp;&nbsp;&nbsp;<span>{age}</span><br>
+ &nbsp;&nbsp;&nbsp;<span>{hobby}</span><br>
+ &nbsp;</code></div><code><br>
+)</code><p></p>
+<ul>
+  <li style="">PureComponent 方式</li>
+</ul>
+<p><code>export class PureComponent extends React.PureComponent {<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;const { name, age, hobby } = this.props;<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>{name}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>{age}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>{hobby}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<ul>
+  <li style="">经典 class 方式</li>
+</ul>
+<p><code>export class Component extends React.Component {<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;const { name, age, hobby } = this.props;<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>{name}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>{age}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>{hobby}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}</code><p></p>
+<p>在使用 PureComponent 声明的组件中<span class=" fw-cl "><span>，</span></span>会自动在触发渲染前后进行 {name, age, hobby} 对象值比较<span class=" fw-cl "><span>。</span></span>如果没有发生变化<span class=" fw-cl "><span>，</span></span>则 shouldComponentUpdate 返回 false<span class=" fw-cl "><span>，</span></span>以规避不必要的渲染<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>使用 PureComponent 声明的组件性能明显优于其他方式<span class=" fw-cl "><span>。</span></span>在不同的浏览器环境下<span class=" fw-cl "><span>，</span></span>可以得出<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">在 Firefox 下<span class=" fw-cl "><span>，</span></span>PureComponent 收益 30%</li>
+  <li style="">在 Safari 下<span class=" fw-cl "><span>，</span></span>PureComponent 收益 6%</li>
+  <li style="">在 Chrome 下<span class=" fw-cl "><span>，</span></span>PureComponent 收益 15%</li>
+</ul>
+<p>实际上<span class=" fw-cl "><span>，</span></span>我们通过定义 changedItems 来表示变化数组的项目<span class=" fw-cl "><span>，</span></span>array 表示所需渲染的数组<span class=" fw-cl "><span>。</span></span>changedItems.length/array.length 的比值越小<span class=" fw-cl "><span>，</span></span>表示数组中变化的元素也越少<span class=" fw-cl "><span>，</span></span>React.PureComponent 涉及的性能优化也越有必要实施<span class=" fw-cl "><span>，</span></span>因为 React.PureComponent 通过浅比较规避了不必要的更新过程<span class=" fw-cl "><span>，</span></span>而浅比较自身的计算成本一般都不值一提<span class=" fw-cl "><span>，</span></span>可以节约成本<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>PureComponent 也不是万能的<span class=" fw-cl "><span>，</span></span>尤其是它的浅比较<span class=" fw-cl "><span>，</span></span>需要开发者格外注意<span class=" fw-cl "><span>。</span></span>因此在特定情况下<span class=" fw-cl "><span>，</span></span>开发者根据需求自己实现 shouldComponentUpdate 中的比较逻辑<span class=" fw-cl "><span>，</span></span>将是更高效的选择<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>性能优化是前端开发中一个永恒的话题<span class=" fw-cl "><span>，</span></span>不同框架之间的性能对比也一直是各位开发者关注的方面<span class=" fw-cl "><span>。</span></span>性能涉及方方面面<span class=" fw-cl "><span>，</span></span>如前端工程化<span class=" fw-cl "><span>、</span></span>浏览器解析和渲染<span class=" fw-cl "><span>、</span></span>比较算法等<span class=" fw-cl "><span>。</span></span>本章主要介绍了 React 框架在性能上的优劣<span class=" fw-cl "><span>、</span></span>虚拟的 DOM 思想<span class=" fw-cl "><span>，</span></span>以及在开发 React 应用时需要注意的性能优化环节和手段<span class=" fw-cl "><span>。</span></span> 也许不是每个应用都会面临性能的问题<span class=" fw-cl "><span>，</span></span>如同社区中所说的<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>过早地进行性能优化是毫无必要的<span class=" fw-cl "><span>，</span></span>但是开发者在性能优化方面的积累却要时刻先行<span class=" fw-cl fw--collapsed"><span>。</span></span><span class=" fw-cl "><span>」</span></span>同时<span class=" fw-cl "><span>，</span></span>优化手段也在与时俱进<span class=" fw-cl "><span>，</span></span>不断更新<span class=" fw-cl "><span>，</span></span>需要开发者时刻保持学习<span class=" fw-cl "><span>。</span></span></p>
+<h3><br></h3><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1MGX39jYI4K2O1kIA9x3</span></p>
+</body>
+</html>

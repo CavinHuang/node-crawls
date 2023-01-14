@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 28 节前端工程化背后的项目组织设计（上）</h1>
+  <p>通过上一节的学习<span class=" fw-cl "><span>，</span></span>我们看到了前端构建工具及其背后蕴含的技术设计<span class=" fw-cl "><span>。</span></span>前端工程化包罗万象<span class=" fw-cl "><span>，</span></span>本节课<span class=" fw-cl "><span>，</span></span>我们将分析项目组织设计的相关话题<span class=" fw-cl "><span>，</span></span>包括<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-ca5479f4dfdf16e62d04b4a5402c1db8.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:31.567080045095828% 0" data-src="https://pic3.zhimg.com/v2-ca5479f4dfdf16e62d04b4a5402c1db8.png">加载中...</span></figure>
+<p>接下来<span class=" fw-cl "><span>，</span></span>我们通过 2 节内容来学习这个主题<span class=" fw-cl "><span>。</span></span>希望结束这个主题后大家可以从更高的视角看待项目管理和代码组织设计<span class=" fw-cl "><span>。</span></span></p>
+<h3>大型前端项目的组织设计</h3>
+<p>随着业务复杂度的直线上升<span class=" fw-cl "><span>，</span></span>前端项目不管是从代码量上<span class=" fw-cl "><span>，</span></span>还是从依赖关系上都爆炸式增长<span class=" fw-cl "><span>。</span></span>同时<span class=" fw-cl "><span>，</span></span><strong style="">团队中一般不止有一个业务项目<span class=" fw-cl "><span>，</span></span>多个项目之间如何配合<span class=" fw-cl "><span>，</span></span>如何维护相互关系<span class=" fw-cl "><span>？</span></span>公司自己的公共库版本如何管理<span class=" fw-cl "><span>？</span></span>这些话题随着业务扩展<span class=" fw-cl "><span>，</span></span>纷纷浮出水面<span class=" fw-cl "><span>。</span></span></strong>一名合格的高级前端工程师<span class=" fw-cl "><span>，</span></span>在宏观上必需能妥善处理这些问题<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>不是每个开发者都有机会接触项目设计<span class=" fw-cl "><span>。</span></span>如果读者没有面对过上述难题<span class=" fw-cl "><span>，</span></span>也许并不容易理解这些问题究竟意味着什么<span class=" fw-cl "><span>。</span></span>举个例子<span class=" fw-cl "><span>，</span></span>团队主业务项目名为<span class=" fw-cl "><span>：</span></span>App-project<span class=" fw-cl "><span>，</span></span>这个仓库依赖了组件库<span class=" fw-cl "><span>：</span></span>Component-lib<span class=" fw-cl "><span>，</span></span>因此 App-project 项目的 package.json 会有类似的代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;"name": "App-project",<br>
+ &nbsp;&nbsp;&nbsp;"version": "1.0.0",<br>
+ &nbsp;&nbsp;&nbsp;"description": "This is our main app project",<br>
+ &nbsp;&nbsp;&nbsp;"main": "index.js",<br>
+ &nbsp;&nbsp;&nbsp;"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"test": "echo \\"Error: no test specified\\" &amp;&amp; exit 1"<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;"dependencies": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Component-lib": "^1.0.0"<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>这时新的需求来了<span class=" fw-cl "><span>，</span></span>产品经理需要更改 Component-lib 组件库中的 modal 组件样式及交互行为<span class=" fw-cl "><span>。</span></span>作为开发者<span class=" fw-cl "><span>，</span></span>我们需要切换到 Component-lib 项目<span class=" fw-cl "><span>，</span></span>进行相关需求开发<span class=" fw-cl "><span>，</span></span>开发完毕后进行测试<span class=" fw-cl "><span>。</span></span>这里的测试包括 Component-lib 当中的单元测试<span class=" fw-cl "><span>，</span></span>当然也包括在实际项目中进行效果验收<span class=" fw-cl "><span>。</span></span>为方便调试<span class=" fw-cl "><span>，</span></span>有经验的开发者也许会使用 npm link/yarn link 来开发和调试效果<span class=" fw-cl "><span>。</span></span>当确认一切没问题后<span class=" fw-cl "><span>，</span></span>我们还需要 npm 发包 Component-lib 项目<span class=" fw-cl "><span>，</span></span>并提升版本为 1.0.1<span class=" fw-cl "><span>。</span></span>在所有这些都顺利完成的基础上<span class=" fw-cl "><span>，</span></span>才能在 App-project 项目中进行升级<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;//...<br>
+ &nbsp;&nbsp;&nbsp;"dependencies": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Component-lib": "^1.0.1"<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>这个过程已经比较复杂了<span class=" fw-cl "><span>。</span></span>如果中间环节出现任何纰漏<span class=" fw-cl "><span>，</span></span>我们都要重复上述所有步骤<span class=" fw-cl "><span>。</span></span>另外<span class=" fw-cl "><span>，</span></span>这只是单一依赖关系<span class=" fw-cl "><span>，</span></span>现实中 App-project 不可能只依赖 Component-lib<span class=" fw-cl "><span>。</span></span>这种项目管理的方式无疑是低效且痛苦的<span class=" fw-cl "><span>。</span></span>那么在项目设计哲学上<span class=" fw-cl "><span>，</span></span>有更好的方式吗<span class=" fw-cl "><span>？</span></span></p>
+<h4>monorepo 和 multirepo</h4>
+<p><strong style="">答案是肯定的<span class=" fw-cl "><span>，</span></span>管理组织代码的方式主要分为两种<span class=" fw-cl "><span>：</span></span></strong></p>
+<ul>
+  <li style="">multirepo</li>
+  <li style="">monorepo</li>
+</ul>
+<p>顾名思义<span class=" fw-cl "><span>，</span></span>multirepo 就是将应用按照模块分别在不同的仓库中进行管理<span class=" fw-cl "><span>，</span></span>即上述 App-project 和 Component-lib 项目的管理模式<span class=" fw-cl "><span>；</span></span>而 monorepo 就是将应用中所有的模块一股脑全部放在同一个项目中<span class=" fw-cl "><span>，</span></span>这样自然就完全规避了前文描述的困扰<span class=" fw-cl "><span>，</span></span>不需要单独发包<span class=" fw-cl "><span>、</span></span>测试<span class=" fw-cl "><span>，</span></span>且所有代码都在一个项目中管理<span class=" fw-cl "><span>，</span></span>一同部署上线<span class=" fw-cl "><span>，</span></span>在开发阶段能够更早地复现 bug<span class=" fw-cl "><span>，</span></span>暴露问题<span class=" fw-cl "><span>。</span></span></p>
+<p>这就是项目代码在组织上的不同哲学<span class=" fw-cl "><span>：</span></span><strong style="">一种倡导分而治之<span class=" fw-cl "><span>，</span></span>一种倡导集中管理<span class=" fw-cl "><span>。</span></span></strong>究竟是把鸡蛋放在同一个篮子里<span class=" fw-cl "><span>，</span></span>还是倡导多元化<span class=" fw-cl "><span>，</span></span>这就要根据团队的风格以及面临的实际场景进行选型<span class=" fw-cl "><span>。</span></span></p>
+<p>我试着从 multirepo 和 monorepo 两种处理方式的<strong style="">弊端说起</strong><span class=" fw-cl "><span>，</span></span>希望给读者更多的参考和建议<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">multirepo 存在以下问题<span class=" fw-cl "><span>：</span></span></strong></p>
+<ul>
+  <li style="">开发调试以及版本更新效率低下</li>
+  <li style="">团队技术选型分散<span class=" fw-cl "><span>，</span></span>不同的库实现风格可能存在较大差异<span class="fw-op  "><span>（</span></span>比如有的库依赖 Vue<span class=" fw-cl "><span>，</span></span>有的依赖 React<span class=" fw-cl "><span>）</span></span></li>
+  <li style="">changelog 梳理困难<span class=" fw-cl "><span>，</span></span>issues 管理混乱<span class="fw-op  "><span>（</span></span>对于开源库来说<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<p><strong style="">而 monorepo 缺点也非常明显<span class=" fw-cl "><span>：</span></span></strong></p>
+<ul>
+  <li style="">库体积超大<span class=" fw-cl "><span>，</span></span>目录结构复杂度上升</li>
+  <li style="">需要使用维护 monorepo 的工具<span class=" fw-cl "><span>，</span></span>这就意味着学习成本比较高</li>
+</ul>
+<p>清楚了不同项目组织管理的缺点<span class=" fw-cl "><span>，</span></span>我们再来看一下社区上的经典选型案例<span class=" fw-cl "><span>。</span></span></p>
+<p>Babel 和 React 都是典型的 monorepo<span class=" fw-cl "><span>，</span></span>其 issues 和 pull requests 都集中到唯一的项目中<span class=" fw-cl "><span>，</span></span>changelog 可以简单地从一份 commits 列表梳理出来<span class=" fw-cl "><span>。</span></span>我们参看 React 项目仓库<span class=" fw-cl "><span>，</span></span>从目录结构即可看出其强烈的 monorepo 风格<span class=" fw-cl "><span>：</span></span></p>
+<p><code>react-16.2.0/<br>
+ &nbsp;packages/<br>
+ &nbsp;&nbsp;&nbsp;react/<br>
+ &nbsp;&nbsp;&nbsp;react-art/<br>
+ &nbsp;&nbsp;&nbsp;react-.../</code></p>
+<p>因此<span class=" fw-cl "><span>，</span></span><a href="https://www.npmjs.com/package/react" title="react">react</a> 和 <a href="https://www.npmjs.com/package/react-dom" title="react-dom">react-dom</a> 在 npm 上是两个不同的库<span class=" fw-cl "><span>，</span></span>它们只不过在 React 项目中通过 monorepo 的方式进行管理<span class=" fw-cl "><span>。</span></span>至于为什么 react 和 react-dom 是两个包<span class=" fw-cl "><span>，</span></span>我把这个问题留给读者<span class=" fw-cl "><span>。</span></span></p>
+<p>而著名的 Rollup 目前是 multirepo 方式<span class=" fw-cl "><span>。</span></span>对于 monorepo 和 multirepo<span class=" fw-cl "><span>，</span></span>选择了 monorepo 的 Babel 贡献了文章<span class=" fw-cl "><span>：</span></span><a href="https://github.com/babel/babel/blob/master/doc/design/monorepo.md" title="Why is Babel a monorepo?">Why is Babel a monorepo?</a><span class=" fw-cl "><span>，</span></span> 其中提到<span class=" fw-cl "><span>：</span></span></p>
+<p><strong style="">monorepo 的优势<span class=" fw-cl "><span>：</span></span></strong></p>
+<ul>
+  <li style="">所有项目拥有一致的 lint<span class=" fw-cl "><span>，</span></span>以及构建<span class=" fw-cl "><span>、</span></span>测试<span class=" fw-cl "><span>、</span></span>发布流程</li>
+  <li style="">不同项目之间容易调试<span class=" fw-cl "><span>、</span></span>协作</li>
+  <li style="">方便处理 issues</li>
+  <li style="">容易初始化开发环境</li>
+  <li style="">易于发现 bug</li>
+</ul>
+<p><strong style="">monorepo 的劣势<span class=" fw-cl "><span>：</span></span></strong></p>
+<ul>
+  <li style="">源代码不易理解</li>
+  <li style="">项目体积过大</li>
+</ul>
+<p>这些分析与我们前文提到的类似<span class=" fw-cl "><span>。</span></span>但是<span class=" fw-cl "><span>，</span></span>从业内技术发展来看<span class=" fw-cl "><span>，</span></span>monorepo 目前越来越受欢迎<span class=" fw-cl "><span>。</span></span>了解了 monorepo 的利弊<span class=" fw-cl "><span>，</span></span>我们应该如何实现 monorepo 呢<span class=" fw-cl "><span>？</span></span></p>
+<h3>使用 Lerna 实现 monorepo</h3>
+<p>Lerna 是 Babel 管理自身项目并开源的工具<span class=" fw-cl "><span>，</span></span>官网对 Lerna 的定位非常简单直接<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>A tool for managing JavaScript projects with multiple packages.</p>
+<p>我们来建立一个简单的 demo<span class=" fw-cl "><span>，</span></span>首先安装依赖<span class=" fw-cl "><span>，</span></span>并创建项目<span class=" fw-cl "><span>：</span></span></p>
+<p><code>mkdir new-monorepo &amp;&amp; cd new-monorepo<br>
+npm init -y<br>
+npm i -g lerna<span class="fw-op  "><span>（</span></span>有需要的话要 sudo<span class=" fw-cl "><span>）</span></span><br>
+git init new-monorepo<br>
+lerna init</code></p>
+<p>成功后<span class=" fw-cl "><span>，</span></span>Lerna 会在 new-monorepo 项目下自动添加以下三个文件目录<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">packages</li>
+  <li style="">lerna.json</li>
+  <li style="">package.json</li>
+</ul>
+<p>我们添加第一个项目 module-1<span class=" fw-cl "><span>：</span></span></p>
+<p><code>cd packages<br>
+mkdir module-1<br>
+cd module-1<br>
+npm init -y</code></p>
+<p>这样<span class=" fw-cl "><span>，</span></span>我们在 ./packages 目录下新建了第一个项目<span class=" fw-cl "><span>：</span></span>module-1<span class=" fw-cl "><span>，</span></span>并在 module-1 中添加了一些依赖<span class=" fw-cl "><span>，</span></span>模拟更加真实的场景<span class=" fw-cl "><span>。</span></span>同样的方式<span class=" fw-cl "><span>，</span></span>建立 module-2 以及 module-3<span class=" fw-cl "><span>。</span></span></p>
+<p>此时<span class=" fw-cl "><span>，</span></span>读者可以自行观察 new-monorepo 项目下的目录结构为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>packages/<br>
+ &nbsp;module-1/<br>
+ &nbsp;&nbsp;&nbsp;package.json<br>
+ &nbsp;module-2/<br>
+ &nbsp;&nbsp;&nbsp;package.json<br>
+ &nbsp;module-3/<br>
+ &nbsp;&nbsp;&nbsp;package.json</code></p>
+<p>接下来<span class=" fw-cl "><span>，</span></span>我们退到主目录下<span class=" fw-cl "><span>，</span></span>安装依赖<span class=" fw-cl "><span>：</span></span></p>
+<p><code>cd ..<br>
+lerna bootstrap</code></p>
+<p>关于该命令的作用<span class=" fw-cl "><span>，</span></span>官网直述为<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>Bootstrap the packages in the current Lerna repo. Installs all of their dependencies and links any cross-dependencies.&nbsp;</p>
+<p>也就是说<span class=" fw-cl "><span>，</span></span>假设我们在 module-1 项目中添加了依赖 module-2<span class=" fw-cl "><span>，</span></span>那么执行 lerna bootstrap 命令后<span class=" fw-cl "><span>，</span></span>会在 module-1 项目的 node_modules 下创建软链接直接指向 module-2 目录<span class=" fw-cl "><span>。</span></span>也就是说 lerna bootstrap 命令会建立整个项目内子 repo 之间的依赖关系<span class=" fw-cl "><span>，</span></span>这种建立方式不是通过<span class="fw-op  "><span>「</span></span>硬安装<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>而是通过软链接指向相关依赖<span class=" fw-cl "><span>。</span></span></p>
+<p>Linux 中关于硬链接和软链接的区别<span class=" fw-cl "><span>，</span></span>可以参考文章<span class=" fw-cl "><span>：</span></span><a href="https://www.cnblogs.com/crazylqy/p/5821105.html" title="linux 硬链接与软链接">linux 硬链接与软链接</a><span class=" fw-cl "><span>。</span></span></p>
+<p>在正确连接了 Git 远程仓库后<span class=" fw-cl "><span>，</span></span>我们可以发布<span class=" fw-cl "><span>：</span></span></p>
+<p><code>lerna publish</code></p>
+<p>这条命令将各个 package 一步步发布到 npm 当中<span class=" fw-cl "><span>。</span></span>Lerna 还可以支持自动生成 changelog 等功能<span class=" fw-cl "><span>。</span></span>这里我们不再统一介绍<span class=" fw-cl "><span>。</span></span></p>
+<p>到这里<span class=" fw-cl "><span>，</span></span>你可能觉得 Lerna 还挺简单<span class=" fw-cl "><span>。</span></span>但其实里面还是有更多学问<span class=" fw-cl "><span>，</span></span>比如 Lerna 支持下面两种模式<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style=""><strong style="">Fixed/Locked 模式</strong></li>
+</ul>
+<p>Babel 便采用了这样的模式<span class=" fw-cl "><span>。</span></span>这个模式的特点是<span class=" fw-cl "><span>，</span></span>开发者执行 lerna publish 后<span class=" fw-cl "><span>，</span></span>Lerna 会在 lerna.json 中找到指定 version 版本号<span class=" fw-cl "><span>。</span></span>如果这一次发布包含某个项目的更新<span class=" fw-cl "><span>，</span></span>那么会自动更新 <code>version</code> 版本号<span class=" fw-cl "><span>。</span></span>对于各个项目相关联的场景<span class=" fw-cl "><span>，</span></span>这样的模式非常有利<span class=" fw-cl "><span>，</span></span>任何一个项目大版本升级<span class=" fw-cl "><span>，</span></span>其他项目的大版本号也会更新<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style=""><strong style="">Independent 模式</strong></li>
+</ul>
+<p>不同于 Fixed/Locked 模式<span class=" fw-cl "><span>，</span></span>Independent 模式下<span class=" fw-cl "><span>，</span></span>各个项目相互独立<span class=" fw-cl "><span>。</span></span>开发者需要独立管理多个包的版本更新<span class=" fw-cl "><span>。</span></span>也就是说<span class=" fw-cl "><span>，</span></span>我们可以具体到更新每个包的版本<span class=" fw-cl "><span>。</span></span>每次发布<span class=" fw-cl "><span>，</span></span>Lerna 会配合 Git<span class=" fw-cl "><span>，</span></span>检查相关包文件的变动<span class=" fw-cl "><span>，</span></span>只发布有改动的 package<span class=" fw-cl "><span>。</span></span></p>
+<p>开发者可以根据团队需求进行模式选择<span class=" fw-cl "><span>。</span></span></p>
+<p>我们也可以使用 Lerna 安装依赖<span class=" fw-cl "><span>，</span></span>该命令可以在项目下的任何文件夹中执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>lerna add dependencyName</code></p>
+<p>Lerna 默认支持 hoist 选项<span class=" fw-cl "><span>，</span></span>即默认在 lerna.json 中<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{ bootstrap: { hoist: true } }</code></p>
+<p>这样项目中所有的 package 下 package.json 都会出现 dependencyName 包<span class=" fw-cl "><span>：</span></span></p>
+<p><code>&nbsp;&nbsp;packages/<br>
+ &nbsp;module-1/<br>
+ &nbsp;&nbsp;&nbsp;package.json(+ dependencyName)<br>
+ &nbsp;&nbsp;&nbsp;node_modules<br>
+ &nbsp;module-2/<br>
+ &nbsp;&nbsp;&nbsp;package.json(+ dependencyName)<br>
+ &nbsp;&nbsp;&nbsp;node_modules<br>
+ &nbsp;module-3/<br>
+ &nbsp;&nbsp;&nbsp;package.json(+ dependencyName)<br>
+ &nbsp;&nbsp;&nbsp;node_modules<br>
+ &nbsp;node_modules<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dependencyName</code></p>
+<p>这种方式<span class=" fw-cl "><span>，</span></span>会在父文件夹的 node_modules 中高效安装 dependencyName<span class="fw-op  "><span>（</span></span>Node.js 会向上在祖先文件夹中查找依赖<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span>对于未开启 hoist 的情况<span class=" fw-cl "><span>，</span></span>执行 lerna add 后<span class=" fw-cl "><span>，</span></span>需要执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>lerna bootstrap --hoist</code></p>
+<p>如果我们想有选择地升级某个依赖<span class=" fw-cl "><span>，</span></span>比如只想为 module-1 升级 dependencyName 版本<span class=" fw-cl "><span>，</span></span>可以使用 scope 参数<span class=" fw-cl "><span>：</span></span></p>
+<p><code>lerna add dependencyName --scope=module-1</code></p>
+<p>这时候 module-1 文件夹下会有一个 node_modules<span class=" fw-cl "><span>，</span></span>其中包含了 dependencyName 的最新版本<span class=" fw-cl "><span>。</span></span></p>
+<h3>分析一个项目迁移案例</h3>
+<p><strong style="">接下来<span class=" fw-cl "><span>，</span></span>我选取一个正在线上运行的 multirepo 项目<span class=" fw-cl "><span>，</span></span>并演示使用 Lerna 将其迁移到 monorepo 的过程<span class=" fw-cl "><span>。</span></span></strong>此案例来自 <a href="http://mitter.io/" title="mitter.io">mitter.io</a><span class=" fw-cl "><span>，</span></span>该团队以往一直以 multirepo 的形式维护以下几个项目<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">@mitter-io/core<span class=" fw-cl "><span>，</span></span>mitter.io SDK 核心基础库</li>
+  <li style="">@mitter-io/models<span class=" fw-cl "><span>，</span></span>TypeScript models 库</li>
+  <li style="">@mitter-io/web<span class=" fw-cl "><span>，</span></span>Web 端 SDK 应用</li>
+  <li style="">@mitter-io/react-native<span class=" fw-cl "><span>，</span></span>React Native 端 SDK 应用</li>
+  <li style="">@mitter-io/node<span class=" fw-cl "><span>，</span></span>Node.js 端 SDK 应用</li>
+  <li style="">@mitter-io/react-scl<span class=" fw-cl "><span>，</span></span>React.js 组件库</li>
+</ul>
+<h4>背景介绍</h4>
+<p>项目使用 TypeScript 和 Rollup 工具<span class=" fw-cl "><span>，</span></span>以及 TypeDoc 生成规范化文档<span class=" fw-cl "><span>。</span></span>在使用 Lerna 做 monorepo 化之前<span class=" fw-cl "><span>，</span></span>这样的技术方案带来的困扰显而易见<span class=" fw-cl "><span>，</span></span>我们来分析一下当前技术栈的弊端<span class=" fw-cl "><span>，</span></span>以及 monorepo 化能为这些项目带来哪些收益<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">如果 @mitter-io/core 中出现任何一处改动<span class=" fw-cl "><span>，</span></span>其他所有的包都需要升级到 @mitter-io/core 最新版本<span class=" fw-cl "><span>，</span></span>不管这些改动是 feature 还是 bug fix<span class=" fw-cl "><span>，</span></span>成本都比较大</li>
+  <li style="">如果所有这些包能共同分享版本<span class=" fw-cl "><span>，</span></span>那么带来的收益也是非常巨大的</li>
+  <li style="">这些不同的仓库之间<span class=" fw-cl "><span>，</span></span>由于技术栈近似<span class=" fw-cl "><span>，</span></span>一些构建脚本大体相同<span class=" fw-cl "><span>，</span></span>部署流程也都一致<span class=" fw-cl "><span>，</span></span>如果能够将这些脚本统一抽象<span class=" fw-cl "><span>，</span></span>也将带来便利</li>
+</ul>
+<h4>迁移步骤</h4>
+<p>我们运用 Lerna 构建 monorepo 项目<span class=" fw-cl "><span>，</span></span>第一步<span class=" fw-cl "><span>：</span></span></p>
+<p><code>mkdir my-new-monorepo &amp;&amp; cd my-new-monorepo<br>
+git init .<br>
+lerna init</code></p>
+<p>不同于之前的示例<span class=" fw-cl "><span>，</span></span>这是从现有项目中导入<span class=" fw-cl "><span>，</span></span>因此我们可以使用命令<span class=" fw-cl "><span>：</span></span></p>
+<p><code>lerna import ~/projects/my-single-repo-package-1 --flatten</code></p>
+<p>这行命令不仅可以导入项目<span class=" fw-cl "><span>，</span></span>同时也会将已有项目中的 git commit 一并搬迁过来<span class=" fw-cl "><span>。</span></span>我们可以放心地在新 monorepo 仓库中使用 git blame 来进行回溯<span class=" fw-cl "><span>。</span></span></p>
+<p>如此一来<span class=" fw-cl "><span>，</span></span>得到了这样的项目结构<span class=" fw-cl "><span>：</span></span></p>
+<p><code>packages/<br>
+ &nbsp;core/<br>
+ &nbsp;models/<br>
+ &nbsp;node/<br>
+ &nbsp;react-native/<br>
+ &nbsp;web/<br>
+lerna.json<br>
+package.json</code></p>
+<p>接下来<span class=" fw-cl "><span>，</span></span>运行熟悉的<span class=" fw-cl "><span>：</span></span></p>
+<p><code>lerna boostrap<br>
+lerna publish</code></p>
+<p>进行依赖维护和发布<span class=" fw-cl "><span>。</span></span>注意并不是每次都需要执行 lerna bootstrap<span class=" fw-cl "><span>，</span></span>只需要在第一次切换到项目<span class=" fw-cl "><span>，</span></span>安装所有依赖时运行<span class=" fw-cl "><span>。</span></span></p>
+<p>对于每一个 package 来说<span class=" fw-cl "><span>，</span></span>其 pacakge.json 文件中都有以下雷同的 npm script 声明<span class=" fw-cl "><span>。</span></span></p>
+<p><code>"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;...<br>
+ &nbsp;&nbsp;&nbsp;"prepare": "yarn run build",<br>
+ &nbsp;&nbsp;&nbsp;"prepublishOnly": "./../../ci-scripts/publish-tsdocs.sh",<br>
+ &nbsp;&nbsp;&nbsp;...<br>
+ &nbsp;&nbsp;&nbsp;"build": "tsc --module commonjs &amp;&amp; rollup -c rollup.config.ts &amp;&amp; typedoc --out docs --target es6 --theme minimal --mode file src"<br>
+}</code></p>
+<p>受益于 monorepo<span class=" fw-cl "><span>，</span></span>所有项目得以集中管理在一个仓库中<span class=" fw-cl "><span>，</span></span>这样我们将所有 package 公共的 npm 脚本移到 ./scripts 文件中<span class=" fw-cl "><span>。</span></span>在单一的 monorepo 项目里<span class=" fw-cl "><span>，</span></span>我们就可以在不同 package 之间共享构建脚本了 <span class=" fw-cl "><span>。</span></span></p>
+<p>运行公共脚本时<span class=" fw-cl "><span>，</span></span>有时候有必要知道当前运行的项目信息<span class=" fw-cl "><span>。</span></span>npm 是能够读取到每个 package.json 信息的<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>对每个 package<span class=" fw-cl "><span>，</span></span>在其 package.json 中添加以下信息<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;&nbsp;&nbsp;"name": "@mitter-io/core",<br>
+ &nbsp;&nbsp;&nbsp;"version": "0.6.28",<br>
+ &nbsp;&nbsp;&nbsp;"repository": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "git"<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>之后<span class=" fw-cl "><span>，</span></span>如下变量都可以被 npm script 使用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npm_package_name = @mitter-io/core<br>
+npm_package_version = 0.6.28<br>
+npm_package_repository_type = git</code></p>
+<h4>流程优化</h4>
+<p>团队中正常的开发流程是每个程序员新建一个 git branch<span class=" fw-cl "><span>，</span></span>通过代码审核之后进行合并<span class=" fw-cl "><span>。</span></span>整套流程在 monorepo 架构下变得非常清晰<span class=" fw-cl "><span>，</span></span>我们来梳理一下<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">step1<span class=" fw-cl "><span>：</span></span>当开发完成后<span class=" fw-cl "><span>，</span></span>我们计划进行版本升级<span class=" fw-cl "><span>，</span></span>只需要运行<span class=" fw-cl "><span>：</span></span>lerna version</li>
+  <li style="">step2<span class=" fw-cl "><span>：</span></span>Lerna 会提供交互式 prompt<span class=" fw-cl "><span>，</span></span>对下一版本进行序号升级</li>
+</ul>
+<p><code>&nbsp;&nbsp;&nbsp;&nbsp;lerna version --force-publish<br>
+ &nbsp;&nbsp;&nbsp;lerna notice cli v3.8.1<br>
+ &nbsp;&nbsp;&nbsp;lerna info current version 0.6.2<br>
+ &nbsp;&nbsp;&nbsp;lerna info Looking for changed packages since v0.6.2<br>
+ &nbsp;&nbsp;&nbsp;? Select a new version (currently 0.6.2) (Use arrow keys)<br>
+ &nbsp;&nbsp;&nbsp;❯ Patch (0.6.3)<br>
+ &nbsp;&nbsp;&nbsp;Minor (0.7.0)<br>
+ &nbsp;&nbsp;&nbsp;Major (1.0.0)<br>
+ &nbsp;&nbsp;&nbsp;Prepatch (0.6.3-alpha.0)<br>
+ &nbsp;&nbsp;&nbsp;Preminor (0.7.0-alpha.0)<br>
+ &nbsp;&nbsp;&nbsp;Premajor (1.0.0-alpha.0)<br>
+ &nbsp;&nbsp;&nbsp;Custom Prerelease<br>
+ &nbsp;&nbsp;&nbsp;Custom Version</code></p>
+<p>新版本被选定之后<span class=" fw-cl "><span>，</span></span>Lerna 会自动改变每个 package 的版本号<span class=" fw-cl "><span>，</span></span>在远程仓库中创建一个新的 tag<span class=" fw-cl "><span>，</span></span>并将所有的改动推送到 GitLab 实例当中<span class=" fw-cl "><span>。</span></span></p>
+<p>接下来<span class=" fw-cl "><span>，</span></span>CI 构建实际上只需要两步<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">Build 构建</li>
+  <li style="">Publish 发布</li>
+</ul>
+<p>构建实际就是运行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>lerna bootstrap<br>
+lerna run build</code></p>
+<p>而发布也不复杂<span class=" fw-cl "><span>，</span></span>需要执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>git checkout master<br>
+lerna bootstrap<br>
+git reset --hard<br>
+lerna publish from-package --yes</code></p>
+<p>注意<span class=" fw-cl "><span>，</span></span>这里我们使用了 lerna publish from-package<span class=" fw-cl "><span>，</span></span>而不是简单的 lerna publish<span class=" fw-cl "><span>。</span></span>因为开发者在本地已经运行了 lerna version<span class=" fw-cl "><span>，</span></span>这时候再运行 lerna publish 会收到<span class="fw-op  "><span>「</span></span>当前版本已经发布<span class=" fw-cl "><span>」</span></span>的提示<span class=" fw-cl "><span>。</span></span>而 from-package 参数会告诉 Lerna 发布所有非当前 npm package 版本的项目<span class=" fw-cl "><span>。</span></span></p>
+<p>通过这个案例<span class=" fw-cl "><span>，</span></span>我们了解了 Lerna 构建 monorepo 的经典套路<span class=" fw-cl "><span>，</span></span>Lerna 还封装了更多的 API 来支持更加灵活的 monorepo 的创建<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以自行研究<span class=" fw-cl "><span>，</span></span>欢迎在评论区留言讨论<span class=" fw-cl "><span>，</span></span>或者直接向我提问<span class=" fw-cl "><span>。</span></span>个人认为<span class=" fw-cl "><span>，</span></span>未来 monorepo 和 multirepo 将会持续并存<span class=" fw-cl "><span>，</span></span>每个开发者都应该根据项目特点来进行选择<span class=" fw-cl "><span>。</span></span></p>
+<p>到此<span class=" fw-cl "><span>，</span></span>我们分析了 multirepo 和 monorepo 方案的各自特点<span class=" fw-cl "><span>，</span></span>通过实例和项目迁移了解了如何构建 monorepo 项目<span class=" fw-cl "><span>。</span></span>但是<span class=" fw-cl "><span>，</span></span>项目组织不光这些内容<span class=" fw-cl "><span>，</span></span>下一节我们将讨论依赖关系这一话题<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>monorepo 目前来看是一个流行趋势<span class=" fw-cl "><span>，</span></span>笔者为项目团队引入了 monorepo 的架构方案之后收益非常明显<span class=" fw-cl "><span>，</span></span>我们也是国内最早采用 monorepo 架构的团队之一<span class=" fw-cl "><span>。</span></span></p>
+<p>但是这篇课程难以做到面面俱到<span class=" fw-cl "><span>，</span></span>并且任何一个项目都有自己的独立性和特殊性<span class=" fw-cl "><span>，</span></span>究竟该如何组织调配<span class=" fw-cl "><span>、</span></span>生产部署<span class=" fw-cl "><span>，</span></span>需要每一个开发者开动脑筋<span class=" fw-cl "><span>。</span></span></p>
+<p>比如<span class=" fw-cl "><span>：</span></span>monorepo 方式会导致整个项目体积变大<span class=" fw-cl "><span>，</span></span>在上线部署时<span class=" fw-cl "><span>，</span></span>用时更长<span class=" fw-cl "><span>，</span></span>甚至难以忍受<span class=" fw-cl "><span>。</span></span>在工程中如何解决这类问题<span class=" fw-cl "><span>？</span></span>针对于此<span class=" fw-cl "><span>，</span></span>我设计了增量部署构建方案<span class=" fw-cl "><span>，</span></span>通过分析项目依赖以及拓扑排序<span class=" fw-cl "><span>，</span></span>优化项目编译构建<span class=" fw-cl "><span>，</span></span>这里不再多做介绍<span class=" fw-cl "><span>。</span></span></p>
+<p>如果对工程化话题格外感兴趣的读者较多<span class=" fw-cl "><span>，</span></span>我会专门进行讲解<span class=" fw-cl "><span>。</span></span>希望大家一起讨论<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1p6PmgbsXLQyEwI5olY</span></p>
+</body>
+</html>

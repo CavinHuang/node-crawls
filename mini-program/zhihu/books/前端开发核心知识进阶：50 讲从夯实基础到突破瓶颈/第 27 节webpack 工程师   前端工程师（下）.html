@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 27 节webpack 工程师 > 前端工程师（下）</h1>
+  <p>上一节中<span class=" fw-cl "><span>，</span></span>我们了解了 webpack 对于不同模块化标准的打包结果<span class=" fw-cl "><span>，</span></span>分析了其自身的模块化解决方案<span class=" fw-cl "><span>。</span></span>但是 webpack 绝不仅仅是一个打包器<span class=" fw-cl "><span>，</span></span>它是一个完整的构建工具链<span class=" fw-cl "><span>。</span></span><strong style="">那么它到底是如何工作的<span class=" fw-cl "><span>，</span></span>原理是什么<span class=" fw-cl "><span>？</span></span>了解了这些原理<span class=" fw-cl "><span>，</span></span>我们又能如何扩展<span class=" fw-cl "><span>，</span></span>以解决工作中的实际问题<span class=" fw-cl "><span>？</span></span></strong>这一节<span class=" fw-cl "><span>，</span></span>我们来一探究竟<span class=" fw-cl "><span>。</span></span></p>
+<p>我们再次列出 webpack 主题的知识点<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-7ceef3404e373a0fa52e57b9798d8e4d.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:34.300000000000004% 0" data-src="https://pic2.zhimg.com/v2-7ceef3404e373a0fa52e57b9798d8e4d.png">加载中...</span></figure>
+<h3>webpack 工作基本原理</h3>
+<p>通过前文学习<span class=" fw-cl "><span>，</span></span>我们知道了 webpack 编译产出<span class=" fw-cl "><span>，</span></span>对结果进行分析<span class=" fw-cl "><span>。</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>知其然<span class=" fw-cl "><span>，</span></span>知其所以然<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>在知晓打包结果的基础上<span class=" fw-cl "><span>，</span></span>接下来我们尝试分析产出过程<span class=" fw-cl "><span>，</span></span>了解 webpack 工作的基本原理<span class=" fw-cl "><span>。</span></span></p>
+<p>webpack 工作流程可以简单总结为下图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-43197536e1f0e909231597c5d971c6a6.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:26.150000000000002% 0" data-src="https://pic4.zhimg.com/v2-43197536e1f0e909231597c5d971c6a6.png">加载中...</span></figure>
+<ul>
+  <li style="">首先<span class=" fw-cl "><span>，</span></span>webpack 会读取项目中由开发者定义的 webpack.config.js 配置文件<span class=" fw-cl "><span>，</span></span>或者从 shell 语句中获得必要的参数<span class=" fw-cl "><span>。</span></span>这是 webpack 内部接收业务配置信息的方式<span class=" fw-cl "><span>。</span></span>这就完成了配置读取的初步工作<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">接着<span class=" fw-cl "><span>，</span></span>实例化所需 webpack 插件<span class=" fw-cl "><span>，</span></span>在 webpack 事件流上挂载插件钩子<span class=" fw-cl "><span>，</span></span>这样在合适的构建过程中<span class=" fw-cl "><span>，</span></span>插件具备了改动产出结果的能力<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">同时<span class=" fw-cl "><span>，</span></span>根据配置所定义的入口文件<span class=" fw-cl "><span>，</span></span>以入口文件<span class="fw-op  "><span>（</span></span>可以不止有一个<span class=" fw-cl "><span>）</span></span>为起始<span class=" fw-cl "><span>，</span></span>进行依赖收集<span class=" fw-cl "><span>：</span></span>对所有依赖的文件进行编译<span class=" fw-cl "><span>，</span></span>这个编译过程依赖 loaders<span class=" fw-cl "><span>，</span></span>不同类型文件根据开发者定义的不同 loader 进行解析<span class=" fw-cl "><span>。</span></span>编译好的内容使用 acorn 或其它抽象语法树能力<span class=" fw-cl "><span>，</span></span>解析生成 AST 静态语法树<span class=" fw-cl "><span>，</span></span>分析文件依赖关系<span class=" fw-cl "><span>，</span></span>将不同模块化语法<span class="fw-op  "><span>（</span></span>如 require<span class=" fw-cl "><span>）</span></span>等替换为 <code>__webpack_require__</code><span class=" fw-cl "><span>，</span></span>即使用 webpack 自己的加载器进行模块化实现<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">上述过程进行完毕后<span class=" fw-cl "><span>，</span></span>产出结果<span class=" fw-cl "><span>，</span></span>根据开发者配置<span class=" fw-cl "><span>，</span></span>将结果打包到相应目录<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>值得一提的是<span class=" fw-cl "><span>，</span></span>在这整个打包过程中<span class=" fw-cl "><span>，</span></span><strong style="">webpack 和插件采用基于事件流的发布订阅模式<span class=" fw-cl "><span>，</span></span>监听某些关键过程<span class=" fw-cl "><span>，</span></span>在这些环节中执行插件任务</strong><span class=" fw-cl "><span>。</span></span>到最后<span class=" fw-cl "><span>，</span></span>所有文件的编译和转化都已经完成<span class=" fw-cl "><span>，</span></span>输出最终资源<span class=" fw-cl "><span>。</span></span></p>
+<p>如果深入源码<span class=" fw-cl "><span>，</span></span>上述过程用更加专业的术语总结为——模块会经历<strong style="">加载</strong><span class="fw-op  "><span>（</span></span>loaded<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span><strong style="">封存</strong><span class="fw-op  "><span>（</span></span>sealed<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span><strong style="">优化</strong><span class="fw-op  "><span>（</span></span>optimized<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span><strong style="">分块</strong><span class="fw-op  "><span>（</span></span>chunked<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span><strong style="">哈希</strong><span class="fw-op  "><span>（</span></span>hashed<span class=" fw-cl "><span>）</span></span>和<strong style="">重新创建</strong><span class="fw-op  "><span>（</span></span>restored<span class=" fw-cl "><span>）</span></span>这几个经典步骤<span class=" fw-cl "><span>。</span></span>在这里<span class=" fw-cl "><span>，</span></span>我们了解大体流程即可<span class=" fw-cl "><span>。</span></span></p>
+<p>梳理完 webpack 工作<span class="fw-op  "><span>「</span></span>流水账<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>我们还需要在理论上熟悉以下概念<span class=" fw-cl "><span>。</span></span></p>
+<h4>抽象语法树 AST</h4>
+<p>即便大家没有接触过 AST<span class=" fw-cl "><span>，</span></span>也应该不是第一次听说这个概念<span class=" fw-cl "><span>。</span></span></p>
+<p>在计算机科学中<span class=" fw-cl "><span>，</span></span>抽象语法树<span class="fw-op  "><span>（</span></span>Abstract Syntax Tree<span class=" fw-cl "><span>，</span></span>简称 AST<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>是源代码语法结构的一种抽象表示<span class=" fw-cl "><span>。</span></span>它以树状的形式表现编程语言的语法结构<span class=" fw-cl "><span>，</span></span>树上的每个节点都表示源代码中的一种结构和表达<span class=" fw-cl "><span>。</span></span></p>
+<p>之所以说语法是<span class="fw-op  "><span>「</span></span>抽象<span class=" fw-cl "><span>」</span></span>的<span class=" fw-cl "><span>，</span></span>是因为这里的语法并不会表示出真实语法中出现的每个细节<span class=" fw-cl "><span>。</span></span>比如类似于 if-condition-then 这样的条件跳转语句<span class=" fw-cl "><span>，</span></span>可以使用带有两个分支的节点来表示<span class=" fw-cl "><span>。</span></span></p>
+<p>AST 并不会被计算机所识别<span class=" fw-cl "><span>，</span></span>更不会被运行<span class=" fw-cl "><span>，</span></span>它是对编程语言的一种表达<span class=" fw-cl "><span>，</span></span>为代码分析提供了基础<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">webpack 将文件转换成 AST 的目的就是方便开发者提取模块文件中的关键信息<span class=" fw-cl "><span>。</span></span></strong> 这样一来<span class=" fw-cl "><span>，</span></span>我们就可以<span class="fw-op  "><span>「</span></span>知晓开发者到底写了什么东西<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>也就可以根据这些<span class="fw-op  "><span>「</span></span>写出的东西<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>实现分析和扩展<span class=" fw-cl "><span>。</span></span>在代码层面<span class=" fw-cl "><span>，</span></span>我们可以把 AST 理解为一个 object<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var ast = 'AST demo'</code></p>
+<p>这样的语句转换为 AST 就是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;"type": "Program",<br>
+ &nbsp;"start": 0,<br>
+ &nbsp;"end": 20,<br>
+ &nbsp;"body": [<br>
+ &nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "VariableDeclaration",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 0,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 20,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"declarations": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "VariableDeclarator",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 4,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 20,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 4,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 7,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "ast"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"init": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Literal",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 10,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 20,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"value": "AST demo",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"raw": "'AST demo'"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kind": "var"<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;],<br>
+ &nbsp;"sourceType": "module"<br>
+}</code></p>
+<p>从中我们可以看出<span class=" fw-cl "><span>，</span></span>AST 结果精确地表明了这是一条变量声明语句<span class=" fw-cl "><span>，</span></span>语句起始于哪里<span class=" fw-cl "><span>，</span></span>赋值结果是什么等信息都被表达出来<span class=" fw-cl "><span>。</span></span></p>
+<p>一个更复杂的例子<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let tips = [1, 2]<br>
+<br>
+function printTips() {<br>
+ &nbsp;tips.forEach((tip, i) =&gt; console.log(`Tip ${i}:` + tip))<br>
+}</code></p>
+<p>会转化为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;"type": "Program",<br>
+ &nbsp;"start": 0,<br>
+ &nbsp;"end": 285,<br>
+ &nbsp;"body": [<br>
+ &nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "VariableDeclaration",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 179,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 197,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"declarations": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "VariableDeclarator",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 183,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 196,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 183,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 187,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "tips"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"init": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "ArrayExpression",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 190,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 196,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"elements": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Literal",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 191,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 192,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"value": 1,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"raw": "1"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Literal",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 194,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 195,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"value": 2,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"raw": "2"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kind": "let"<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "FunctionDeclaration",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 199,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 283,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 208,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 217,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "printTips"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expression": false,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"generator": false,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"params": [],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"body": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "BlockStatement",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 220,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 283,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"body": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "ExpressionStatement",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 224,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 281,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expression": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "CallExpression",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 224,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 280,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"callee": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "MemberExpression",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 224,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 236,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"object": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 224,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 228,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "tips"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"property": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 229,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 236,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "forEach"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"computed": false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"arguments": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "ArrowFunctionExpression",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 237,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 279,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": null,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expression": true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"generator": false,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"params": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 238,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 241,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "tip"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 243,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 244,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "i"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"body": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "CallExpression",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 249,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 279,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"callee": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "MemberExpression",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 249,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 260,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"object": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 249,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 256,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "console"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"property": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 257,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 260,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "log"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"computed": false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"arguments": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "BinaryExpression",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 261,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 278,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"left": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "TemplateLiteral",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 261,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 272,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expressions": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 268,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 269,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "i"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"quasis": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "TemplateElement",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 262,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 266,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"value": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"raw": "Tip ",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cooked": "Tip "<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"tail": false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "TemplateElement",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 270,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 271,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"value": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"raw": ":",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cooked": ":"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"tail": true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "+",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"right": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "Identifier",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"start": 275,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"end": 278,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "tip"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;],<br>
+ &nbsp;"sourceType": "module"<br>
+}</code></p>
+<p>我们看到<span class=" fw-cl "><span>，</span></span>AST 结果除了表达出变量赋值 VariableDeclaration 信息以外<span class=" fw-cl "><span>，</span></span>对函数声明 FunctionDeclaration 也做了精确的<span class="fw-op  "><span>「</span></span>解剖<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>哪里出现了一个花括号<span class=" fw-cl "><span>，</span></span>哪里实现了 API 调用<span class=" fw-cl "><span>，</span></span>通过 AST 全部一览无余<span class=" fw-cl "><span>。</span></span></p>
+<p>设想一下<span class=" fw-cl "><span>，</span></span>有了这样的语法树<span class=" fw-cl "><span>，</span></span>开发者便可以针对源文件进行一些<span class="fw-op  "><span>「</span></span>分析<span class=" fw-cl "><span>、</span></span>加工或转换<span class=" fw-cl "><span>」</span></span>操作<span class=" fw-cl "><span>。</span></span></p>
+<h4>compiler 和 compilation</h4>
+<p>compiler 和 compilation 这两个对象是 webpack 核心原理中最重要的概念<span class=" fw-cl "><span>。</span></span>它们是理解 webpack 工作原理<span class=" fw-cl "><span>、</span></span>loader 和插件工作的基础<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">compiler 对象<span class=" fw-cl "><span>：</span></span>它的实例包含了完整的 webpack 配置<span class=" fw-cl "><span>，</span></span>全局只有一个 compiler 实例<span class=" fw-cl "><span>，</span></span>因此它就像 webpack 的骨架或神经中枢<span class=" fw-cl "><span>。</span></span>当插件被实例化的时候<span class=" fw-cl "><span>，</span></span>会收到一个 compiler 对象<span class=" fw-cl "><span>，</span></span>通过这个对象可以访问 webpack 的内部环境<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">compilation 对象<span class=" fw-cl "><span>：</span></span>当 webpack 以开发模式运行时<span class=" fw-cl "><span>，</span></span>每当检测到文件变化<span class=" fw-cl "><span>，</span></span>一个新的 compilation 对象将被创建<span class=" fw-cl "><span>。</span></span>这个对象包含了当前的模块资源<span class=" fw-cl "><span>、</span></span>编译生成资源<span class=" fw-cl "><span>、</span></span>变化的文件等信息<span class=" fw-cl "><span>。</span></span>也就是说<span class=" fw-cl "><span>，</span></span>所有构建过程中产生的构建数据都存储在该对象上<span class=" fw-cl "><span>，</span></span>它也掌控着构建过程中的每一个环节<span class=" fw-cl "><span>。</span></span>该对象也提供了很多事件回调供插件做扩展<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>两者的关系可以通过以下图示说明<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-72e7d8c4117635b380917ad8e25a5a73.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:54.2% 0" data-src="https://pic1.zhimg.com/v2-72e7d8c4117635b380917ad8e25a5a73.png">加载中...</span></figure>
+<p>webpack 的构建过程是通过 compiler 控制流程<span class=" fw-cl "><span>，</span></span>compilation 进行解析<span class=" fw-cl "><span>。</span></span><strong style="">在开发插件时<span class=" fw-cl "><span>，</span></span>我们可以从 compiler 对象中拿到所有和 webpack 主环境相关的内容<span class=" fw-cl "><span>，</span></span>包括事件钩子<span class=" fw-cl "><span>。</span></span></strong>更多信息我们将在下文介绍<span class=" fw-cl "><span>。</span></span></p>
+<p>compiler 对象和 compilation 对象都继承自 tapable<span class=" fw-cl "><span>，</span></span>tapable.js 这个库暴露了所有和事件相关的 pub/sub 的方法<span class=" fw-cl "><span>。</span></span>webpack 基于事件流的 tapable 库<span class=" fw-cl "><span>，</span></span>不仅能保证插件的有序性<span class=" fw-cl "><span>，</span></span>还使得整个系统扩展性更好<span class=" fw-cl "><span>。</span></span></p>
+<p>关于 tapable 库的解读我们到这里不再深入<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以参加后续讨论和学习后续文章内容<span class=" fw-cl "><span>。</span></span></p>
+<h3>探秘并编写 webpack loader</h3>
+<p>熟悉了概念<span class=" fw-cl "><span>，</span></span>我们就来进行实战<span class=" fw-cl "><span>：</span></span>了解如何编写一个 webpack loader<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>在 webpack 中<span class=" fw-cl "><span>，</span></span>loader 是魔法真正发生的阶段之一<span class=" fw-cl "><span>：</span></span>Babel 将 ES Next 编译成 ES5<span class=" fw-cl "><span>，</span></span>sass-loader 将 SCSS/Sass 编译成 CSS 等<span class=" fw-cl "><span>，</span></span>都是由相关 loader 或者 plugin 完成的<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>直观上理解<span class=" fw-cl "><span>，</span></span><strong style="">loader 就是接受源文件<span class=" fw-cl "><span>，</span></span>对源文件进行处理<span class=" fw-cl "><span>，</span></span>返回编译后文件</strong><span class=" fw-cl "><span>。</span></span>如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-3a1399f7c8695baa29cba4cae49d7388.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:20.7% 0" data-src="https://pic3.zhimg.com/v2-3a1399f7c8695baa29cba4cae49d7388.png">加载中...</span></figure>
+<p>我们看到一个 loader 秉承单一职责<span class=" fw-cl "><span>，</span></span>完成最小单元的文件转换<span class=" fw-cl "><span>。</span></span>当然<span class=" fw-cl "><span>，</span></span><strong style="">一个源文件可能需要经历多步转换才能正常使用</strong><span class=" fw-cl "><span>，</span></span>比如 Sass 文件先通过 sass-loader 输出 CSS<span class=" fw-cl "><span>，</span></span>之后将内容交给 css-loader 处理<span class=" fw-cl "><span>，</span></span>甚至 css-loader 输出的内容还需要交给 style-loader 处理<span class=" fw-cl "><span>，</span></span>转换成通过脚本加载的 JavaScript 代码<span class=" fw-cl "><span>。</span></span>如下使用方式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = {<br>
+ &nbsp;...<br>
+ &nbsp;module: {<br>
+ &nbsp;&nbsp;&nbsp;rules: [{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test: /\.less$/,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;use: [{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: 'style-loader' // 通过 JS 字符串<span class=" fw-cl "><span>，</span></span>创建 style node<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: 'css-loader' // 编译 css 使其符合 CommonJS 规范<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: 'less-loader' // 编译 less 为 css<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br>
+ &nbsp;&nbsp;&nbsp;}]<br>
+ &nbsp;}<br>
+}</code></p>
+<p>当我们调用多个 loader 串联去转换一个文件时<span class=" fw-cl "><span>，</span></span>每个 loader 会链式地顺序执行<span class=" fw-cl "><span>。</span></span>webpack 中<span class=" fw-cl "><span>，</span></span>在同一文件存在多个匹配 loader 的情况下<span class=" fw-cl "><span>，</span></span>遵循以下原则<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">loader 的执行顺序是和配置顺序相反的<span class=" fw-cl "><span>，</span></span>即配置的最后一个 loader 最先执行<span class=" fw-cl "><span>，</span></span>第一个 loader 最后执行<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">第一个执行的 loader 接收源文件内容作为参数<span class=" fw-cl "><span>，</span></span>其他 loader 接收前一个执行的 loader 的返回值作为参数<span class=" fw-cl "><span>。</span></span>最后执行的 loader 会返回最终结果<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>如图<span class=" fw-cl "><span>，</span></span>对应上面代码<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-33c011da020f0065ff0223e15e9bbcca.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:9.25% 0" data-src="https://pic2.zhimg.com/v2-33c011da020f0065ff0223e15e9bbcca.png">加载中...</span></figure>
+<p>因此<span class=" fw-cl "><span>，</span></span>在你开发一个 loader 时<span class=" fw-cl "><span>，</span></span>请保持其职责的单一性<span class=" fw-cl "><span>，</span></span>只需关心输入和输出<span class=" fw-cl "><span>。</span></span></p>
+<p>不难理解<span class=" fw-cl "><span>：</span></span>loader 本质就是函数<span class=" fw-cl "><span>，</span></span>其最简单的结构为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = function(source){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;// some magic...<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;return content<br>
+}</code></p>
+<p>loader 就是一个基于 CommonJS 规范的函数模块<span class=" fw-cl "><span>，</span></span>它接受内容<span class="fw-op  "><span>（</span></span>这个内容可能是源文件也可能是经过其他 loader 处理后的结果<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>并返回新的内容<span class=" fw-cl "><span>。</span></span></p>
+<p>更进一步<span class=" fw-cl "><span>，</span></span>我们知道在配置 webpack 时<span class=" fw-cl "><span>，</span></span>对于 loader 可以增加一些配置<span class=" fw-cl "><span>，</span></span>比如著名的 babel-loader 的简单配置<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module:{<br>
+ &nbsp;&nbsp;&nbsp;rules:[<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test: /\.js$/,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exclude: /node_modules/, <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: "babel-loader",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;options: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"plugins": [<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"dynamic-import-webpack"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;]<br>
+}</code></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>上文简单的 loader 写法便不能满足需求了<span class=" fw-cl "><span>，</span></span>因为我们除了 source 以外<span class=" fw-cl "><span>，</span></span>还需要根据开发者配置的 options 信息进行处理<span class=" fw-cl "><span>，</span></span>以输出最后结果<span class=" fw-cl "><span>。</span></span>那么如何获取 options 呢<span class=" fw-cl "><span>？</span></span>这时候就需要 loader-utils 模块了<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const loaderUtils = require("loader-utils")<br>
+module.exports = function(source) {<br>
+ &nbsp;&nbsp;&nbsp;// 获取开发者配置的 options<br>
+ &nbsp;&nbsp;&nbsp;const options = loaderUtils.getOptions(this)<br>
+ &nbsp;&nbsp;&nbsp;// some magic...<br>
+ &nbsp;&nbsp;&nbsp;return content<br>
+}</code></p>
+<p>另外<span class=" fw-cl "><span>，</span></span>对于 loader 返回的内容<span class=" fw-cl "><span>，</span></span>在实际开发中<span class=" fw-cl "><span>，</span></span>单纯对 content 进行改写并返回也许是不够的<span class=" fw-cl "><span>。</span></span></p>
+<p>比如<span class=" fw-cl "><span>，</span></span>我们想对 loader 处理过程中的错误进行捕获<span class=" fw-cl "><span>，</span></span>或者又想导出 sourceMap 等信息<span class=" fw-cl "><span>，</span></span>该如何做呢<span class=" fw-cl "><span>？</span></span></p>
+<p>这种情况需要用到 loader 中的 this.callback 进行内容的返回<span class=" fw-cl "><span>。</span></span>this.callback 可以传入四个参数<span class=" fw-cl "><span>，</span></span>分别是<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">error<span class=" fw-cl "><span>：</span></span>Error | null<span class=" fw-cl "><span>，</span></span>当 loader 出错时向外抛出一个 error</li>
+  <li style="">content<span class=" fw-cl "><span>：</span></span>String | Buffer<span class=" fw-cl "><span>，</span></span>经过 loader 编译后需要导出的内容</li>
+  <li style="">sourceMap<span class=" fw-cl "><span>：</span></span>为方便调试生成的编译后内容的 source map</li>
+  <li style="">ast<span class=" fw-cl "><span>：</span></span>本次编译生成的 AST 静态语法树<span class=" fw-cl "><span>，</span></span>之后执行的 loader 可以直接使用这个 AST<span class=" fw-cl "><span>，</span></span>进而省去重复生成 AST 的过程</li>
+</ul>
+<p>这样<span class=" fw-cl "><span>，</span></span>我们的 loader 代码变得更加复杂<span class=" fw-cl "><span>，</span></span>同时也能够处理更多样的需求<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = function(source) {<br>
+ &nbsp;&nbsp;&nbsp;// 获取开发者配置的 options<br>
+ &nbsp;&nbsp;&nbsp;const options = loaderUtils.getOptions(this)<br>
+ &nbsp;&nbsp;&nbsp;// some magic...<br>
+ &nbsp;&nbsp;&nbsp;// return content<br>
+ &nbsp;&nbsp;&nbsp;this.callback(null, content)<br>
+}</code></p>
+<p><br></p>
+<p><strong style="">注意</strong>　当我们使用 <code>this.callback</code> 返回内容时<span class=" fw-cl "><span>，</span></span>该 loader 必须返回 <code>undefined</code><span class=" fw-cl "><span>，</span></span>这样 webpack 就知道该 loader 返回的结果在 <code>this.callback</code> 中<span class=" fw-cl "><span>，</span></span>而不是 return 中<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">细心的读者会问<span class=" fw-cl "><span>，</span></span>这里的 this 指向谁<span class=" fw-cl "><span>？</span></span></strong>事实上<span class=" fw-cl "><span>，</span></span>这个 this 是一个叫 loaderContext 的 loader-runner 特有对象<span class=" fw-cl "><span>。</span></span>如果刨根问底<span class=" fw-cl "><span>，</span></span>就要细读 webpack loader 部分相关源码了<span class=" fw-cl "><span>，</span></span>这并不是我们的主题<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以针对 webpack 源码再进行分析<span class=" fw-cl "><span>。</span></span></p>
+<p>默认情况下<span class=" fw-cl "><span>，</span></span>webpack 传给 loader 的内容源都是 UTF-8 格式编码的字符串<span class=" fw-cl "><span>。</span></span>但请思考 file-loader 这个常用的 loader<span class=" fw-cl "><span>，</span></span>它不是处理文本文件<span class=" fw-cl "><span>，</span></span>而是处理二进制文件的<span class=" fw-cl "><span>，</span></span>这种情况下<span class=" fw-cl "><span>，</span></span>我们可以通过<span class=" fw-cl "><span>：</span></span>source instanceof Buffer === true 来判断内容源类型<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = function(source) {<br>
+ &nbsp;&nbsp;&nbsp;source instanceof Buffer === true<br>
+ &nbsp;&nbsp;&nbsp;return source<br>
+}</code></p>
+<p>如果自定义的 loader 也会返回二进制文件<span class=" fw-cl "><span>，</span></span>需要在文件中显式注明<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports.raw = true</code></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>还存在异步 loader 的情况<span class=" fw-cl "><span>，</span></span>即对 source 的处理并不能同步完成<span class=" fw-cl "><span>，</span></span>这时候使用简单的 async-await 即可<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = async function(source) {<br>
+ &nbsp;&nbsp;&nbsp;function timeout(delay) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(source)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, delay)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;const content = await timeout(1000)<br>
+ &nbsp;&nbsp;&nbsp;this.callback(null, content)<br>
+}</code></p>
+<p>另一种异步 loader 解决方案是使用 webpack 提供的 this.async<span class=" fw-cl "><span>，</span></span>调用 this.async 会返回一个 callback Function<span class=" fw-cl "><span>，</span></span>在异步完成之后<span class=" fw-cl "><span>，</span></span>我们进行调用<span class=" fw-cl "><span>。</span></span>上面的示例代码可以改写为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = async function(source) {<br>
+ &nbsp;&nbsp;&nbsp;function timeout(delay) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(source)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, delay)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;const callback = this.async()<br>
+ &nbsp;&nbsp;&nbsp;timeout(1000).then(data =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;callback(null, data)<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+}</code></p>
+<p>实际上<span class=" fw-cl "><span>，</span></span>对于我们熟悉的 less-loader<span class=" fw-cl "><span>，</span></span>翻看其源码<span class=" fw-cl "><span>，</span></span>就能发现它的核心是利用 less 这个库来解析 less 代码<span class=" fw-cl "><span>，</span></span>less 会返回一个 promise<span class=" fw-cl "><span>，</span></span>因此 less-loader 是异步的<span class=" fw-cl "><span>，</span></span>其实现正是运用了 this.async() 来完成<span class=" fw-cl "><span>。</span></span></p>
+<p>到此<span class=" fw-cl "><span>，</span></span>我们了解了 loader 的编写套路<span class=" fw-cl "><span>，</span></span>更多细节内容<span class=" fw-cl "><span>，</span></span>比如 loader 缓存开关<span class=" fw-cl "><span>、</span></span>全程传参 pitch 等用法不再过多讨论<span class=" fw-cl "><span>，</span></span>读者可以根据需要进行了解<span class=" fw-cl "><span>，</span></span>也欢迎在课程评论区大家一起讨论沟通<span class=" fw-cl "><span>。</span></span></p>
+<h4>实战案例</h4>
+<p>工程师想要进阶<span class=" fw-cl "><span>，</span></span>一定要<span class="fw-op  "><span>「</span></span>学以致用<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>解决实际问题<span class=" fw-cl "><span>。</span></span>我们现在来编写一个 path-replace-loader<span class=" fw-cl "><span>，</span></span>这个 loader 将允许自定义替换 require 语句中的 base path 为动态指定 path<span class=" fw-cl "><span>，</span></span>使用和配置方式为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = {<br>
+ &nbsp;&nbsp;&nbsp;module: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rules: [{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test: /\.js$/,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: 'path-replace-loader',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exclude: /(mode_modules)/,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;options: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path: 'ORIGINAL_PATH',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replacePath: 'REPLACE_PATH'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>根据上面所介绍内容<span class=" fw-cl "><span>，</span></span>我们给出 path-replace-loader 源码如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const fs = require('fs')<br>
+const loaderUtils = require('loader-utils')<br>
+<br>
+module.exports = function(source) {<br>
+ &nbsp;&nbsp;&nbsp;this.cacheable &amp;&amp; this.cacheable()<br>
+ &nbsp;&nbsp;&nbsp;const callback = this.async()<br>
+ &nbsp;&nbsp;&nbsp;const options = loaderUtils.getOptions(this)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (this.resourcePath.indexOf(options.path) &gt; -1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const newPath = this.resourcePath.replace(options.path, options.replacePath)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fs.readFile(newPath, (err, data) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (err) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (err.code === 'ENOENT') return callback(null, source)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return callback(err)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.addDependency(newPath)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;callback(null, data)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;callback(null, source)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+module.exports.raw = true</code></p>
+<p>这只是一个简单的实例<span class=" fw-cl "><span>，</span></span>但是涵盖了 loader 编写的不少内容<span class=" fw-cl "><span>，</span></span>我们来简单分析一下<span class=" fw-cl "><span>：</span></span>这是一个异步 loader<span class=" fw-cl "><span>，</span></span>我们使用了下面<span class=" fw-cl "><span>，</span></span></p>
+<p><code>const callback = this.async()<br>
+// ...<br>
+callback(null, data)</code></p>
+<p>的返回方式<span class=" fw-cl "><span>。</span></span>通过<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const options = loaderUtils.getOptions(this)<br>
+// ...<br>
+const newPath = this.resourcePath.replace(options.path, options.replacePath)</code></p>
+<p>获取开发者的配置信息<span class=" fw-cl "><span>，</span></span>并与 this.resourcePath<span class="fw-op  "><span>（</span></span>当前资源文件路径<span class=" fw-cl "><span>）</span></span>比对<span class=" fw-cl "><span>，</span></span>进行路径替换<span class=" fw-cl "><span>。</span></span></p>
+<p>对于错误的处理也很简单<span class=" fw-cl "><span>：</span></span>如果新的目标路径文件不存在<span class=" fw-cl "><span>，</span></span>则返回原路径文件<span class=" fw-cl "><span>：</span></span></p>
+<p><code>if (err.code === 'ENOENT') return callback(null, source)</code></p>
+<p>其它错误也一并通过 return callback(err) 抛出<span class=" fw-cl "><span>。</span></span></p>
+<p>主逻辑使用了 this.addDependency(newPath) 将新的文件加入到 webpack 依赖当中<span class=" fw-cl "><span>，</span></span>并返回内容 callback(null, data)<span class=" fw-cl "><span>。</span></span></p>
+<p>这个过程并不复杂<span class=" fw-cl "><span>，</span></span>同时思路非常清晰<span class=" fw-cl "><span>，</span></span>通过这个案例<span class=" fw-cl "><span>，</span></span>读者可以根据自身团队需求<span class=" fw-cl "><span>，</span></span>编写不同复杂度的 wepback loader<span class=" fw-cl "><span>，</span></span>实现不同程度的拓展<span class=" fw-cl "><span>。</span></span></p>
+<h3>探秘并编写 webpack plugin</h3>
+<p>除了 webpack loader 这个核心概念以外<span class=" fw-cl "><span>，</span></span>webpack plugin 是另一个重要话题<span class=" fw-cl "><span>。</span></span>loader 和 plugin 就像 webpack 的双子星<span class=" fw-cl "><span>，</span></span>有着共同之处<span class=" fw-cl "><span>，</span></span>但是分工却很明晰<span class=" fw-cl "><span>。</span></span></p>
+<p>我们反复提到过 webpack <strong style="">事件流机制</strong><span class=" fw-cl "><span>，</span></span>也就是说在 webpack 构建的生命周期中<span class=" fw-cl "><span>，</span></span>会广播许多事件<span class=" fw-cl "><span>。</span></span>这时候<span class=" fw-cl "><span>，</span></span>开发中注册的各种插件<span class=" fw-cl "><span>，</span></span>便可以根据需要监听与自身相关的事件<span class=" fw-cl "><span>。</span></span>捕获事件后<span class=" fw-cl "><span>，</span></span>在合适的时机通过 webpack 提供的 API 去改变编译输出结果<span class=" fw-cl "><span>。</span></span></p>
+<p>因此<span class=" fw-cl "><span>，</span></span>我们可以总结出 loader 和 plugin 的<strong style="">差异</strong><span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">loader 其实就是一个转换器<span class=" fw-cl "><span>，</span></span>执行单纯的文件转换操作<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">plugin 是一个扩展器<span class=" fw-cl "><span>，</span></span>它丰富了 webpack 本身<span class=" fw-cl "><span>，</span></span>在 loader 过程结束后<span class=" fw-cl "><span>，</span></span>webpack 打包的整个过程中<span class=" fw-cl "><span>，</span></span>weback plugin 并不直接操作文件<span class=" fw-cl "><span>，</span></span>而是基于事件机制工作<span class=" fw-cl "><span>，</span></span>监听 webpack 打包过程中的某些事件<span class=" fw-cl "><span>，</span></span>见缝插针<span class=" fw-cl "><span>，</span></span>修改打包结果<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p><strong style="">究竟应该如何从零开始<span class=" fw-cl "><span>，</span></span>编写一个 webpack 插件呢<span class=" fw-cl "><span>？</span></span></strong></p>
+<p>首先我们要清楚当前插件要解决什么问题<span class=" fw-cl "><span>，</span></span>根据问题<span class=" fw-cl "><span>，</span></span>找到相应的钩子事件<span class=" fw-cl "><span>，</span></span>在相关事件中进行操作<span class=" fw-cl "><span>，</span></span>改变输出结果<span class=" fw-cl "><span>。</span></span>这就需要清楚开发中都有哪些钩子了<span class=" fw-cl "><span>，</span></span>下面列举一些常用的<span class=" fw-cl "><span>，</span></span>完整内容可以在官网找到<span class=" fw-cl "><span>：</span></span><a href="https://webpack.js.org/api/compiler-hooks/" title="Compiler 暴露的所有事件钩子">Compiler 暴露的所有事件钩子</a><span class=" fw-cl "><span>。</span></span></p>
+<p>我们知道 compiler 对象暴露了和 webpack 整个生命周期相关的钩子<span class=" fw-cl "><span>，</span></span>通过如下的方式访问<span class=" fw-cl "><span>：</span></span></p>
+<p><code>//基本写法<br>
+compiler.hooks.someHook.tap(...)</code></p>
+<p>例如<span class=" fw-cl "><span>，</span></span>如果希望 webpack 在读取 entry 配置完后就执行某项工作<span class=" fw-cl "><span>，</span></span>我们可以<span class=" fw-cl "><span>：</span></span></p>
+<p><code>compiler.hooks.entryOption.tap(...)</code></p>
+<p>因为名字为 entryOption 的 SyncBailHook 类型 hook<span class=" fw-cl "><span>，</span></span>就表明了入口配置信息执行完毕的事件<span class=" fw-cl "><span>，</span></span>在相关 tap 函数中我们可以在这个时间节点插入操作<span class=" fw-cl "><span>。</span></span></p>
+<p>又如<span class=" fw-cl "><span>，</span></span>如果希望在生成的资源输出之前执行某个功能<span class=" fw-cl "><span>，</span></span>我们可以<span class=" fw-cl "><span>：</span></span></p>
+<p><code>compiler.hooks.emit.tap(...)</code></p>
+<p>因为名字为 emit 的 AsyncSeriesHook 类型 hook<span class=" fw-cl "><span>，</span></span>就表明了资源输出前的时间节点<span class=" fw-cl "><span>。</span></span></p>
+<p>一个自定义 webpack plugin 的骨架结构就是一个带有 apply 方法的 class<span class="fw-op  "><span>（</span></span>用 prototype 实现同理 CustomPlugin.prototype.apply = function () {...}<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span></p>
+<p><code>class CustomPlugin {<br>
+ &nbsp;&nbsp;&nbsp;constructor(options) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.options = options<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;apply(compiler) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 相关钩子注册回调<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compiler.hooks.someHook.tap('CustomPlugin', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// magic here...<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 打印出此时 compiler 暴露的钩子<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for(var hook of Object.keys(compiler.hooks)){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(hook)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+module.exports = customPlugin</code></p>
+<p>除了 compiler 暴露了与 webpack 整体构建生命周期相关的钩子以外<span class=" fw-cl "><span>，</span></span>compilation 也暴露了与模块和依赖有关的粒度更小的钩子<span class=" fw-cl "><span>，</span></span>读者可以参考<span class=" fw-cl "><span>：</span></span><a href="https://webpack.js.org/api/compilation-hooks/" title="compilation 暴露的所有事件钩子">compilation 暴露的所有事件钩子</a><span class=" fw-cl "><span>，</span></span>找到合适的时机插入自定义行为<span class=" fw-cl "><span>。</span></span></p>
+<p>其实 compilation 是 compiler 生命周期中的一个步骤<span class=" fw-cl "><span>，</span></span>使用 compilation 相关钩子的通用写法为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class CustomPlugin {<br>
+ &nbsp;&nbsp;&nbsp;constructor(options) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.options = options<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;apply(compiler) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compiler.hooks.compilation.tap('CustomPlugin', function(compilation, callback) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compilation.hooks.someOtherHook.tap('SomePlugin',function() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// some magic here<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+module.exports = customPlugin</code></p>
+<p>最终<span class=" fw-cl "><span>，</span></span>我们可以总结一下 webpack 插件的<strong style="">套路</strong><span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">定义一个 JavaScript class 函数<span class=" fw-cl "><span>，</span></span>或在函数原型<span class="fw-op  "><span>（</span></span>prototype<span class=" fw-cl "><span>）</span></span>中定义一个以 compiler 对象为参数的 apply 方法<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">apply 函数中通过 compiler 插入指定的事件钩子<span class=" fw-cl "><span>，</span></span>在钩子回调中拿到 compilation 对象<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">使用 compilation 操纵修改 webapack 打包内容<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>当然<span class=" fw-cl "><span>，</span></span>plugin 也存在异步的情况<span class=" fw-cl "><span>，</span></span>一些事件钩子是异步的<span class=" fw-cl "><span>。</span></span>相应地<span class=" fw-cl "><span>，</span></span>我们可以使用 tapAsync 和 tapPromise 方法来处理<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class CustomAsyncPlugin {<br>
+ &nbsp;&nbsp;&nbsp;constructor(options) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.options = options<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;apply(compiler) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compiler.hooks.emit.tapAsync('CustomAsyncPlugin', function(compilation, callback) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;callback()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, 1000)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compiler.hooks.emit.tapPromise('CustomAsyncPlugin', function(compilation, callback) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return asyncFun().then(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//...<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<h4>实战案例</h4>
+<p>接下来<span class=" fw-cl "><span>，</span></span>我们来编写一个简单的 webpack 插件<span class=" fw-cl "><span>。</span></span>相信不少 React 开发者了解<span class=" fw-cl "><span>：</span></span>在使用 <a href="https://github.com/facebook/create-react-app" title="create-react-app">create-react-app</a> 开发项目时<span class=" fw-cl "><span>，</span></span>如果发生错误<span class=" fw-cl "><span>，</span></span>会出现 error overlay 提示<span class=" fw-cl "><span>。</span></span>我们来开发一个类似的功能<span class=" fw-cl "><span>，</span></span>使用如下代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>module.exports = {<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;&nbsp;&nbsp;plugins: [new ErrorOverlayPlugin()],<br>
+ &nbsp;&nbsp;&nbsp;devtool: 'cheap-module-source-map',<br>
+ &nbsp;&nbsp;&nbsp;devServer: {}<br>
+}</code></p>
+<p>我们借助 errorOverlayMiddleware 中间件来进行错误拦截并展示<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import errorOverlayMiddleware fomt 'react-dev-utils/errorOverlayMiddleware'<br>
+<br>
+class ErrorOverlayPlugin {<br>
+ &nbsp;&nbsp;&nbsp;apply(compiler) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const className = this.constructor.name<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (compiler.options.mode !== 'development') return<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compiler.hooks.entryOption.tap(className, (context, entry) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const chunkPath = require.resolve('./entry')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;adjustEntry(entry, chunkPath)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}) <br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;compiler.hooks.afterResolvers.tap(className, ({ options }) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (options.devServer) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const originalBefore = options.devServer.before<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;option.devServer.before = (app, server) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (originalBefore) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;originalBefore(app, server)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;app.use(errorOverlayMiddleware())<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}) <br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+function adjustEntry(entry, chunkPath) {<br>
+ &nbsp;&nbsp;&nbsp;if (Array.isArray(entry)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!entry.includes(chunkPath)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;entry.unshift(chunkPath)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.keys(entry).forEach(entryName =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;entry[name] = adjustEntry(entry[entryName], chunkPath)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+module.exports = ErrorOverlayPlugin</code></p>
+<p>参考实现源码<span class=" fw-cl "><span>，</span></span>我们发现<span class=" fw-cl "><span>，</span></span>编写一个 webpack plugin 确实并不困难<span class=" fw-cl "><span>，</span></span>只需要开发者了解相关步骤<span class=" fw-cl "><span>，</span></span>熟记相关钩子<span class=" fw-cl "><span>，</span></span>并多加尝试即可<span class=" fw-cl "><span>。</span></span></p>
+<p>简单分析一下上面代码<span class=" fw-cl "><span>，</span></span>在非生产环境下<span class=" fw-cl "><span>，</span></span>不打开错误窗口<span class=" fw-cl "><span>，</span></span>而是直接返回<span class=" fw-cl "><span>，</span></span>以免影响线上体验<span class=" fw-cl "><span>：</span></span></p>
+<p><code>if (compiler.options.mode !== 'development') return</code></p>
+<p>在 entryOption hook 中<span class=" fw-cl "><span>，</span></span>获取开发者配置的 entry 并通过 adjustEntry 方法获取正确的入口模块<span class=" fw-cl "><span>，</span></span>该方法支持 entry 配置为 array 和 object 两种形式<span class=" fw-cl "><span>。</span></span>在 afterResolvers hook 中<span class=" fw-cl "><span>，</span></span>判断开发者是否开启 devServer<span class=" fw-cl "><span>，</span></span>并对相关中间件进行调用 app.use(errorOverlayMiddleware())<span class=" fw-cl "><span>。</span></span></p>
+<p>实际生产环境当中<span class=" fw-cl "><span>，</span></span>webpack pulgin 生态丰富多样<span class=" fw-cl "><span>，</span></span>一般已有插件就可以满足大部分开发需求<span class=" fw-cl "><span>。</span></span>如果团队结合自身业务需求<span class=" fw-cl "><span>，</span></span>自主编写 webpack plugin<span class=" fw-cl "><span>，</span></span>进而反哺生态<span class=" fw-cl "><span>，</span></span>非常值得鼓励<span class=" fw-cl "><span>。</span></span></p>
+<h4>webpack plugin 开发重点</h4>
+<p>本节目前为止所介绍的内容已经可以带领大家入门插件开发<span class=" fw-cl "><span>。</span></span>学习过程中我们会发现<span class=" fw-cl "><span>，</span></span>webpack 插件开发重点在于对 compilation 和 compiler 以及两者对应钩子事件的理解<span class=" fw-cl "><span>、</span></span>运用<span class=" fw-cl "><span>。</span></span>我们提到 webpack 的事件机制基于 tapable 库<span class=" fw-cl "><span>，</span></span>因此想完全理解 webpack 事件和钩子<span class=" fw-cl "><span>，</span></span>有必要学习 tapable <span class=" fw-cl "><span>。</span></span></p>
+<p>事实上<span class=" fw-cl "><span>，</span></span>tapable 更加复杂而<span class="fw-op  "><span>「</span></span>神通广大<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>它除了提供同步和异步类型的钩子以外<span class=" fw-cl "><span>，</span></span>又根据执行方式<span class=" fw-cl "><span>，</span></span>串行/并行<span class=" fw-cl "><span>，</span></span>衍生出 Bail<span class=" fw-cl "><span>、</span></span>Waterfall<span class=" fw-cl "><span>、</span></span>Loop 多种类型<span class=" fw-cl "><span>。</span></span>站在 tapable 等的肩膀上<span class=" fw-cl "><span>，</span></span>webpack 插件的开发更加灵活<span class=" fw-cl "><span>，</span></span>可扩张性更强<span class=" fw-cl "><span>。</span></span></p>
+<p>学习的目的在于应用<span class=" fw-cl "><span>。</span></span>相信通过本小节的学习<span class=" fw-cl "><span>，</span></span>读者已经能够理解 webpack 开发插件的流程<span class=" fw-cl "><span>。</span></span>根据项目需要和业务特点<span class=" fw-cl "><span>，</span></span>手握 webpack 插件开发的理论钥匙<span class=" fw-cl "><span>，</span></span>在实践中多摸索<span class=" fw-cl "><span>、</span></span>多尝试<span class=" fw-cl "><span>，</span></span>每个人都一定会有所收获<span class=" fw-cl "><span>。</span></span></p>
+<h3>webpack VS Rollup</h3>
+<p>Rollup 号称下一代打包方案<span class=" fw-cl "><span>，</span></span>它的功能和特点非常突出<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">依赖解析<span class=" fw-cl "><span>，</span></span>打包构建</li>
+  <li style="">仅支持 ES Next 模块</li>
+  <li style="">Tree shaking</li>
+</ul>
+<p>Rollup 凭借其清新且友好的配置<span class=" fw-cl "><span>，</span></span>以及强大的功能横空出世<span class=" fw-cl "><span>，</span></span>吸睛无数<span class=" fw-cl "><span>。</span></span></p>
+<p>可以说<span class=" fw-cl "><span>，</span></span>Webpack 算得上目前最流行的打包方案<span class=" fw-cl "><span>，</span></span>而 Rollup 是下一代打包方案<span class=" fw-cl "><span>，</span></span>两者有何区别<span class=" fw-cl "><span>？</span></span>目前业界对两者的定位<span class=" fw-cl "><span>，</span></span>可以总结为一句话<span class=" fw-cl "><span>：</span></span><strong style="">建库使用 Rollup<span class=" fw-cl "><span>，</span></span>其他场景使用 webpack<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>为什么这么说呢<span class=" fw-cl "><span>？</span></span>还记得我们在前面提的 webpack 打包结果吗<span class=" fw-cl "><span>？</span></span>从结果上看<span class=" fw-cl "><span>，</span></span>webpack 方案会生成比较多的冗余代码<span class=" fw-cl "><span>，</span></span>这对于业务代码来说没什么问题<span class=" fw-cl "><span>，</span></span>能保证较强的程序健硕性和语法还原度<span class=" fw-cl "><span>，</span></span>兼容性保障更有利<span class=" fw-cl "><span>。</span></span>也许开发者会关心代码量多带来的冗余问题<span class=" fw-cl "><span>，</span></span>但衡量其优缺点和开发效率性价比<span class=" fw-cl "><span>，</span></span>webpack 始终是业务开发的首选<span class=" fw-cl "><span>；</span></span>但对于库来说就不一样了<span class=" fw-cl "><span>，</span></span>相同的脚本<span class=" fw-cl "><span>，</span></span>使用 Rollup 产出<span class=" fw-cl "><span>，</span></span>复杂的模块冗余会完全消失<span class=" fw-cl "><span>。</span></span>Rollup 通过将代码顺序引入同一个文件来解决模块依赖问题<span class=" fw-cl "><span>，</span></span>因此<span class=" fw-cl "><span>，</span></span>Rollup 做拆包的话就会有问题<span class=" fw-cl "><span>，</span></span>原因是模块完全透明了<span class=" fw-cl "><span>，</span></span>而在复杂应用中我们往往需要进行拆包<span class=" fw-cl "><span>，</span></span>在库的编写中很少用到这样的功能<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>库使用 Rollup<span class=" fw-cl "><span>，</span></span>其他场景使用 webpack<span class=" fw-cl "><span>」</span></span>——这不是一个绝对的原则<span class=" fw-cl "><span>。</span></span>如果你需要代码拆分<span class="fw-op  "><span>（</span></span>Code Splitting<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>或者有很多静态资源需要处理<span class=" fw-cl "><span>，</span></span>或者你构建的项目需要引入很多 CommonJS 规范的模块<span class=" fw-cl "><span>，</span></span>再或者你需要拥有相对更大的社区支持<span class=" fw-cl "><span>，</span></span>那么 webpack 是不错的选择<span class=" fw-cl "><span>。</span></span></p>
+<p>如果你的代码库基于 ES Next 模块<span class=" fw-cl "><span>，</span></span>且希望自己写的代码能够被其他人直接使用<span class=" fw-cl "><span>，</span></span>那么<span class=" fw-cl "><span>，</span></span>你需要的打包工具可能就是 Rollup <span class=" fw-cl "><span>。</span></span></p>
+<p>我们借用前面小节的代码<span class=" fw-cl "><span>，</span></span>来看看经过 Rollup 编译之后的代码会成什么样子<span class=" fw-cl "><span>。</span></span></p>
+<p>main.js<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import sayHello from './hello.js'<br>
+console.log(sayHello('lucas'))</code></p>
+<p>hello.js<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const sayHello = name =&gt; `hello ${name}`<br>
+export default sayHello</code></p>
+<p>编译结果非常简单<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const sayHello = name =&gt; `hello ${name}`<br>
+console.log(sayHello('lucas'))</code></p>
+<p>这与 webpack 的打包产出形成了鲜明差异<span class=" fw-cl "><span>。</span></span>这种打包方式<span class=" fw-cl "><span>，</span></span>天然支持 tree shaking<span class=" fw-cl "><span>，</span></span>我们改写上例<span class=" fw-cl "><span>，</span></span>加入一个没有用到的 sayHi 函数<span class=" fw-cl "><span>：</span></span></p>
+<p>main.js<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import { sayHello } from './hello.js'<br>
+<br>
+console.log( sayHello( 'lucas' ) )</code></p>
+<p>hello.js<span class=" fw-cl "><span>：</span></span></p>
+<p><code>export const sayHi = name =&gt; `hi ${name}`<br>
+<br>
+export const sayHello = name =&gt; `hello ${name}`</code></p>
+<p>打包结果<span class=" fw-cl "><span>：</span></span></p>
+<p><code>'use strict';<br>
+<br>
+const sayHello = name =&gt; `hello ${name}`;<br>
+console.log( sayHello( 'lucas' ) );</code></p>
+<p>通过顺序引入依赖<span class=" fw-cl "><span>，</span></span>非常简单<span class=" fw-cl "><span>、</span></span>清晰<span class=" fw-cl "><span>，</span></span>并且自动做到了 tree shaking<span class=" fw-cl "><span>，</span></span>其中的原理和更多话题我们将在<span class="fw-op  "><span>「</span></span>深入浅出模块化<span class=" fw-cl "><span>」</span></span>相关内容继续说明<span class=" fw-cl "><span>。</span></span></p>
+<h3>综合运用</h3>
+<p>至此<span class=" fw-cl "><span>，</span></span>我们对于 webpack 已经有了较为深入的理解<span class=" fw-cl "><span>。</span></span>但是<span class=" fw-cl "><span>，</span></span>以上实战代码都是些较小型的 demo<span class=" fw-cl "><span>，</span></span>综合运用这些知识到底能解决哪些问题呢<span class=" fw-cl "><span>？</span></span></p>
+<p>我这里有一个很好的例子<span class=" fw-cl "><span>。</span></span></p>
+<p>我们知道<span class=" fw-cl "><span>，</span></span>2018 年号称小程序元年<span class=" fw-cl "><span>。</span></span>以微信小程序为首<span class=" fw-cl "><span>，</span></span>百度智能小程序<span class=" fw-cl "><span>、</span></span>支付宝小程序<span class=" fw-cl "><span>、</span></span>头条小程序纷纷入局<span class=" fw-cl "><span>。</span></span>作为开发人员应该注意到<span class=" fw-cl "><span>，</span></span>在带给开发无限红利的同时<span class=" fw-cl "><span>，</span></span>由于各平台小程序的开发语法和技术方案不尽相同<span class=" fw-cl "><span>，</span></span>因而也带来了巨大的多端开发成本<span class=" fw-cl "><span>。</span></span></p>
+<p>如果团队能够实现这样一个脚手架<span class=" fw-cl "><span>：</span></span><strong style="">以微信小程序为基础<span class=" fw-cl "><span>，</span></span>将微信小程序的代码平滑转换为各端小程序<span class=" fw-cl "><span>，</span></span>岂不大幅提高开发效率<span class=" fw-cl "><span>？</span></span></strong></p>
+<p>可是技术方案上<span class=" fw-cl "><span>，</span></span>应该如何实现呢<span class=" fw-cl "><span>？</span></span>受 <a href="https://github.com/cantonjs" title="cantonjs">cantonjs</a> 启发<span class=" fw-cl "><span>，</span></span>我们团队打造了一款跨多端小程序脚手架<span class=" fw-cl "><span>，</span></span>其<strong style="">基本原理</strong>正是以 webpack 开发架构为基础<span class=" fw-cl "><span>，</span></span>对于微信小程序的规范化打包<span class=" fw-cl "><span>，</span></span>以及不同平台的差异化编译<span class=" fw-cl "><span>，</span></span>主要依靠自定义实现 webpack loader 和 webpack plugin 来填平<span class=" fw-cl "><span>。</span></span></p>
+<p>在这套脚手架基础上<span class=" fw-cl "><span>，</span></span>开发者可以选择任何一套小程序源代码<span class="fw-op  "><span>（</span></span>基于微信小程序/支付宝小程序/百度小程序<span class=" fw-cl "><span>）</span></span>来开发多端小程序<span class=" fw-cl "><span>。</span></span>脚手架支持自动编译 wxml 文件<span class="fw-op  "><span>（</span></span>微信小程序<span class=" fw-cl "><span>）</span></span>为 axml 文件<span class="fw-op  "><span>（</span></span>支付宝小程序<span class=" fw-cl "><span>）</span></span>或 swan 文件<span class="fw-op  "><span>（</span></span>百度小程序<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>能够转换基础平台 API<span class=" fw-cl "><span>：</span></span> wx<span class="fw-op  "><span>（</span></span>微信小程序核心对象<span class=" fw-cl "><span>）</span></span> 为 my<span class="fw-op  "><span>（</span></span>支付宝小程序核心对象<span class=" fw-cl "><span>）</span></span> 或 swan<span class="fw-op  "><span>（</span></span>百度小程序核心对象<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>反之亦然<span class=" fw-cl "><span>。</span></span>对于个别接口在平台上的天生差异<span class=" fw-cl "><span>，</span></span>开发者可以通过 <code>__WECHAT__</code> 或 <code>__ALIPAY__</code> 或 <code>__BAIDU__</code> 来动态处理<span class=" fw-cl "><span>。</span></span></p>
+<p>具体细节<span class=" fw-cl "><span>，</span></span>我们可以通过 DefinePlugin 这个 webpack 内置插件在 webpack 编译阶段注册全局变量<span class=" fw-cl "><span>：</span></span> <code>__WECHAT__</code> 或 <code>__ALIPAY__</code> 或 <code>__BAIDU__</code><span class=" fw-cl "><span>。</span></span></p>
+<p><code>new webpack.DefinePlugin({<br>
+ &nbsp;// Definitions...<br>
+})</code></p>
+<p>通过 webpack loader 使 webpack 能编译或处理 *.wxml 上引用的文件<span class=" fw-cl "><span>，</span></span>并将原 App 中的 API 进行转换<span class=" fw-cl "><span>，</span></span>使用方式与正常的 webpack 配置 loader 完全相同<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{<br>
+ &nbsp;test: /\.wxml$/,<br>
+ &nbsp;include: /src/,<br>
+ &nbsp;use: [<br>
+ &nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: 'file-loader',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;options: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name: '[name].[ext]',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;useRelativePath: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context: resolve('src'),<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loader: 'mini-program-loader',<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;options: {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;root: resolve('src'),<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enforceRelativePath: true,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;],<br>
+}</code></p>
+<p>注意<span class=" fw-cl "><span>，</span></span>我们声明 loader 的顺序表明先通过 mini-program-loader 处理<span class=" fw-cl "><span>，</span></span>其结果交给 file-loader 处理<span class=" fw-cl "><span>。</span></span>mini-program-loader 的实现并不复杂<span class=" fw-cl "><span>，</span></span>我们通过 <a href="https://www.npmjs.com/package/sax" title="sax.js">sax.js</a> 解析 wxml <span class="fw-op  "><span>（</span></span>XML 风格<span class=" fw-cl "><span>）</span></span>文件<span class=" fw-cl "><span>，</span></span>进行 API 转换<span class=" fw-cl "><span>。</span></span>sax.js 是解析 XML 或者 HTML 的基础库<span class=" fw-cl "><span>，</span></span>正好适用于我们各端小程序的主文档文件<span class="fw-op  "><span>（</span></span>wxml<span class=" fw-cl "><span>、</span></span>swan<span class=" fw-cl "><span>、</span></span>axml<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>通过 webpack-plugin 插件实现自动分析 ./app.js 入口文件<span class=" fw-cl "><span>，</span></span>并智能打包<span class=" fw-cl "><span>，</span></span>同时抹平 API 差异<span class=" fw-cl "><span>。</span></span></p>
+<p><code>import MiniProgramWebpackPlugin from 'mini-program-webpack-plugin'<br>
+export default {<br>
+ &nbsp;// ...configs,<br>
+ &nbsp;plugins: [<br>
+ &nbsp;&nbsp;&nbsp;// ...other,<br>
+ &nbsp;&nbsp;&nbsp;new MiniProgramWebpackPlugin(options)<br>
+ &nbsp;],<br>
+}</code></p>
+<p>在这两个 loader 和 plugin 的基础上<span class=" fw-cl "><span>，</span></span>我们实现的这个脚手架构建<span class=" fw-cl "><span>，</span></span>通过 script 脚本<span class=" fw-cl "><span>，</span></span>启动不同目标的小程序平台编译<span class=" fw-cl "><span>：</span></span>yarn start<span class=" fw-cl "><span>、</span></span>yarn start:alipay<span class=" fw-cl "><span>、</span></span>yarn start:baidu<span class=" fw-cl "><span>，</span></span>同时开发者可以根据自身项目特点<span class=" fw-cl "><span>，</span></span>添加 prettier 和 lint 标准等<span class=" fw-cl "><span>。</span></span></p>
+<p>到此<span class=" fw-cl "><span>，</span></span>一个基于 webpack<span class=" fw-cl "><span>、</span></span>webpack loader<span class=" fw-cl "><span>、</span></span>webpack plugin 的脚手架综合应用从场景到实现已经简要介绍完毕<span class=" fw-cl "><span>。</span></span></p>
+<p>通过这个案例<span class=" fw-cl "><span>，</span></span>我们发现 webpack 的能力边界是无穷的<span class=" fw-cl "><span>，</span></span>以高级前端工程师为目标的程序员<span class=" fw-cl "><span>，</span></span>应该尽最大努力来开发 webpack 的潜能<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>正如本课程的标题所示<span class=" fw-cl "><span>：</span></span><strong style="">webpack 工程师 &gt; 前端工程师</strong><span class=" fw-cl "><span>。</span></span> webpack 要求的不仅仅是<span class="fw-op  "><span>「</span></span>配置工程师<span class=" fw-cl "><span>」</span></span>那么简单<span class=" fw-cl "><span>，</span></span>其后蕴含的 Node.js 知识<span class=" fw-cl "><span>、</span></span>AST 知识<span class=" fw-cl "><span>、</span></span>架构设计<span class=" fw-cl "><span>、</span></span>代码设计原则等非常值得玩味<span class=" fw-cl "><span>。</span></span>我们不应该畏难<span class=" fw-cl "><span>，</span></span>社区为我们提供了大量的开箱即用工具<span class=" fw-cl "><span>，</span></span>借助这些工具<span class=" fw-cl "><span>，</span></span>希望大家能够掌握这方面的知识<span class=" fw-cl "><span>，</span></span>并在此基础上运用自如<span class=" fw-cl "><span>。</span></span></p>
+<p>课程代码仓库<span class=" fw-cl "><span>：</span></span><a href="https://github.com/HOUCe/lucas-gitchat-courses%3C/a%3E" title="https://github.com/HOUCe/lucas-gitchat-courses</a>">https://github.com/HOUCe/lucas-gitchat-courses</a><br>
+<br>
+</p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1MGX3ApDC4K2O1kIA9x3</span></p>
+</body>
+</html>

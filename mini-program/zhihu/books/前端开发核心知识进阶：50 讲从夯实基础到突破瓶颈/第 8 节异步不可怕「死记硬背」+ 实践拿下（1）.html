@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 8 节异步不可怕「死记硬背」+ 实践拿下（1）</h1>
+  <p>异步是前端开发的一个重点内容<span class=" fw-cl "><span>，</span></span>也是难点之一<span class=" fw-cl "><span>。</span></span>JavaScript 语言在各个历史阶段<span class=" fw-cl "><span>，</span></span>为更优雅地实现异步<span class=" fw-cl "><span>，</span></span>进行过多种尝试<span class=" fw-cl "><span>。</span></span>但是由于异步天生的<span class="fw-op  "><span>「</span></span>复杂度<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>使得开发者并不能够轻松地吃透理论并上手实践<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">理论方面<span class=" fw-cl "><span>，</span></span></strong> 我们知道 JavaScript 是单线程的<span class=" fw-cl "><span>，</span></span>那它又是如何实现异步的呢<span class=" fw-cl "><span>？</span></span>在这个环节中<span class=" fw-cl "><span>，</span></span>浏览器或 NodeJS 又起到了什么样的作用<span class=" fw-cl "><span>？</span></span>什么是宏任务<span class=" fw-cl "><span>，</span></span>什么是微任务<span class=" fw-cl "><span>？</span></span></p>
+<p><strong style="">实践上<span class=" fw-cl "><span>，</span></span></strong>从 callback 到 promise<span class=" fw-cl "><span>，</span></span>从 generator 到 async/await<span class=" fw-cl "><span>，</span></span>到底应该如何更优雅地实现异步操作<span class=" fw-cl "><span>？</span></span></p>
+<p>本课让我们来一探究竟<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-cc3d7cd66d3f1c8daa1004716692345f.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:18.9703808180536% 0" data-src="https://pic4.zhimg.com/v2-cc3d7cd66d3f1c8daa1004716692345f.png">加载中...</span></figure>
+<p>整个内容分为两节课<span class=" fw-cl "><span>：</span></span>第一节课<span class=" fw-cl "><span>，</span></span>实践上<span class=" fw-cl "><span>，</span></span>我们从需求开始慢慢打磨<span class=" fw-cl "><span>，</span></span>让我们都能成为运筹帷幄的<span class="fw-op  "><span>「</span></span>老司机<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>；</span></span>第二节课<span class=" fw-cl "><span>，</span></span>从多种例题入手<span class=" fw-cl "><span>，</span></span>分析语言和浏览器行为<span class=" fw-cl "><span>。</span></span></p>
+<p>另外<span class=" fw-cl "><span>，</span></span>由于这门课程的目标是<span class="fw-op  "><span>「</span></span>进阶<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span><strong style="">这里不会再单独介绍类似 Promise 的使用<span class=" fw-cl "><span>，</span></span>async/await 等基本概念和知识点请大家提前做好相关知识储备<span class=" fw-cl "><span>。</span></span></strong></p>
+<h3>异步流程初体验</h3>
+<p>让我们先从一个需求开始<span class=" fw-cl "><span>，</span></span>来实现一个<span class="fw-op  "><span>「</span></span>运动路径动画<span class=" fw-cl "><span>」</span></span>流程<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>移动页面上元素 target<span class="fw-op  "><span>（</span></span>document.querySelectorAll('#man')[0]<span class=" fw-cl "><span>）</span></span></p>
+<p>先从原点出发<span class=" fw-cl "><span>，</span></span>向左移动 20px<span class=" fw-cl "><span>，</span></span>之后再向上移动 50px<span class=" fw-cl "><span>，</span></span>最后再次向左移动 30px<span class=" fw-cl "><span>，</span></span>请把运动动画实现出来<span class=" fw-cl "><span>。</span></span></p>
+<p>我们将移动的过程封装成一个 walk 函数<span class=" fw-cl "><span>，</span></span>该函数要接受以下三个参数<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">direction<span class=" fw-cl "><span>：</span></span>字符串<span class=" fw-cl "><span>，</span></span>表示移动方向<span class=" fw-cl "><span>，</span></span>这里简化为<span class="fw-op  "><span>「</span></span>left<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>top<span class=" fw-cl "><span>」</span></span>两种枚举</li>
+  <li style="">distance<span class=" fw-cl "><span>：</span></span>整型<span class=" fw-cl "><span>，</span></span>可正或可负</li>
+  <li style="">callback<span class=" fw-cl "><span>：</span></span>动作执行后回调</li>
+</ul>
+<p>direction 表示移动方向<span class=" fw-cl "><span>，</span></span>distance 表示移动距离<span class=" fw-cl "><span>。</span></span>通过 distance 的正负值<span class=" fw-cl "><span>，</span></span>我们可以实现四个方向的移动<span class=" fw-cl "><span>。</span></span></p>
+<h4>回调方案</h4>
+<p>因为每一个任务都是相互联系的<span class=" fw-cl "><span>：</span></span>当前任务结束之后<span class=" fw-cl "><span>，</span></span>将会马上进入下一个流程<span class=" fw-cl "><span>，</span></span>如何将这些流程串联起来呢<span class=" fw-cl "><span>？</span></span>我们采用最简单的 callback 实现<span class=" fw-cl "><span>，</span></span>明确指示下一个任务<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const target = document.querySelectorAll('#man')[0]<br>
+target.style.cssText = `<br>
+ &nbsp;&nbsp;&nbsp;position: absolute;<br>
+ &nbsp;&nbsp;&nbsp;left: 0px;<br>
+ &nbsp;&nbsp;&nbsp;top: 0px<br>
+`<br>
+<br>
+const walk = (direction, distance, callback) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentLeft = parseInt(target.style.left, 10)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentTop = parseInt(target.style.top, 10)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const shouldFinish = (direction === 'left' &amp;&amp; currentLeft === -distance) || (direction === 'top' &amp;&amp; currentTop === -distance)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (shouldFinish) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 任务执行结束<span class=" fw-cl "><span>，</span></span>执行下一个回调<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;callback &amp;&amp; callback()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (direction === 'left') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentLeft--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target.style.left = `${currentLeft}px`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (direction === 'top') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentTop--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target.style.top = `${currentTop}px`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walk(direction, distance, callback)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}, 20)<br>
+}<br>
+<br>
+walk('left', 20, () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;walk('top', 50, () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walk('left', 30, Function.prototype)<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+})</code></p>
+<p>有几点需要大家注意<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">为了简化问题<span class=" fw-cl "><span>，</span></span>我们将目标元素的定位进行了初始化设定<span class=" fw-cl "><span>：</span></span></li>
+</ul>
+<p><code>position: absolute;<br>
+left: 0px;<br>
+top: 0px</code></p>
+<p>且不再考虑边界 case<span class="fw-op  "><span>（</span></span>如移除屏幕外等<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">为了能够展现出动画<span class=" fw-cl "><span>，</span></span>我们将 walk 函数的执行逻辑包裹在 20 毫秒的定时器当中<span class=" fw-cl "><span>，</span></span>每次执行一像素的运动时<span class=" fw-cl "><span>，</span></span>都会有一个停留定格<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>这样的实现完全面向过程<span class=" fw-cl "><span>，</span></span>代码比较<span class="fw-op  "><span>「</span></span>丑<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>读者只需体会使用回调来解决异步任务的处理方案<span class=" fw-cl "><span>。</span></span>也要发现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>walk('left', 20, () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;walk('top', 50, () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walk('left', 30, Function.prototype)<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+})</code></p>
+<p>这样的回调嵌套很不优雅<span class=" fw-cl "><span>，</span></span>有几次位移任务<span class=" fw-cl "><span>，</span></span>就会嵌套几层<span class=" fw-cl "><span>，</span></span>是名副其实的回调地狱<span class=" fw-cl "><span>。</span></span></p>
+<h4>Promise 方案</h4>
+<p>我们再来看一下如何用 Promise 解决问题<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const target = document.querySelectorAll('#man')[0]<br>
+target.style.cssText = `<br>
+ &nbsp;&nbsp;&nbsp;position: absolute;<br>
+ &nbsp;&nbsp;&nbsp;left: 0px;<br>
+ &nbsp;&nbsp;&nbsp;top: 0px<br>
+`<br>
+<br>
+const walk = (direction, distance) =&gt; <br>
+ &nbsp;&nbsp;&nbsp;new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const innerWalk = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentLeft = parseInt(target.style.left, 10)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentTop = parseInt(target.style.top, 10)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const shouldFinish = (direction === 'left' &amp;&amp; currentLeft === -distance) || (direction === 'top' &amp;&amp; currentTop === -distance)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (shouldFinish) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 任务执行结束<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (direction === 'left') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentLeft--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target.style.left = `${currentLeft}px`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (direction === 'top') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentTop--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target.style.top = `${currentTop}px`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;innerWalk()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, 20)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;innerWalk()<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+<br>
+walk('left', 20)<br>
+ &nbsp;&nbsp;&nbsp;.then(() =&gt; walk('top', 50))<br>
+ &nbsp;&nbsp;&nbsp;.then(() =&gt; walk('left', 30))</code></p>
+<p>几个注意点<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">walk 函数不再嵌套调用<span class=" fw-cl "><span>，</span></span>不再执行 callback<span class=" fw-cl "><span>，</span></span>而是函数整体返回一个 promise<span class=" fw-cl "><span>，</span></span>以利于后续任务的控制和执行&nbsp;</li>
+  <li style="">设置 innerWalk 进行每一像素的递归调用</li>
+  <li style="">在当前任务结束时<span class="fw-op  "><span>（</span></span>shouldFinish 为 true<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>resolve 当前 promise</li>
+</ul>
+<p>对比上述实现<span class=" fw-cl "><span>，</span></span>我们发现使用 promise 的解决方案明显更加清晰<span class=" fw-cl "><span>、</span></span>易读<span class=" fw-cl "><span>。</span></span></p>
+<h4>generator 方案</h4>
+<p>ES Next 中生成器其实并不是天生为解决异步而生的<span class=" fw-cl "><span>，</span></span>但是它又天生非常适合解决异步问题<span class=" fw-cl "><span>。</span></span>用 generator 方案解决异步任务也同样优秀<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const target = document.querySelectorAll('#man')[0]<br>
+target.style.cssText = `<br>
+ &nbsp;&nbsp;&nbsp;position: absolute;<br>
+ &nbsp;&nbsp;&nbsp;left: 0px;<br>
+ &nbsp;&nbsp;&nbsp;top: 0px<br>
+`<br>
+<br>
+const walk = (direction, distance) =&gt; <br>
+ &nbsp;&nbsp;&nbsp;new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const innerWalk = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentLeft = parseInt(target.style.left, 10)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentTop = parseInt(target.style.top, 10)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const shouldFinish = (direction === 'left' &amp;&amp; currentLeft === -distance) || (direction === 'top' &amp;&amp; currentTop === -distance)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (shouldFinish) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 任务执行结束<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (direction === 'left') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentLeft--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target.style.left = `${currentLeft}px`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (direction === 'top') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentTop--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target.style.top = `${currentTop}px`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;innerWalk()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, 20)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;innerWalk()<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+<br>
+function *taskGenerator() {<br>
+ &nbsp;&nbsp;&nbsp;yield walk('left', 20)<br>
+ &nbsp;&nbsp;&nbsp;yield walk('top', 50)<br>
+ &nbsp;&nbsp;&nbsp;yield walk('left', 30)<br>
+}<br>
+const gen = taskGenerator()</code></p>
+<p>我们定义了一个 taskGenerator 生成器函数<span class=" fw-cl "><span>，</span></span>并实例化出 gen<span class=" fw-cl "><span>，</span></span>手动执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>gen.next()</code></p>
+<p>将会向左偏移 20 像素<span class=" fw-cl "><span>。</span></span></p>
+<p>再次手动执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>gen.next()</code></p>
+<p>将会向上偏移 50 像素<span class=" fw-cl "><span>。</span></span></p>
+<p>再次手动执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>gen.next()</code></p>
+<p>将会向左偏移 30 像素<span class=" fw-cl "><span>。</span></span></p>
+<p>整个过程掌控感十足<span class=" fw-cl "><span>，</span></span>唯一的不便之处就是需要我们反复手动执行 gen.next()<span class=" fw-cl "><span>。</span></span>为此社区上早有方案<span class=" fw-cl "><span>，</span></span>kj 大神的 <a href="https://github.com/tj/co" title="co 库">co 库</a><span class=" fw-cl "><span>，</span></span>能够自动包裹 generator 并执行<span class=" fw-cl "><span>，</span></span>源码实现并不复杂<span class=" fw-cl "><span>，</span></span>推荐给大家阅读<span class=" fw-cl "><span>。</span></span>但是在新时代里<span class=" fw-cl "><span>，</span></span>作为 generator 的语法糖<span class=" fw-cl "><span>，</span></span>async/await 也许将会是<span class="fw-op  "><span>「</span></span>更优雅<span class=" fw-cl "><span>、</span></span>更终极<span class=" fw-cl "><span>」</span></span>解决方案<span class=" fw-cl "><span>。</span></span></p>
+<h4>async/await 方案</h4>
+<p>基于以上基础<span class=" fw-cl "><span>，</span></span>改造成 async/await 方案也并不困难<span class=" fw-cl "><span>。</span></span></p>
+<p>直接看代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const target = document.querySelectorAll('#man')[0]<br>
+target.style.cssText = `<br>
+ &nbsp;&nbsp;&nbsp;position: absolute;<br>
+ &nbsp;&nbsp;&nbsp;left: 0px;<br>
+ &nbsp;&nbsp;&nbsp;top: 0px<br>
+`<br>
+<br>
+const walk = (direction, distance) =&gt; <br>
+ &nbsp;&nbsp;&nbsp;new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const innerWalk = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentLeft = parseInt(target.style.left, 10)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentTop = parseInt(target.style.top, 10)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const shouldFinish = (direction === 'left' &amp;&amp; currentLeft === -distance) || (direction === 'top' &amp;&amp; currentTop === -distance)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (shouldFinish) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 任务执行结束<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (direction === 'left') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentLeft--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target.style.left = `${currentLeft}px`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (direction === 'top') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentTop--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target.style.top = `${currentTop}px`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;innerWalk()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, 20)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;innerWalk()<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+<br>
+const task = async function () {<br>
+ &nbsp;&nbsp;&nbsp;await walk('left', 20)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;await walk('top', 50)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;await walk('left', 30)<br>
+}</code></p>
+<p>只需要直接执行 task() 即可<span class=" fw-cl "><span>。</span></span></p>
+<p>通过对比 generator 和 async/await 这两种方式<span class=" fw-cl "><span>，</span></span>读者应该准确认识到<span class=" fw-cl "><span>，</span></span><strong style="">async/await 就是 generator 的语法糖<span class=" fw-cl "><span>，</span></span>它能够自动执行生成器函数<span class=" fw-cl "><span>，</span></span>更加方便地实现异步流程<span class=" fw-cl "><span>。</span></span></strong></p>
+<h3>红绿灯任务控制</h3>
+<p>有了前面内容的热身<span class=" fw-cl "><span>，</span></span>我们直接趁热打铁<span class=" fw-cl "><span>，</span></span>再来看一道比较典型的问题<span class=" fw-cl "><span>。</span></span></p>
+<blockquote><br></blockquote>
+<p>红灯 3s 亮一次<span class=" fw-cl "><span>，</span></span>绿灯 1s 亮一次<span class=" fw-cl "><span>，</span></span>黄灯 2s 亮一次<span class=" fw-cl "><span>；</span></span>如何让三个灯不断交替重复亮灯<span class=" fw-cl "><span>？</span></span></p>
+<p>三个亮灯函数已经存在<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function red() {<br>
+ &nbsp;&nbsp;&nbsp;console.log('red');<br>
+}<br>
+function green() {<br>
+ &nbsp;&nbsp;&nbsp;console.log('green');<br>
+}<br>
+function yellow() {<br>
+ &nbsp;&nbsp;&nbsp;console.log('yellow');<br>
+}</code></p>
+<p>这道题其实和开头部分<span class="fw-op  "><span>「</span></span>异步流程初体验<span class=" fw-cl "><span>」</span></span>的题目类似<span class=" fw-cl "><span>，</span></span>更复杂的地方在于<strong style="">需要<span class="fw-op  "><span>「</span></span>交替重复<span class=" fw-cl "><span>」</span></span>亮灯</strong><span class=" fw-cl "><span>，</span></span>而不是<span class="fw-op  "><span>「</span></span>移动完了<span class=" fw-cl "><span>」</span></span>就结束的一锤子买卖<span class=" fw-cl "><span>。</span></span></p>
+<p>请读者对着上述内容<span class=" fw-cl "><span>，</span></span>比葫芦画瓢试着实现<span class=" fw-cl "><span>。</span></span></p>
+<p>还是从最简单<span class=" fw-cl "><span>、</span></span>最容易理解的 callback 方案入手<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const task = (timer, light, callback) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (light === 'red') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;red()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (light === 'green') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;green()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (light === 'yellow') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yellow()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;callback()<br>
+ &nbsp;&nbsp;&nbsp;}, timer)<br>
+}<br>
+<br>
+<br>
+task(3000, 'red', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;task(1000, 'green', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;task(2000, 'yellow', Function.prototype)<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+})</code></p>
+<p>上述代码有可优化空间<span class=" fw-cl "><span>，</span></span>这里为了大家方便理解<span class=" fw-cl "><span>，</span></span>我不再进行简化<span class=" fw-cl "><span>。</span></span>同时存在一个明显的 bug<span class=" fw-cl "><span>：</span></span>代码只是完成了一次流程<span class=" fw-cl "><span>，</span></span>执行后红黄绿灯分别只亮一次<span class=" fw-cl "><span>。</span></span>该如何让它交替重复进行呢<span class=" fw-cl "><span>？</span></span></p>
+<p>我们上面提到过递归<span class=" fw-cl "><span>，</span></span>那么该递归谁呢<span class=" fw-cl "><span>？</span></span>当然是递归亮灯的一个周期<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const step = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;task(3000, 'red', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;task(1000, 'green', () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;task(2000, 'yellow', step)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+}<br>
+<br>
+step()</code></p>
+<p><strong style="">注意看黄灯亮的回调里<span class=" fw-cl "><span>，</span></span>我们又再次调用了 step 方法</strong> 以完成循环亮灯<span class=" fw-cl "><span>。</span></span></p>
+<p>用 promise 实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const task = (timer, light) =&gt; <br>
+ &nbsp;&nbsp;&nbsp;new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (light === 'red') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;red()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (light === 'green') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;green()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (light === 'yellow') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;yellow()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, timer)<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+<br>
+const step = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;task(3000, 'red')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.then(() =&gt; task(1000, 'green'))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.then(() =&gt; task(2000, 'yellow'))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.then(step)<br>
+}<br>
+<br>
+step()</code></p>
+<p>我们将回调移除<span class=" fw-cl "><span>，</span></span>在一次亮灯结束后<span class=" fw-cl "><span>，</span></span>resolve 当前 promise<span class=" fw-cl "><span>，</span></span>并依然使用递归进行<span class=" fw-cl "><span>。</span></span></p>
+<p>同时给出 async/await 的实现<span class=" fw-cl "><span>，</span></span>供大家参考<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const taskRunner = &nbsp;async () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;await task(3000, 'red')<br>
+ &nbsp;&nbsp;&nbsp;await task(1000, 'green')<br>
+ &nbsp;&nbsp;&nbsp;await task(2000, 'yellow')<br>
+ &nbsp;&nbsp;&nbsp;taskRunner()<br>
+}<br>
+<br>
+taskRunner()</code></p>
+<p>毫无疑问<span class=" fw-cl "><span>，</span></span>还是 async/await 的方案更加舒服<span class=" fw-cl "><span>。</span></span></p>
+<p>可见<span class=" fw-cl "><span>，</span></span>熟悉 Promise 是基础<span class=" fw-cl "><span>，</span></span>是理解 async/await 的必要知识<span class=" fw-cl "><span>，</span></span>学习 async/await 代表了学习<span class="fw-op  "><span>「</span></span>最先进的生产力<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>我曾经的文章<span class=" fw-cl "><span>：</span></span><a href="https://segmentfault.com/a/1190000009070711" title="ES6 Async/Await 完爆 Promise 的 6 个原因">ES6 Async/Await 完爆 Promise 的 6 个原因</a><span class=" fw-cl "><span>，</span></span>对比过 async/await 的优秀之处<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以进行了解<span class=" fw-cl "><span>。</span></span></p>
+<p>当然再次重申<span class=" fw-cl "><span>：</span></span><strong style="">async/await 是语法糖<span class=" fw-cl "><span>，</span></span>它更有魅力<span class=" fw-cl "><span>，</span></span>但是学习 promise 是消化这颗糖的前提<span class=" fw-cl "><span>。</span></span></strong></p>
+<h3>复杂的真实场景案例</h3>
+<p>下面将一步一步制造一个较为复杂的场景<span class=" fw-cl "><span>，</span></span>贴近真实环境<span class=" fw-cl "><span>，</span></span>在实战中将异步操作用到极致<span class=" fw-cl "><span>。</span></span></p>
+<h4>请求图片进行预先加载</h4>
+<p>假设预先有 urlIds 数组<span class=" fw-cl "><span>，</span></span>数组的每一项都可以按照规则拼接成一个完整的图片地址<span class=" fw-cl "><span>。</span></span>根据这个数组<span class=" fw-cl "><span>，</span></span>依次请求图片进行预加载<span class=" fw-cl "><span>。</span></span></p>
+<p>这个比较简单<span class=" fw-cl "><span>，</span></span>我们先实现一个请求图片的方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const loadImg = urlId =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;const url = `https://www.image.com/${urlId}`<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const img = new Image()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;img.onerror = function() { <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject(urlId)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;img.onload = function() { <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(urlId)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;img.src = url<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+}</code></p>
+<p>该方法进行 promise 化<span class="fw-op  "><span>（</span></span>promisify<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>在图片成功加载时进行 resolve<span class=" fw-cl "><span>，</span></span>加载失败时 reject<span class=" fw-cl "><span>。</span></span></p>
+<p>依次请求图片<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const urlIds = [1, 2, 3, 4, 5]<br>
+<br>
+urlIds.reduce((prevPromise, urlId) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;return prevPromise.then(() =&gt; loadImg(urlId))<br>
+}, Promise.resolve())</code></p>
+<p>我们使用了数组 reduce 方法<span class=" fw-cl "><span>，</span></span>当然也可以面向过程实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const loadImgOneByOne = index =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;const length = urlIds.length<br>
+<br>
+ &nbsp;&nbsp;&nbsp;loadImg(urlIds[index]).then(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (index === length - 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;loadImgOneByOne(++index)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+<br>
+}<br>
+loadImgOneByOne(0)</code></p>
+<p>当然也可以采用 async/await 实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const loadImgOneByOne = async () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;for (i of urlIds) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;await loadImg(urlIds[i])<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+loadImgOneByOne()</code></p>
+<p>上述代码的请求都是依次执行的<span class=" fw-cl "><span>，</span></span>只有成功加载完第一张图片<span class=" fw-cl "><span>，</span></span>才继续进行下一张图片的加载<span class=" fw-cl "><span>。</span></span></p>
+<p>如果要求提高效率<span class=" fw-cl "><span>，</span></span>将所有图片的请求一次性发出<span class=" fw-cl "><span>，</span></span>该如何做呢<span class=" fw-cl "><span>？</span></span></p>
+<p><code>const urlIds = [1, 2, 3, 4, 5]<br>
+<br>
+const promiseArray = urlIds.map(urlId =&gt; loadImg(urlId))<br>
+<br>
+Promise.all(promiseArray)<br>
+ &nbsp;&nbsp;&nbsp;.then(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('finish load all')<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;.catch(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('promise all catch')<br>
+ &nbsp;&nbsp;&nbsp;})</code></p>
+<p>继续提出需求<span class=" fw-cl "><span>，</span></span>我们希望控制最大并发数为 3<span class=" fw-cl "><span>，</span></span>最多 3 个请求一起发出<span class=" fw-cl "><span>，</span></span>剩下 2 个一起发出<span class=" fw-cl "><span>，</span></span>这就需要我们实现一个 loadByLimit 方法<span class=" fw-cl "><span>，</span></span>实现可以考虑使用 Promise.race API<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const loadByLimit = (urlIds, loadImg, limit) =&gt; {<br>
+ const urlIdsCopy = […urlIds]<br>
+<br>
+ if (urlIdsCopy.length &lt;= limit) {<br>
+ &nbsp;// 如果数组长度小于最大并发数<span class=" fw-cl "><span>，</span></span>直接全部请求<br>
+ &nbsp;const promiseArray = urlIds.map(urlId =&gt; loadImg(urlId))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;return Promise.all(promiseArray)<br>
+ }<br>
+<br>
+ // 注意 splice 方法会改变 urlIdsCopy 数组<br>
+ const promiseArray = urlIdsCopy.splice(0, limit).map(urlId =&gt; loadImg(urlId)) <br>
+<br>
+ urlIdsCopy.reduce(<br>
+ &nbsp;(prevPromise, urlId) =&gt; <br>
+ &nbsp;&nbsp;prevPromise<br>
+ &nbsp;&nbsp;&nbsp;.then(() =&gt; Promise.race(promiseArray))<br>
+ &nbsp;&nbsp;&nbsp;.catch(error =&gt; {console.log(error)})<br>
+ &nbsp;&nbsp;&nbsp;.then(resolvedId =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;// 将 resolvedId 剔除出 promiseArray 数组<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;// 这里的删除只是伪代码<span class=" fw-cl "><span>，</span></span>具体删除情况要看后端 Api 返回结果<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;let resolvedIdPostion = promiseArray.findIndex(id =&gt; resolvedId === id)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;promiseArray.splice(resolvedIdPostion, 1)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;promiseArray.push(loadImg(urlId))<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;, <br>
+ &nbsp;Promise.resolve()<br>
+ )<br>
+ .then(() =&gt; Promise.all(promiseArray))<br>
+}</code></p>
+<p>代码解读<span class=" fw-cl "><span>：</span></span>Promise.race 接受一个 promise 数组<span class=" fw-cl "><span>，</span></span>并返回这个数组中第一个 resolve 的 promise 的返回值<span class=" fw-cl "><span>。</span></span>在有 Promise.race 返回后<span class=" fw-cl "><span>，</span></span>我们不断地将已经 resolve 的 promise 从 promise 数组<span class="fw-op  "><span>（</span></span>promiseArray<span class=" fw-cl "><span>）</span></span>中剔除<span class=" fw-cl "><span>，</span></span>再添加进新的 promise 进入 promiseArray<span class=" fw-cl "><span>，</span></span>重复执行<span class=" fw-cl "><span>，</span></span>始终保持当前并发请求数小于等于 limit 值<span class=" fw-cl "><span>。</span></span></p>
+<p>到此为止<span class=" fw-cl "><span>，</span></span>我们已经掌握了比较基本的操作<span class=" fw-cl "><span>。</span></span><strong style="">再来看一个更加复杂的问题<span class=" fw-cl "><span>，</span></span>这个问题出自阿里某部门 P7+ 的面试题<span class=" fw-cl "><span>。</span></span></strong></p>
+<h4>改编自阿里某部门的面试题</h4>
+<p>这道题目我改编自阿里某<span class="fw-op  "><span>（</span></span>最核心<span class=" fw-cl "><span>）</span></span>部门的面试题<span class=" fw-cl "><span>，</span></span>并进行了一定程度的简化<span class=" fw-cl "><span>，</span></span>希望大家不要刻意外传<span class=" fw-cl "><span>。</span></span></p>
+<blockquote><br></blockquote>
+<p>假设现在后端有一个服务<span class=" fw-cl "><span>，</span></span>支持批量返回书籍信息<span class=" fw-cl "><span>，</span></span>它接受一个数组作为请求数据<span class=" fw-cl "><span>，</span></span>数组储存了需要获取书目信息的书目 id<span class=" fw-cl "><span>，</span></span>这个服务 fetchBooksInfo 大概是这个样子<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const fetchBooksInfo = bookIdList =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;&nbsp;&nbsp;return ([{<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id: 123,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ...<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id: 456<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;&nbsp;&nbsp;])<br>
+}</code></p>
+<p>fetchBooksInfo 已经给出<span class=" fw-cl "><span>，</span></span><strong style="">但是这个接口最多只支持 100 个 id 的查询<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>现在需要开发者实现 getBooksInfo 方法<span class=" fw-cl "><span>，</span></span>该方法<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">支持调用单个书目信息<span class=" fw-cl "><span>：</span></span></li>
+</ul>
+<p><code>getBooksInfo(123).then(data =&gt; {console.log(data.id)}) // 123</code></p>
+<ul>
+  <li style="">短时间<span class="fw-op  "><span>（</span></span>100 毫秒<span class=" fw-cl "><span>）</span></span>内多次连续调用<span class=" fw-cl "><span>，</span></span><strong style="">只发送一个请求</strong><span class=" fw-cl "><span>，</span></span>且获得各个书目信息<span class=" fw-cl "><span>：</span></span></li>
+</ul>
+<p><code>getBooksInfo(123).then(data =&gt; {console.log(data.id)}) // 123<br>
+getBooksInfo(456).then(data =&gt; {console.log(data.id)}) // 456</code></p>
+<p><strong style="">注意这里必须只发送一个请求<span class=" fw-cl "><span>，</span></span>也就是说调用了一次 fetchBooksInfo<span class=" fw-cl "><span>。</span></span></strong></p>
+<ul>
+  <li style=""><br></li>
+</ul>
+<p>要考虑服务端出错的情况<span class=" fw-cl "><span>，</span></span>比如批量接口请求 [123, 446] 书目信息<span class=" fw-cl "><span>，</span></span>但是服务端只返回了书目 123 的信息<span class=" fw-cl "><span>。</span></span>此时应该进行合理的错误处理<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style=""><br></li>
+</ul>
+<p>对 id 重复进行处理</p>
+<p>我们来将思路清理一下<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">100 毫秒内的连续请求<span class=" fw-cl "><span>，</span></span>要求进行合并<span class=" fw-cl "><span>，</span></span>只触发一次网络请求<span class=" fw-cl "><span>。</span></span>因此需要一个 bookIdListToFetch 数组<span class=" fw-cl "><span>，</span></span>并设置 100 毫秒的定时<span class=" fw-cl "><span>。</span></span>在 100 毫秒以内<span class=" fw-cl "><span>，</span></span>将所有的书目 id push 到 bookIdListToFetch 中<span class=" fw-cl "><span>，</span></span><strong style="">bookIdListToFetch 长度为 100 时<span class=" fw-cl "><span>，</span></span>进行 clearTimeout</strong><span class=" fw-cl "><span>，</span></span>并调用 fetchBooksInfo 发送请求</li>
+  <li style="">因为服务端可能出错<span class=" fw-cl "><span>，</span></span>返回的批量接口结果可能缺少某个书目信息<span class=" fw-cl "><span>。</span></span>我们需要对相关的调用进行抛错<span class=" fw-cl "><span>，</span></span>比如 100 毫秒内连续调用<span class=" fw-cl "><span>：</span></span></li>
+</ul>
+<p><code>getBooksInfo(123).then(data =&gt; {console.log(data.id)}) // 123<br>
+getBooksInfo(456).then(data =&gt; {console.log(data.id)}) // 456</code></p>
+<p>我们要归并只调用一次 fetchBooksInfo<span class=" fw-cl "><span>：</span></span></p>
+<p><code>fetchBooksInfo(123, 456)</code></p>
+<p>如果返回有问题<span class=" fw-cl "><span>，</span></span>只返回了<span class=" fw-cl "><span>：</span></span></p>
+<p><code>[{<br>
+ &nbsp;&nbsp;&nbsp;id: 123<br>
+ &nbsp;&nbsp;&nbsp;//...<br>
+}]</code></p>
+<p>没有返回 id 为 456 的书信息<span class=" fw-cl "><span>，</span></span>需要<span class=" fw-cl "><span>：</span></span></p>
+<p><code>getBooksInfo(456).then(data =&gt; {console.log(data.id)}).catch(error =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;console.log(error)<br>
+})</code></p>
+<p>捕获错误<span class=" fw-cl "><span>。</span></span></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>我们要对每一个 getBooksInfo 对应的 promise 实例的 reject 和 resolve 方法进行存储<span class=" fw-cl "><span>，</span></span>存储在内存 promiseMap 中<span class=" fw-cl "><span>，</span></span>以便在合适的时机进行 reject 或 resolve 对应的 promise 实例<span class=" fw-cl "><span>。</span></span></p>
+<p>请看代码<span class="fw-op  "><span>（</span></span>对边界 case 的处理省略<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>我加入了关键注释<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// 储存将要请求的 id 数组<br>
+let bookIdListToFetch = []<br>
+<br>
+// 储存每个 id 请求 promise 实例的 resolve 和 reject<br>
+// key 为 bookId<span class=" fw-cl "><span>，</span></span>value 为 resolve 和 reject 方法<span class=" fw-cl "><span>，</span></span>如<span class=" fw-cl "><span>：</span></span><br>
+// { 123: [{resolve, reject}]}<br>
+// 这里之所以使用数组存储 {resolve, reject}<span class=" fw-cl "><span>，</span></span>是因为可能存在重复请求同一个 bookId 的情况<span class=" fw-cl "><span>。</span></span>其实这里我们进行了滤重<span class=" fw-cl "><span>，</span></span>没有必要用数组<span class=" fw-cl "><span>。</span></span>在需要支持重复的场景下<span class=" fw-cl "><span>，</span></span>记得要用数组存储<br>
+let promiseMap = {}<br>
+<br>
+// 用于数组去重<br>
+const getUniqueArray = array =&gt; Array.from(new Set(array))<br>
+<br>
+// 定时器 id<br>
+let timer<br>
+<br>
+const getBooksInfo = bookId =&gt; new promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;promiseMap[bookId] = promiseMap[bookId] || []<br>
+ &nbsp;&nbsp;&nbsp;promiseMap[bookId].push({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reject<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;const clearTask = () =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 清空任务和存储<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bookIdListToFetch = []<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;promiseMap = {}<br>
+ &nbsp;&nbsp;&nbsp;} <br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (bookIdListToFetch.length === 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bookIdListToFetch.push(bookId)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;timer = setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;handleFetch(bookIdListToFetch, promiseMap)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clearTask()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, 100)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bookIdListToFetch.push(bookId)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bookIdListToFetch = getUniqueArray(bookIdListToFetch)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (bookIdListToFetch.length &gt;= 100) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clearTimeout(timer)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;handleFetch(bookIdListToFetch, promiseMap)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clearTask()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+})<br>
+<br>
+const handleFetch = (list, map) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;fetchBooksInfo(list).then(resultArray =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const resultIdArray = resultArray.map(item =&gt; item.id)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 处理存在的 bookId<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resultArray.forEach(data =&gt; promiseMap[data.id].forEach(item =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;item.resolve(data)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}))<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 处理失败没拿到的 bookId<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let rejectIdArray ＝ []<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bookIdListToFetch.forEach(id =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 返回的数组中<span class=" fw-cl "><span>，</span></span>不含有某项 bookId<span class=" fw-cl "><span>，</span></span>表示请求失败<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!resultIdArray.includes(id)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rejectIdArray.push(id)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 对请求失败的数组进行 reject<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rejectIdArray.forEach(id =&gt; promiseMap[id].forEach(item =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;item.reject()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}))<br>
+ &nbsp;&nbsp;&nbsp;}, error =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(error)<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+}</code></p>
+<p>做出这道题的关键是<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">准确理解题意<span class=" fw-cl "><span>，</span></span>因为这个题目完全贴近实际场景需求<span class=" fw-cl "><span>，</span></span>准确把控出题者的意图是第一步</li>
+  <li style="">对 Promise 熟练掌握</li>
+  <li style="">进行 setTimeout 合并 100 毫秒内的请求</li>
+  <li style="">存储每个 bookId 的请求 promise 实例<span class=" fw-cl "><span>，</span></span>存储该 promise 实例的 resolve 和 reject 方法<span class=" fw-cl "><span>，</span></span>以便在批量数据返回时进行对应处理</li>
+  <li style="">错误处理</li>
+</ul>
+<h3>总结</h3>
+<p>异步任务的处理<span class=" fw-cl "><span>，</span></span>因其重要性<span class=" fw-cl "><span>，</span></span>始终在前端开发中是一个不可忽视的考察点<span class=" fw-cl "><span>；</span></span>又因其复杂性而考点灵活多变<span class=" fw-cl "><span>。</span></span>需要开发者熟悉各种异步方案<span class=" fw-cl "><span>，</span></span>同时每一种异步方案都是相辅相成的<span class=" fw-cl "><span>。</span></span>如果你没有完全理解 callback<span class=" fw-cl "><span>，</span></span>那你也许就很难理解 promise<span class=" fw-cl "><span>；</span></span>如果 promise 没有熟练掌握<span class=" fw-cl "><span>，</span></span>那么 generator 和 async/await 更无从谈起<span class=" fw-cl "><span>。</span></span></p>
+<p>异步很多场景都涉及到网络<span class=" fw-cl "><span>、</span></span>涉及到高风险计算<span class=" fw-cl "><span>，</span></span>但本节还没有涉及到异步中<strong style="">错误处理</strong>这个重要内容<span class=" fw-cl "><span>，</span></span>这方面的信息<span class=" fw-cl "><span>，</span></span>我们会在后续课程<span class="fw-op  "><span>《</span></span>你以为我真的要你写一个 Promise 吗<span class=" fw-cl fw--collapsed"><span>？</span></span><span class=" fw-cl "><span>》</span></span>中进行穿插<span class=" fw-cl "><span>。</span></span></p>
+<p>异步的整个学习过程需要我们从最基础开始<span class=" fw-cl "><span>，</span></span>步步为营<span class=" fw-cl "><span>。</span></span>如果一次理解不了<span class=" fw-cl "><span>，</span></span>那就两次<span class=" fw-cl "><span>、</span></span>三次<span class=" fw-cl "><span>。</span></span>相信我<span class=" fw-cl "><span>，</span></span>这一定是一个吃经验<span class=" fw-cl "><span>，</span></span>吃重复次数的<span class="fw-op  "><span>「</span></span>水滴石穿<span class=" fw-cl "><span>」</span></span>过程<span class=" fw-cl "><span>。</span></span><br>
+<br>
+</p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX11Zej0ntkjx0PzibJlp</span></p>
+</body>
+</html>

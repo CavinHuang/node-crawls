@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 48 节缓存谁都懂，一问都哑口</h1>
+  <p>上一讲<span class=" fw-cl "><span>，</span></span>我们了解了缓存的几种方式和基本概念<span class=" fw-cl "><span>；</span></span>这一讲<span class=" fw-cl "><span>，</span></span>让我们从应用和面试的角度出发<span class=" fw-cl "><span>，</span></span>巩固理论基础<span class=" fw-cl "><span>，</span></span>加深操作印象<span class=" fw-cl "><span>。</span></span></p>
+<p><br>
+</p>
+<figure><br></figure>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-58c2f8902acea7f7a4b46b4027e587f5.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:35.288966725043785% 0" data-src="https://pic2.zhimg.com/v2-58c2f8902acea7f7a4b46b4027e587f5.png">加载中...</span></figure>
+<h3>缓存和浏览器操作</h3>
+<p>缓存的重要一环是浏览器<span class=" fw-cl "><span>，</span></span>常见浏览器行为对应的缓存行为有哪些呢<span class=" fw-cl "><span>？</span></span>我们来做一个总结<span class="fw-op  "><span>（</span></span>注意<span class=" fw-cl "><span>，</span></span>不同浏览器引擎<span class=" fw-cl "><span>、</span></span>不同版本可能会有差别<span class=" fw-cl "><span>，</span></span>读者可以根据不同情况酌情参考<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<ul>
+  <li style="">当用户 Ctrl + F5 强制刷新网页时<span class=" fw-cl "><span>，</span></span>浏览器直接从服务器加载<span class=" fw-cl "><span>，</span></span>跳过强缓存和协商缓存&nbsp;</li>
+  <li style="">当用户仅仅敲击 F5 刷新网页时<span class=" fw-cl "><span>，</span></span>跳过强缓存<span class=" fw-cl "><span>，</span></span>但是仍然会进行协商缓存过程</li>
+</ul>
+<p>这里我借用 <a href="https://link.juejin.im/?target=http%3A%2F%2Fwww.alloyteam.com%2F2012%2F03%2Fweb-cache-2-browser-cache%2F" title="Alloy Team">Alloy Team</a> 的图进行一个总结<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+</p>
+<figure><br></figure>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-f862c42a0c04dba45ca9b4d527e5b73a.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:43.2% 0" data-src="https://pic1.zhimg.com/v2-f862c42a0c04dba45ca9b4d527e5b73a.png">加载中...</span></figure>
+<h3>缓存相关面试题目</h3>
+<p>知识点我们已经梳理完毕<span class=" fw-cl "><span>，</span></span>是时候刷一下经典题目来巩固了<span class=" fw-cl "><span>。</span></span>以下题目都可以在上述知识中找到答案<span class=" fw-cl "><span>，</span></span>我们也当做一个总结和考察<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<ul>
+  <li style="">题目一<span class=" fw-cl "><span>：</span></span>如何禁止浏览器不缓存静态资源</li>
+</ul>
+<p>在实际工作中<span class=" fw-cl "><span>，</span></span>很多场景都需要禁用浏览器缓存<span class=" fw-cl "><span>。</span></span>比如可以使用 Chrome 隐私模式<span class=" fw-cl "><span>，</span></span>在代码层面可以设置相关请求头<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Cache-Control: no-cache, no-store, must-revalidate</code></p>
+<p>此外<span class=" fw-cl "><span>，</span></span>也可以给请求的资源增加一个版本号<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<p>我们也可以使用 Meta 标签来声明缓存规则<span class=" fw-cl "><span>：</span></span></p>
+<p>&nbsp;</p>
+<ul>
+  <li style="">题目二<span class=" fw-cl "><span>：</span></span>设置以下 request/response header 会有什么效果<span class=" fw-cl "><span>？</span></span></li>
+</ul>
+<p><code>cache-control: max-age=0</code></p>
+<p>上述响应头属于强缓存<span class=" fw-cl "><span>，</span></span>因为 max-age 设置为 0<span class=" fw-cl "><span>，</span></span>所以浏览器必须发请求重新验证资源<span class=" fw-cl "><span>。</span></span>这时候会走协商缓存机制<span class=" fw-cl "><span>，</span></span>可能返回 200 或者 304<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<ul>
+  <li style="">题目三<span class=" fw-cl "><span>：</span></span>设置以下 request/response header 会有什么效果<span class=" fw-cl "><span>？</span></span></li>
+</ul>
+<p><code>cache-control: no-cache</code></p>
+<p>上述响应头属于强缓存<span class=" fw-cl "><span>，</span></span>因为设置 no-cache<span class=" fw-cl "><span>，</span></span>所以浏览器必须发请求重新验证资源<span class=" fw-cl "><span>。</span></span>这时候会走协商缓存机制<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<ul>
+  <li style="">题目四<span class=" fw-cl "><span>：</span></span>除了上述方式<span class=" fw-cl "><span>，</span></span>还有哪种方式可以设置浏览器必须发请求重新验证资源<span class=" fw-cl "><span>，</span></span>走协商缓存机制<span class=" fw-cl "><span>？</span></span></li>
+</ul>
+<p>设置 request/response header<span class=" fw-cl "><span>：</span></span></p>
+<p><code>cache-control: must-revalidate</code>&nbsp;</p>
+<ul>
+  <li style="">题目五<span class=" fw-cl "><span>：</span></span>设置以下 request/response header 会有什么效果<span class=" fw-cl "><span>？</span></span></li>
+</ul>
+<p><code>Cache-Control: max-age=60, must-revalidate</code></p>
+<p>如果资源在 60s 内再次访问<span class=" fw-cl "><span>，</span></span>走强缓存<span class=" fw-cl "><span>，</span></span>可以直接返回缓存资源内容<span class=" fw-cl "><span>；</span></span>如果超过 60s<span class=" fw-cl "><span>，</span></span>则必须发送网络请求到服务端<span class=" fw-cl "><span>，</span></span>去验证资源的有效性<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<ul>
+  <li style="">题目五<span class=" fw-cl "><span>：</span></span>据你的经验<span class=" fw-cl "><span>，</span></span>为什么大厂都不怎么用 Etag<span class=" fw-cl "><span>？</span></span></li>
+</ul>
+<p>大厂多使用负载分担的方式来调度 HTTP 请求<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>同一个客户端对同一个页面的多次请求<span class=" fw-cl "><span>，</span></span>很可能被分配到不同的服务器来相应<span class=" fw-cl "><span>，</span></span>而根据 ETag 的计算原理<span class=" fw-cl "><span>，</span></span>不同的服务器<span class=" fw-cl "><span>，</span></span>有可能在资源内容没有变化的情况下<span class=" fw-cl "><span>，</span></span>计算出不一样的 Etag<span class=" fw-cl "><span>，</span></span>而使得缓存失效<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<ul>
+  <li style="">题目六<span class=" fw-cl "><span>：</span></span>Yahoo 的 YSlow 页面分析工具为什么推荐关闭 ETag?</li>
+</ul>
+<p>因为 Etag 计算较为复杂<span class=" fw-cl "><span>，</span></span>所以可能会使得服务端响应变慢<span class=" fw-cl "><span>。</span></span></p>
+<h3>缓存实战</h3>
+<p>我们来通过几个简单的真实项目案例实操一下缓存<span class=" fw-cl "><span>。</span></span></p>
+<h4>启动项目</h4>
+<p>首先创建项目<span class=" fw-cl "><span>：</span></span></p>
+<p><code>mkdir cache</code><br>
+<code><br>
+npm init</code></p>
+<p>之后<span class=" fw-cl "><span>，</span></span>得到 package.json<span class=" fw-cl "><span>，</span></span>同时声明我们的相关依赖<span class=" fw-cl "><span>：</span></span></p>
+<pre class="language-undefined"><code class="language-undefined">{<br>
+ &nbsp;"name": "cache",<br>
+ &nbsp;"version": "1.0.0",<br>
+ &nbsp;"description": "Cache demo",<br>
+ &nbsp;"main": "index.js",<br>
+ &nbsp;"scripts": {<br>
+ &nbsp;&nbsp;&nbsp;"start": "nodemon ./index.js"<br>
+ &nbsp;},<br>
+ &nbsp;"keywords": [<br>
+ &nbsp;&nbsp;&nbsp;"cache",<br>
+ &nbsp;&nbsp;&nbsp;"node"<br>
+ &nbsp;],<br>
+ &nbsp;"devDependencies": {<br>
+ &nbsp;&nbsp;&nbsp;"@babel/core": "latest",<br>
+ &nbsp;&nbsp;&nbsp;"@babel/preset-env": "latest",<br>
+ &nbsp;&nbsp;&nbsp;"@babel/register": "latest",<br>
+ &nbsp;&nbsp;&nbsp;"koa": "latest",<br>
+ &nbsp;&nbsp;&nbsp;"koa-conditional-get": "^2.0.0",<br>
+ &nbsp;&nbsp;&nbsp;"koa-etag": "^3.0.0",<br>
+ &nbsp;&nbsp;&nbsp;"koa-static": "latest"<br>
+ &nbsp;},<br>
+ &nbsp;"dependencies": {<br>
+ &nbsp;&nbsp;&nbsp;"nodemon": "latest"<br>
+ &nbsp;},<br>
+ &nbsp;"license": "ISC"<br>
+}</code></pre>
+<p>使用 nodemon 来启动并 watch Node 脚本<span class=" fw-cl "><span>，</span></span>同时配置 .babelrc 如下<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="json" language="JSON" class="language-json"><code lang="json" language="JSON" class="language-json">{<br>
+ "presets": [<br>
+ &nbsp;&nbsp;[<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;"@babel/preset-env",<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"targets": {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"node": "current"<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;]<br>
+ ]<br>
+}</code></pre>
+<p>在 cache/static 目录下<span class=" fw-cl "><span>，</span></span>创建 index.html 和一张测试图片 web.png<span class=" fw-cl "><span>：</span></span><br>
+ <br>
+ <code>前端开发核心知识进阶</code><br>
+</p>
+<pre lang="css" language="CSS" class="language-css"><code lang="css" language="CSS" class="language-css">.cache img {<br>
+ &nbsp;&nbsp;&nbsp;display: block;<br>
+ &nbsp;&nbsp;&nbsp;width: 100%;<br>
+}</code></pre>
+<figure class="central"><img data-src="./web.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:30% 0" data-src="./web.png">加载中...</span></figure>
+<p>看一下我们的核心脚本 index.js<span class=" fw-cl "><span>，</span></span>其实就是一个简单的 NodeJS 服务<span class=" fw-cl "><span>：</span></span></p>
+<p>index.js<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">require('@babel/register');<br>
+require('./cache.js');</code></pre>
+<p>cache.js<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">import Koa from 'koa'<br>
+import path from 'path'<br>
+import resource from 'koa-static'<br>
+<br>
+const app = new Koa()<br>
+const host = 'localhost'<br>
+const port = 6666<br>
+<br>
+app.use(resource(path.join(__dirname, './static')))<br>
+<br>
+app.listen(port, () =&gt; {<br>
+ &nbsp;console.log(`server is listen in ${host}:${port}`)<br>
+})</code></pre>
+<p>我们启动<span class=" fw-cl "><span>：</span></span></p>
+<p><code>npm run start</code></p>
+<p>得到页面<span class=" fw-cl "><span>：</span></span></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-a1a84b19031b94a8fd8c1e78395a6900.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:26.13390928725702% 0" data-src="https://pic3.zhimg.com/v2-a1a84b19031b94a8fd8c1e78395a6900.png">加载中...</span></figure>
+<h4>应用缓存</h4>
+<p>我们来尝试加入一些缓存<span class=" fw-cl "><span>，</span></span>首先应用强缓存<span class=" fw-cl "><span>，</span></span>只需要在响应头上加入相关字段即可<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">import Koa from 'koa'<br>
+import path from 'path'<br>
+import resource from 'koa-static'<br>
+<br>
+const app = new Koa()<br>
+const host = 'localhost'<br>
+const port = 5999<br>
+<br>
+app.use(async (ctx, next) =&gt; {<br>
+ &nbsp;ctx.set({<br>
+ &nbsp;&nbsp;&nbsp;'Cache-Control': 'max-age=5000' &nbsp;<br>
+ &nbsp;})<br>
+ &nbsp;await next()<br>
+})<br>
+<br>
+app.use(resource(path.join(__dirname, './static')))<br>
+<br>
+app.listen(port, () =&gt; {<br>
+ &nbsp;console.log(`server is listen in ${host}:${port}`);<br>
+})</code></pre>
+<p>我们加入了 Cache-Control 头<span class=" fw-cl "><span>，</span></span>设置 max-age 值为 5000<span class=" fw-cl "><span>。</span></span>页面得到了响应<span class=" fw-cl "><span>：</span></span></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-5fa9f83fbd8e181c02e9ecb668500430.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:23.645833333333332% 0" data-src="https://pic4.zhimg.com/v2-5fa9f83fbd8e181c02e9ecb668500430.png">加载中...</span></figure>
+<p>再次刷新<span class=" fw-cl "><span>，</span></span>得到了 200 OK<span class="fw-op  "><span>（</span></span>from memory cache<span class=" fw-cl "><span>）</span></span>的标记<span class=" fw-cl "><span>：</span></span></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-1619402481565e9f2a45c7771eb4541b.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:15.885416666666666% 0" data-src="https://pic4.zhimg.com/v2-1619402481565e9f2a45c7771eb4541b.png">加载中...</span></figure>
+<p>当我们关掉浏览器<span class=" fw-cl "><span>，</span></span>再次打开页面<span class=" fw-cl "><span>，</span></span>得到了 200 OK<span class="fw-op  "><span>（</span></span>from disk cache<span class=" fw-cl "><span>）</span></span>的标记<span class=" fw-cl "><span>。</span></span>请体会与 from memory cache 的不同<span class=" fw-cl "><span>，</span></span>memory cache 已经随着我们关闭浏览器而清除<span class=" fw-cl "><span>，</span></span>这里是从 disk cache 取到的缓存<span class=" fw-cl "><span>。</span></span></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-95a0054f6dd6e79bedbc9e5c6d8080aa.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:21.927083333333332% 0" data-src="https://pic3.zhimg.com/v2-95a0054f6dd6e79bedbc9e5c6d8080aa.png">加载中...</span></figure>
+<p>我们尝试将 max-age 改为 5 秒<span class=" fw-cl "><span>，</span></span>5 秒后再次刷新页面<span class=" fw-cl "><span>，</span></span>发现缓存已经失效<span class=" fw-cl "><span>。</span></span>这里读者可以自行试验<span class=" fw-cl "><span>，</span></span>不再截图了<span class=" fw-cl "><span>。</span></span></p>
+<p>下面来试验一下协商缓存<span class=" fw-cl "><span>，</span></span>在初始 package.json 中<span class=" fw-cl "><span>，</span></span>已经引入了 koa-etag 和 koa-conditional-get 这两个包依赖<span class=" fw-cl "><span>。</span></span></p>
+<p>修改 cache.js 为<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">import Koa from 'koa'<br>
+import path from 'path'<br>
+import resource from 'koa-static'<br>
+import conditional from 'koa-conditional-get'<br>
+import etag from 'koa-etag'<br>
+<br>
+const app = new Koa()<br>
+const host = 'localhost'<br>
+const port = 5999<br>
+<br>
+app.use(conditional())<br>
+app.use(etag())<br>
+app.use(resource(path.join(__dirname, './static')))<br>
+<br>
+app.listen(port, () =&gt; {<br>
+ console.log(`server is listen in ${host}:${port}`)<br>
+})</code></pre>
+<p>一切都很简单<span class=" fw-cl "><span>：</span></span></p>
+<figure><br></figure>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-9b49724720a5578245b7383387442b41.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:30.269058295964125% 0" data-src="https://pic1.zhimg.com/v2-9b49724720a5578245b7383387442b41.png">加载中...</span></figure>
+<p>我们再次刷新浏览器<span class=" fw-cl "><span>，</span></span>这次找到请求头<span class=" fw-cl "><span>，</span></span>得到了 If-None-Match 字段<span class=" fw-cl "><span>，</span></span>且内容与上一次的响应头相同<span class=" fw-cl "><span>。</span></span></p>
+<figure><br></figure>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-e40bda45eda72d5642681a24fb49085f.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:28.69287991498406% 0" data-src="https://pic1.zhimg.com/v2-e40bda45eda72d5642681a24fb49085f.png">加载中...</span></figure>
+<p>因为我们的图片并没有发生变化<span class=" fw-cl "><span>，</span></span>所以得到了 304 响应头<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-124b47600ce88cc8b888d759ecba3ccc.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:22.864583333333332% 0" data-src="https://pic3.zhimg.com/v2-124b47600ce88cc8b888d759ecba3ccc.png">加载中...</span></figure>
+<p>读者可以自行尝试替换图片来验证内容<span class=" fw-cl "><span>。</span></span></p>
+<p>这里我们主要使用了 Koa 库<span class=" fw-cl "><span>，</span></span>如果对于原生 NodeJS<span class=" fw-cl "><span>，</span></span>这里截取一个代码片段<span class=" fw-cl "><span>，</span></span>供大家参考<span class=" fw-cl "><span>，</span></span>该代码主要实现了 <span class="fw-op  "><span>【</span></span>if-modified-since/last-modified<span class=" fw-cl "><span>】</span></span>头<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">http.createServer((req, res) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let { pathname } = url.parse(req.url, true)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;let absolutePath = path.join(__dirname, pathname)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;fs.stat(path.join(__dirname, pathname), (err, stat) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 路径不存在<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(err) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.statusCode = 404<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.end('Not Fount')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(stat.isFile()) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.setHeader('Last-Modified', stat.ctime.toGMTString())<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(req.headers['if-modified-since'] === stat.ctime.toGMTString()) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.statusCode = 304<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.end()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fs.createReadStream(absolutePath).pipe(res)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+})</code></pre>
+<p>该项目源码<span class=" fw-cl "><span>，</span></span>读者可以在<a href="https://github.com/HOUCe/lucas-gitchat-courses/tree/master/%E7%BC%93%E5%AD%98%E8%B0%81%E9%83%BD%E6%87%82%EF%BC%8C%E4%B8%80%E9%97%AE%E9%83%BD%E5%93%91%E5%8F%A3/cache" title="这里找到">这里找到</a><span class=" fw-cl "><span>。</span></span></p>
+<h4>源码探究</h4>
+<p>在上面应用 Etag 试验当中<span class=" fw-cl "><span>，</span></span>使用了 koa-etag 这个包<span class=" fw-cl "><span>，</span></span>这里我们就来了解一下这个包的实现<span class=" fw-cl "><span>。</span></span></p>
+<p>源码如下<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">var calculate = require('etag');<br>
+var Stream = require('stream');<br>
+var fs = require('mz/fs');<br>
+<br>
+module.exports = etag;<br>
+<br>
+function etag(options) {<br>
+ &nbsp;return function etag(ctx, next) {<br>
+ &nbsp;&nbsp;&nbsp;return next()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.then(() =&gt; getResponseEntity(ctx))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.then(entity =&gt; setEtag(ctx, entity, options));<br>
+ &nbsp;};<br>
+}<br>
+<br>
+function getResponseEntity(ctx, options) {<br>
+ &nbsp;// no body<br>
+ &nbsp;var body = ctx.body;<br>
+ &nbsp;if (!body || ctx.response.get('ETag')) return;<br>
+<br>
+ &nbsp;// type<br>
+ &nbsp;var status = ctx.status / 100 | 0;<br>
+<br>
+ &nbsp;// 2xx<br>
+ &nbsp;if (2 != status) return;<br>
+<br>
+ &nbsp;if (body instanceof Stream) {<br>
+ &nbsp;&nbsp;&nbsp;if (!body.path) return;<br>
+ &nbsp;&nbsp;&nbsp;return fs.stat(body.path).catch(noop);<br>
+ &nbsp;} else if (('string' == typeof body) || Buffer.isBuffer(body)) {<br>
+ &nbsp;&nbsp;&nbsp;return body;<br>
+ &nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;return JSON.stringify(body);<br>
+ &nbsp;}<br>
+}<br>
+<br>
+<br>
+function setEtag(ctx, entity, options) {<br>
+ &nbsp;if (!entity) return;<br>
+<br>
+ &nbsp;ctx.response.etag = calculate(entity, options);<br>
+}<br>
+<br>
+function noop() {}</code></pre>
+<p>我们看整个 etag 库就是一个中间件<span class=" fw-cl "><span>，</span></span>它首先调用 getResponseEntity 方法获取响应体<span class=" fw-cl "><span>，</span></span>根据 body 最终调用了 setEtag 方法<span class=" fw-cl "><span>，</span></span>根据响应内容生产 etag<span class=" fw-cl "><span>。</span></span>最终生成 etag 的计算过程又利用了 etag 这个包<span class=" fw-cl "><span>，</span></span>再来看一下 etag 库<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">'use strict'<br>
+<br>
+module.exports = etag<br>
+<br>
+var crypto = require('crypto')<br>
+var Stats = require('fs').Stats<br>
+<br>
+var toString = Object.prototype.toString<br>
+<br>
+function entitytag (entity) {<br>
+ &nbsp;if (entity.length === 0) {<br>
+ &nbsp;&nbsp;&nbsp;// fast-path empty<br>
+ &nbsp;&nbsp;&nbsp;return '"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"'<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// compute hash of entity<br>
+ &nbsp;var hash = crypto<br>
+ &nbsp;&nbsp;&nbsp;.createHash('sha1')<br>
+ &nbsp;&nbsp;&nbsp;.update(entity, 'utf8')<br>
+ &nbsp;&nbsp;&nbsp;.digest('base64')<br>
+ &nbsp;&nbsp;&nbsp;.substring(0, 27)<br>
+<br>
+ &nbsp;// compute length of entity<br>
+ &nbsp;var len = typeof entity === 'string'<br>
+ &nbsp;&nbsp;&nbsp;? Buffer.byteLength(entity, 'utf8')<br>
+ &nbsp;&nbsp;&nbsp;: entity.length<br>
+<br>
+ &nbsp;return '"' + len.toString(16) + '-' + hash + '"'<br>
+}<br>
+<br>
+function etag (entity, options) {<br>
+ &nbsp;if (entity == null) {<br>
+ &nbsp;&nbsp;&nbsp;throw new TypeError('argument entity is required')<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// support fs.Stats object<br>
+ &nbsp;var isStats = isstats(entity)<br>
+ &nbsp;var weak = options &amp;&amp; typeof options.weak === 'boolean'<br>
+ &nbsp;&nbsp;&nbsp;? options.weak<br>
+ &nbsp;&nbsp;&nbsp;: isStats<br>
+<br>
+ &nbsp;// validate argument<br>
+ &nbsp;if (!isStats &amp;&amp; typeof entity !== 'string' &amp;&amp; !Buffer.isBuffer(entity)) {<br>
+ &nbsp;&nbsp;&nbsp;throw new TypeError('argument entity must be string, Buffer, or fs.Stats')<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// generate entity tag<br>
+ &nbsp;var tag = isStats<br>
+ &nbsp;&nbsp;&nbsp;? stattag(entity)<br>
+ &nbsp;&nbsp;&nbsp;: entitytag(entity)<br>
+<br>
+ &nbsp;return weak<br>
+ &nbsp;&nbsp;&nbsp;? 'W/' + tag<br>
+ &nbsp;&nbsp;&nbsp;: tag<br>
+}<br>
+<br>
+function isstats (obj) {<br>
+ &nbsp;// genuine fs.Stats<br>
+ &nbsp;if (typeof Stats === 'function' &amp;&amp; obj instanceof Stats) {<br>
+ &nbsp;&nbsp;&nbsp;return true<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// quack quack<br>
+ &nbsp;return obj &amp;&amp; typeof obj === 'object' &amp;&amp;<br>
+ &nbsp;&nbsp;&nbsp;'ctime' in obj &amp;&amp; toString.call(obj.ctime) === '[object Date]' &amp;&amp;<br>
+ &nbsp;&nbsp;&nbsp;'mtime' in obj &amp;&amp; toString.call(obj.mtime) === '[object Date]' &amp;&amp;<br>
+ &nbsp;&nbsp;&nbsp;'ino' in obj &amp;&amp; typeof obj.ino === 'number' &amp;&amp;<br>
+ &nbsp;&nbsp;&nbsp;'size' in obj &amp;&amp; typeof obj.size === 'number'<br>
+}<br>
+<br>
+function stattag (stat) {<br>
+ &nbsp;var mtime = stat.mtime.getTime().toString(16)<br>
+ &nbsp;var size = stat.size.toString(16)<br>
+<br>
+ &nbsp;return '"' + size + '-' + mtime + '"'<br>
+}</code></pre>
+<p>etag 方法接受一个 entity 最为入参一<span class=" fw-cl "><span>，</span></span>entity 可以是 string<span class=" fw-cl "><span>、</span></span>Buffer 或者 Stats 类型<span class=" fw-cl "><span>。</span></span>如果是 Stats 类型<span class=" fw-cl "><span>，</span></span>那么 etag 的生成方法会有不同<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">var mtime = stat.mtime.getTime().toString(16)<br>
+var size = stat.size.toString(16)<br>
+<br>
+return '"' + size + '-' + mtime + '"'</code></pre>
+<p>主要是根据 Stats 类型的 entity 的 mtime 和 size 特征<span class=" fw-cl "><span>，</span></span>拼成一个 etag 即可<span class=" fw-cl "><span>。</span></span></p>
+<p>如果是正常 String 或者 Buffer 类型<span class=" fw-cl "><span>，</span></span>etag 的生成方法依赖了内置 crypto 包<span class=" fw-cl "><span>，</span></span>主要是根据 entity 生成 hash<span class=" fw-cl "><span>，</span></span>hash 生成主要依赖了 sha1 加密方法<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">var hash = crypto<br>
+ &nbsp;&nbsp;&nbsp;.createHash('sha1')<br>
+ &nbsp;&nbsp;&nbsp;.update(entity, 'utf8')<br>
+ &nbsp;&nbsp;&nbsp;.digest('base64')</code></pre>
+<p>了解了这些<span class=" fw-cl "><span>，</span></span>如果面试官再问<span class="fw-op  "><span>「</span></span>Etag 的生成方法<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>我想读者已经能够有一定底气了<span class=" fw-cl "><span>。</span></span></p>
+<h3>实现一个验证缓存的轮子</h3>
+<p>分析完关于 etag 的这个库<span class=" fw-cl "><span>，</span></span>我们来尝试自救造一个轮子<span class=" fw-cl "><span>，</span></span>也当作留给大家的一个作业<span class=" fw-cl "><span>。</span></span>这个轮子的需要完成验证缓存是否可用的功能<span class=" fw-cl "><span>，</span></span>它接受请求头和响应头<span class=" fw-cl "><span>，</span></span>并根据这两个头部<span class=" fw-cl "><span>，</span></span>返回一个布尔值<span class=" fw-cl "><span>，</span></span>表示缓存是否可用<span class=" fw-cl "><span>。</span></span></p>
+<p>应用举例<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">var reqHeaders = { 'if-none-match': '"foo"' }<br>
+var resHeaders = { 'etag': '"bar"' }<br>
+isFresh(reqHeaders, resHeaders)<br>
+// =&gt; false<br>
+<br>
+var reqHeaders = { 'if-none-match': '"foo"' }<br>
+var resHeaders = { 'etag': '"foo"' }<br>
+isFresh(reqHeaders, resHeaders)<br>
+// =&gt; true</code></pre>
+<p>在业务端使用时<span class=" fw-cl "><span>，</span></span>可以直接<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">var isFresh = require('is-fresh')<br>
+var http = require('http')<br>
+<br>
+var server = http.createServer(function (req, res) {<br>
+<br>
+ &nbsp;if (isFresh(req.headers, {<br>
+ &nbsp;&nbsp;&nbsp;'etag': res.getHeader('ETag'),<br>
+ &nbsp;&nbsp;&nbsp;'last-modified': res.getHeader('Last-Modified')<br>
+ &nbsp;})) {<br>
+ &nbsp;&nbsp;&nbsp;res.statusCode = 304<br>
+ &nbsp;&nbsp;&nbsp;res.end()<br>
+ &nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;res.statusCode = 200<br>
+ &nbsp;res.end('hello, world!')<br>
+})<br>
+<br>
+server.listen(3000)</code></pre>
+<p>实现这道题目的前提就是先要了解缓存的基本知识<span class=" fw-cl "><span>，</span></span>知晓缓存优先级<span class=" fw-cl "><span>。</span></span>我们应该先验证 cache-control<span class=" fw-cl "><span>，</span></span>之后验证 If-None-Match<span class=" fw-cl "><span>，</span></span>之后是 If-Modified-Since<span class=" fw-cl "><span>。</span></span>了解了这些<span class=" fw-cl "><span>，</span></span>我们按部就班不难实现<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">var CACHE_CONTROL_NO_CACHE_REGEXP = /(?:^|,)\s*?no-cache\s*?(?:,|$)/<br>
+<br>
+function fresh (reqHeaders, resHeaders) {<br>
+ &nbsp;// fields<br>
+ &nbsp;var modifiedSince = reqHeaders['if-modified-since']<br>
+ &nbsp;var noneMatch = reqHeaders['if-none-match']<br>
+<br>
+ &nbsp;if (!modifiedSince &amp;&amp; !noneMatch) {<br>
+ &nbsp;&nbsp;&nbsp;return false<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;var cacheControl = reqHeaders['cache-control']<br>
+ &nbsp;if (cacheControl &amp;&amp; CACHE_CONTROL_NO_CACHE_REGEXP.test(cacheControl)) {<br>
+ &nbsp;&nbsp;&nbsp;return false<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// if-none-match<br>
+ &nbsp;if (noneMatch &amp;&amp; noneMatch !== '*') {<br>
+ &nbsp;&nbsp;&nbsp;var etag = resHeaders['etag']<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (!etag) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;var etagStale = true<br>
+ &nbsp;&nbsp;&nbsp;var matches = parseTokenList(noneMatch)<br>
+ &nbsp;&nbsp;&nbsp;for (var i = 0; i &lt; matches.length; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var match = matches[i]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (match === etag || match === 'W/' + etag || 'W/' + match === etag) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;etagStale = false<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (etagStale) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// if-modified-since<br>
+ &nbsp;if (modifiedSince) {<br>
+ &nbsp;&nbsp;&nbsp;var lastModified = resHeaders['last-modified']<br>
+ &nbsp;&nbsp;&nbsp;var modifiedStale = !lastModified || !(parseHttpDate(lastModified) &lt;= parseHttpDate(modifiedSince))<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (modifiedStale) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;return true<br>
+}<br>
+<br>
+<br>
+function parseHttpDate (date) {<br>
+ &nbsp;var timestamp = date &amp;&amp; Date.parse(date)<br>
+<br>
+ &nbsp;return typeof timestamp === 'number'<br>
+ &nbsp;&nbsp;&nbsp;? timestamp<br>
+ &nbsp;&nbsp;&nbsp;: NaN<br>
+}<br>
+<br>
+<br>
+function parseTokenList (str) {<br>
+ &nbsp;var end = 0<br>
+ &nbsp;var list = []<br>
+ &nbsp;var start = 0<br>
+<br>
+ &nbsp;for (var i = 0, len = str.length; i &lt; len; i++) {<br>
+ &nbsp;&nbsp;&nbsp;switch (str.charCodeAt(i)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 0x20: /* &nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (start === end) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;start = end = i + 1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 0x2c: /* , */<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list.push(str.substring(start, end))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;start = end = i + 1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;end = i + 1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;list.push(str.substring(start, end))<br>
+<br>
+ &nbsp;return list<br>
+}</code></pre>
+<p>这个实现比较简单<span class=" fw-cl "><span>，</span></span>读者可以尝试解读该源码<span class=" fw-cl "><span>，</span></span>如果这两讲的内容你已经融会贯通<span class=" fw-cl "><span>，</span></span>上述实现并不困难<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>缓存的轮子却也没有<span class="fw-op  "><span>「</span></span>想象的那么简单<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>上述的代码强健性是否足够<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>？</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>API 设计是否优雅<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>？</span></span>等这些话题值得思考<span class=" fw-cl "><span>。</span></span>也希望在整个内容完结后<span class=" fw-cl "><span>，</span></span>针对实战代码的优化和调试<span class=" fw-cl "><span>，</span></span>应用的踩坑和解决能够大家继续交流<span class=" fw-cl "><span>。</span></span>我们也会针对上述代码<span class=" fw-cl "><span>，</span></span>展开更多内容<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>我们通过两讲的学习<span class=" fw-cl "><span>，</span></span>介绍了缓存这一热门话题<span class=" fw-cl "><span>。</span></span>缓存体现了理论规范和实战结合的美妙<span class=" fw-cl "><span>，</span></span>是网络应用经验的结晶<span class=" fw-cl "><span>。</span></span>建议读者可以多观察大型门户网站<span class=" fw-cl "><span>、</span></span>页面应用<span class=" fw-cl "><span>，</span></span>并结合工程化知识来看待并学习缓存<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX18Zybn0AiPZAB61sbdLe</span></p>
+</body>
+</html>

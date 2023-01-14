@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 2 节一网打尽 this，对执行上下文说 Yes</h1>
+  <p>JavaScript 中的 <code>this</code><span class=" fw-cl "><span>，</span></span>因其灵活的指向<span class=" fw-cl "><span>、</span></span>复杂的使用场景一直是面试中的热点<span class=" fw-cl "><span>，</span></span>不论是初级还是中高级开发者<span class=" fw-cl "><span>，</span></span>这都是一道必考题<span class=" fw-cl "><span>。</span></span>这个概念虽然基础<span class=" fw-cl "><span>，</span></span>但是非常重要<span class=" fw-cl "><span>，</span></span>是否能深刻理解 <code>this</code><span class=" fw-cl "><span>，</span></span>是前端 JavaScript 中进阶的重要一环<span class=" fw-cl "><span>。</span></span><code>this</code>指向多变<span class=" fw-cl "><span>，</span></span>很多隐蔽的 bug 都缘于它<span class=" fw-cl "><span>。</span></span>与此同时<span class=" fw-cl "><span>，</span></span><code>this</code> 强大灵活<span class=" fw-cl "><span>，</span></span>如果能熟练驾驭<span class=" fw-cl "><span>，</span></span>就会写出更简洁<span class=" fw-cl "><span>、</span></span>优雅的代码<span class=" fw-cl "><span>。</span></span></p>
+<p>社区上对于 <code>this</code> 的讲解虽然不少<span class=" fw-cl "><span>，</span></span>但缺乏统一梳理<span class=" fw-cl "><span>。</span></span>本节课<span class=" fw-cl "><span>，</span></span>让我们直面 <code>this</code> 的方方面面<span class=" fw-cl "><span>，</span></span>并通过例题真正领会与掌握 <code>this</code><span class=" fw-cl "><span>。</span></span></p>
+<p><code>this</code> 相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-7aefb8c7db2342f3935cd211d13e7954.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:27.710176991150444% 0" data-src="https://pic2.zhimg.com/v2-7aefb8c7db2342f3935cd211d13e7954.png">加载中...</span><figcaption>图片</figcaption></figure>
+<h3>this 到底指向谁</h3>
+<p>曾经在面试阿里某重点部门时<span class=" fw-cl "><span>，</span></span>面试官从多个角度考察过我对 <code>this</code> 的理解<span class=" fw-cl "><span>：</span></span>全局环境下的<code>this</code><span class=" fw-cl "><span>、</span></span>箭头函数的 <code>this</code><span class=" fw-cl "><span>、</span></span>构造函数的 <code>this</code><span class=" fw-cl "><span>、</span></span><code>this</code> 的显隐性和优先级<span class=" fw-cl "><span>，</span></span>等等<span class=" fw-cl "><span>。</span></span>尽管我能一一作答<span class=" fw-cl "><span>，</span></span>可是最后的问题<span class=" fw-cl "><span>：</span></span><strong style="">请用一句话总结</strong> <code><strong style="">this</strong></code> <strong style="">的指向<span class=" fw-cl "><span>，</span></span>注意只用一句话<span class=" fw-cl "><span>。</span></span></strong> 我却犯难了<span class=" fw-cl "><span>。</span></span></p>
+<p>有一种广泛流传的说法是<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br>
+&nbsp;</blockquote>
+<p>谁调用它<span class=" fw-cl "><span>，</span></span><code>this</code> 就指向谁<span class=" fw-cl "><span>。</span></span></p>
+<p>也就是说<span class=" fw-cl "><span>，</span></span><code>this</code> 的指向是在调用时确定的<span class=" fw-cl "><span>。</span></span>这么说没有太大的问题<span class=" fw-cl "><span>，</span></span>可是并不全面<span class=" fw-cl "><span>。</span></span>面试官要求我用更加规范的语言进行总结<span class=" fw-cl "><span>，</span></span>那么他到底在等什么样的回答呢<span class=" fw-cl "><span>？</span></span></p>
+<p>我们还要回到 JavaScript 中一个最基本的概念分析——<strong style="">执行上下文</strong><span class=" fw-cl "><span>，</span></span>这个概念<span class=" fw-cl "><span>，</span></span>我们会在下一讲<span class="fw-op  "><span>《</span></span>老司机也会在闭包相关知识点翻车<span class=" fw-cl "><span>》</span></span>中进行扩展<span class=" fw-cl "><span>。</span></span></p>
+<p>事实上<span class=" fw-cl "><span>，</span></span>调用函数会创建新的属于函数自身的执行上下文<span class=" fw-cl "><span>。</span></span>执行上下文的调用创建阶段会决定 <code>this</code> 的指向<span class=" fw-cl "><span>。</span></span>到此<span class=" fw-cl "><span>，</span></span>我们可以得出的一个结论<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<p><strong style="">结论<span class=" fw-cl "><span>：</span></span></strong><code>this</code> 的指向<span class=" fw-cl "><span>，</span></span>是在调用函数时根据执行上下文所动态确定的<span class=" fw-cl "><span>。</span></span></p>
+<p>具体环节和规则<span class=" fw-cl "><span>，</span></span>可以先<span class="fw-op  "><span>「</span></span>死记硬背<span class=" fw-cl "><span>」</span></span>以下几条规律<span class=" fw-cl "><span>，</span></span>后面来慢慢一一分析<span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<ul>
+  <li style="">在函数体中<span class=" fw-cl "><span>，</span></span>简单调用该函数时<span class="fw-op  "><span>（</span></span>非显式/隐式绑定下<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>严格模式下 <code>this</code> 绑定到 <code>undefined</code><span class=" fw-cl "><span>，</span></span>否则绑定到全局对象 <code>window</code>／<code>global</code><span class=" fw-cl "><span>；</span></span>&nbsp;</li>
+  <li style="">一般构造函数 <code>new</code> 调用<span class=" fw-cl "><span>，</span></span>绑定到新创建的对象上<span class=" fw-cl "><span>；</span></span>&nbsp;</li>
+  <li style="">一般由 <code>call</code>/<code>apply</code>/<code>bind</code> 方法显式调用<span class=" fw-cl "><span>，</span></span>绑定到指定参数的对象上<span class=" fw-cl "><span>；</span></span>&nbsp;</li>
+  <li style="">一般由上下文对象调用<span class=" fw-cl "><span>，</span></span>绑定在该对象上<span class=" fw-cl "><span>；</span></span>&nbsp;</li>
+  <li style="">箭头函数中<span class=" fw-cl "><span>，</span></span>根据外层上下文绑定的 <code>this</code> 决定 <code>this</code> 指向<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>当然<span class=" fw-cl "><span>，</span></span>真实环境多样<span class=" fw-cl "><span>，</span></span>我们来逐一梳理<span class=" fw-cl "><span>。</span></span></p>
+<h3>实战例题分析</h3>
+<h4>例题组合 1<span class=" fw-cl "><span>：</span></span>全局环境下的 this</h4>
+<p>这种情况相对简单直接<span class=" fw-cl "><span>，</span></span>函数在浏览器全局环境中被简单调用<span class=" fw-cl "><span>，</span></span>非严格模式下 <code>this</code> 指向 <code>window</code><span class=" fw-cl "><span>；</span></span>在 <code>use strict</code> 指明严格模式的情况下就是 <code>undefined</code><span class=" fw-cl "><span>。</span></span>我们来看例题<span class=" fw-cl "><span>，</span></span>请描述打印结果<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<ol>
+  <li style="">function f1 () { &nbsp;</li>
+  <li style="">&nbsp;&nbsp;&nbsp;&nbsp;console.log(this) &nbsp;</li>
+  <li style="">} &nbsp;</li>
+  <li style="">function f2 () { &nbsp;</li>
+  <li style="">&nbsp;'use strict' &nbsp;</li>
+  <li style="">&nbsp;&nbsp;&nbsp;&nbsp;console.log(this) &nbsp;</li>
+  <li style="">} &nbsp;</li>
+  <li style="">f1() // window &nbsp;</li>
+  <li style="">f2() // undefined</li>
+</ol>
+<p>这样的题目比较基础<span class=" fw-cl "><span>，</span></span>但是需要候选人格外注意其变种<span class=" fw-cl "><span>，</span></span>请再看一道题目<span class=" fw-cl "><span>：</span></span></p>
+<pre lang="js" language="JavaScript" class="language-js"><code lang="js" language="JavaScript" class="language-js">const foo = {<br>
+ <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;bar: 10,<br>
+ <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;fn: function() {<br>
+ <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(this)<br>
+ <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(this.bar)<br>
+ <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ <br>
+ }<br>
+ <br>
+ var fn1 = foo.fn<br>
+ <br>
+ fn1()</code></pre>
+<p>这里 <code>this</code> 仍然指向的是 <code>window</code><span class=" fw-cl "><span>。</span></span>虽然 <code>fn</code> 函数在 <code>foo</code> 对象中作为方法被引用<span class=" fw-cl "><span>，</span></span>但是在赋值给 <code>fn1</code> 之后<span class=" fw-cl "><span>，</span></span><code>fn1</code> 的执行仍然是在 <code>window</code> 的全局环境中<span class=" fw-cl "><span>。</span></span>因此输出 <code>window</code> 和 <code>undefined</code><span class=" fw-cl "><span>，</span></span>它们相当于<span class=" fw-cl "><span>：</span></span></p>
+<p><code>console.log(window)</code><br>
+ <br>
+<code> console.log(window.bar)</code></p>
+<p>还是上面这道题目<span class=" fw-cl "><span>，</span></span>如果调用改变为<span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<p><code>const foo = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;bar: 10,</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;fn: function() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(this)</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(this.bar)</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> foo.fn()</code></p>
+<p>将会输出<span class=" fw-cl "><span>：</span></span></p>
+<p><code>{bar: 10, fn: ƒ}</code><br>
+ <br>
+<code> 10</code></p>
+<p>因为这个时候 <code>this</code> 指向的是最后调用它的对象<span class=" fw-cl "><span>，</span></span>在 <code>foo.fn()</code> 语句中 <code>this</code> 指向 <code>foo</code> 对象<span class=" fw-cl "><span>。</span></span>请记住<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<p><strong style="">结论<span class=" fw-cl "><span>：</span></span></strong>在执行函数时<span class=" fw-cl "><span>，</span></span>如果函数中的 <code>this</code> 是被上一级的对象所调用<span class=" fw-cl "><span>，</span></span>那么 <code>this</code> 指向的就是上一级的对象<span class=" fw-cl "><span>；</span></span>否则指向全局环境<span class=" fw-cl "><span>。</span></span></p>
+<h4>例题组合 2<span class=" fw-cl "><span>：</span></span>上下文对象调用中的 this</h4>
+<p>如上结论<span class=" fw-cl "><span>，</span></span>面对下题时我们便不再困惑<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const student = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;name: 'Lucas',</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;fn: function() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> console.log(student.fn() === student)</code></p>
+<p>最终结果将会返回 <code>true</code><span class=" fw-cl "><span>。</span></span></p>
+<p>当存在更复杂的调用关系时<span class=" fw-cl "><span>，</span></span>请看例题<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const person = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;name: 'Lucas',</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;brother: {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name: 'Mike',</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fn: function() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.name</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> console.log(person.brother.fn())</code></p>
+<p>在这种嵌套的关系中<span class=" fw-cl "><span>，</span></span><code>this</code> 指向<strong style="">最后</strong>调用它的对象<span class=" fw-cl "><span>，</span></span>因此输出将会是<span class=" fw-cl "><span>：</span></span><code>Mike</code><span class=" fw-cl "><span>。</span></span></p>
+<p>到此<span class=" fw-cl "><span>，</span></span><code>this</code> 的上下文对象调用已经理解得比较清楚了<span class=" fw-cl "><span>。</span></span>让我再看一道更高阶的题目<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const o1 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;text: 'o1',</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;fn: function() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.text</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> const o2 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;text: 'o2',</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;fn: function() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return o1.fn()</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> const o3 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;text: 'o3',</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;fn: function() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var fn = o1.fn</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return fn()</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> console.log(o1.fn())</code><br>
+ <br>
+<code> console.log(o2.fn())</code><br>
+ <br>
+<code> console.log(o3.fn())</code></p>
+<p>答案是<span class=" fw-cl "><span>：</span></span><code>o1</code><span class=" fw-cl "><span>、</span></span><code>o1</code><span class=" fw-cl "><span>、</span></span><code>undefined</code><span class=" fw-cl "><span>，</span></span>你答对了吗<span class=" fw-cl "><span>？</span></span></p>
+<p>我们来一一分析<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<ul>
+  <li style="">第一个 <code>console</code> 最简单<span class=" fw-cl "><span>，</span></span><code>o1</code> 没有问题<span class=" fw-cl "><span>。</span></span>难点在第二个和第三个上面<span class=" fw-cl "><span>，</span></span>关键还是看调用 <code>this</code> 的那个函数<span class=" fw-cl "><span>。</span></span>&nbsp;</li>
+  <li style="">第二个 <code>console</code> 的 <code>o2.fn()</code><span class=" fw-cl "><span>，</span></span>最终还是调用 <code>o1.fn()</code><span class=" fw-cl "><span>，</span></span>因此答案仍然是 <code>o1</code><span class=" fw-cl "><span>。</span></span>&nbsp;</li>
+  <li style="">最后一个<span class=" fw-cl "><span>，</span></span>在进行 <code>var fn = o1.fn</code> 赋值之后<span class=" fw-cl "><span>，</span></span>是<span class="fw-op  "><span>「</span></span>裸奔<span class=" fw-cl "><span>」</span></span>调用<span class=" fw-cl "><span>，</span></span>因此这里的 <code>this</code> 指向 <code>window</code><span class=" fw-cl "><span>，</span></span>答案当然是 <code>undefined</code><span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>如果面试者回答顺利<span class=" fw-cl "><span>，</span></span>可以紧接着追问<span class=" fw-cl "><span>，</span></span>如果我们需要让<span class=" fw-cl "><span>：</span></span></p>
+<p><code>console.log(o2.fn())</code></p>
+<p>输出 <code>o2</code><span class=" fw-cl "><span>，</span></span>该怎么做<span class=" fw-cl "><span>？</span></span></p>
+<p>一般开发者可能会想到使用 <code>bind/call/apply</code> 来对 <code>this</code> 的指向进行干预<span class=" fw-cl "><span>，</span></span>这确实是一种思路<span class=" fw-cl "><span>。</span></span>但是我接着问<span class=" fw-cl "><span>，</span></span><strong style="">如果不能使用</strong> <code><strong style="">bind/call/apply</strong></code><strong style=""><span class=" fw-cl "><span>，</span></span>有别的方法吗<span class=" fw-cl "><span>？</span></span></strong></p>
+<p>这样可以考察候选人基础掌握的深度以及随机应变的思维能力<span class=" fw-cl "><span>。</span></span>答案为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const o1 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;text: 'o1',</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;fn: function() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.text</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> const o2 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;text: 'o2',</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;fn: o1.fn</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> console.log(o2.fn())</code></p>
+<p>还是应用那个重要的结论<span class=" fw-cl "><span>：</span></span><code>this</code> 指向<strong style="">最后</strong>调用它的对象<span class=" fw-cl "><span>，</span></span>在 <code>fn</code> 执行时<span class=" fw-cl "><span>，</span></span>挂到 <code>o2</code> 对象上即可<span class=" fw-cl "><span>，</span></span>我们提前进行了赋值操作<span class=" fw-cl "><span>。</span></span></p>
+<h4>例题组合 3<span class=" fw-cl "><span>：</span></span>bind/call/apply 改变 this 指向</h4>
+<p>上文提到 bind/call/apply<span class=" fw-cl "><span>，</span></span>在这个概念上<span class=" fw-cl "><span>，</span></span>比较常见的基础考察点是<span class=" fw-cl "><span>：</span></span><strong style="">bind/call/apply 三个方法的区别<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>这样的问题相对基础<span class=" fw-cl "><span>，</span></span>我们直接上答案<span class=" fw-cl "><span>：</span></span>一句话总结<span class=" fw-cl "><span>，</span></span>他们都是用来改变相关函数 <code>this</code> 指向的<span class=" fw-cl "><span>，</span></span>但是 <code>call/apply</code> 是直接进行相关函数调用<span class=" fw-cl "><span>；</span></span><code>bind</code> 不会执行相关函数<span class=" fw-cl "><span>，</span></span>而是返回一个新的函数<span class=" fw-cl "><span>，</span></span>这个新的函数已经自动绑定了新的 <code>this</code> 指向<span class=" fw-cl "><span>，</span></span>开发者需要手动调用即可<span class=" fw-cl "><span>。</span></span>再具体的 <code>call/apply</code> 之间的区别主要体现在参数设定上<span class=" fw-cl "><span>，</span></span>这里不再展开<span class=" fw-cl "><span>。</span></span></p>
+<p>用代码来总结<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const target = {}</code><br>
+ <br>
+<code> fn.call(target, 'arg1', 'arg2')</code></p>
+<p>相当于<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const target = {}</code><br>
+ <br>
+<code> fn.apply(target, ['arg1', 'arg2'])</code></p>
+<p>相当于<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const target = {}</code><br>
+ <br>
+<code> fn.bind(target, 'arg1', 'arg2')()</code></p>
+<p>具体基础用法这里不再科普<span class=" fw-cl "><span>，</span></span>如果读者尚不清楚<span class=" fw-cl "><span>，</span></span>需要自己补充一下知识点<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来看一道例题分析<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const foo = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;name: 'lucas',</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;logName: function() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(this.name)</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> const bar = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;name: 'mike'</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> console.log(foo.logName.call(bar))</code></p>
+<p>将会输出 <code>mike</code><span class=" fw-cl "><span>，</span></span>这不难理解<span class=" fw-cl "><span>。</span></span><strong style="">但是对 call/apply/bind 的高级考察往往会结合构造函数以及组合式实现继承<span class=" fw-cl "><span>。</span></span>实现继承的话题<span class=" fw-cl "><span>，</span></span>我们会单独讲到<span class=" fw-cl "><span>。</span></span>构造函数的使用案例<span class=" fw-cl "><span>，</span></span>我们结合接下来的例题组合进行分析<span class=" fw-cl "><span>。</span></span></strong></p>
+<h4>例题组合 4<span class=" fw-cl "><span>：</span></span>构造函数和 this</h4>
+<p>这方面最直接的例题为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Foo() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;this.bar = "Lucas"</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> const instance = new Foo()</code><br>
+ <br>
+<code> console.log(instance.bar)</code></p>
+<p>答案将会输出 <code>Lucas</code><span class=" fw-cl "><span>。</span></span>但是这样的场景往往伴随着下一个问题<span class=" fw-cl "><span>：</span></span><code><strong style="">new</strong></code> <strong style="">操作符调用构造函数<span class=" fw-cl "><span>，</span></span>具体做了什么<span class=" fw-cl "><span>？</span></span></strong>以下供参考<span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<ul>
+  <li style="">创建一个新的对象<span class=" fw-cl "><span>；</span></span>&nbsp;</li>
+  <li style="">将构造函数的 <code>this</code> 指向这个新对象<span class=" fw-cl "><span>；</span></span>&nbsp;</li>
+  <li style="">为这个对象添加属性<span class=" fw-cl "><span>、</span></span>方法等<span class=" fw-cl "><span>；</span></span>&nbsp;</li>
+  <li style="">最终返回新对象<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>以上过程<span class=" fw-cl "><span>，</span></span>也可以用代码表述<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var obj &nbsp;= {}</code><br>
+ <br>
+<code> obj.__proto__ = Foo.prototype</code><br>
+ <br>
+<code> Foo.call(obj)</code></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>这里对 <code>new</code> 的模拟是一个简单基本版的<span class=" fw-cl "><span>，</span></span>更复杂的情况我们会在原型<span class=" fw-cl "><span>、</span></span>原型链相关的<span class="fw-op  "><span>《</span></span>面向对象和原型——永不过时的话题<span class=" fw-cl "><span>》</span></span>第 2-5 课中讲述<span class=" fw-cl "><span>。</span></span></p>
+<p>需要指出的是<span class=" fw-cl "><span>，</span></span>如果在构造函数中出现了显式 <code>return</code> 的情况<span class=" fw-cl "><span>，</span></span>那么需要注意分为两种场景<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function Foo(){</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;this.user = "Lucas"</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;const o = {}</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;return o</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> const instance = new Foo()</code><br>
+ <br>
+<code> console.log(instance.user)</code></p>
+<p>将会输出 <code>undefined</code><span class=" fw-cl "><span>，</span></span>此时 <code>instance</code> 是返回的空对象 <code>o</code><span class=" fw-cl "><span>。</span></span></p>
+<p><code>function Foo(){</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;this.user = "Lucas"</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;return 1</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+<code> const instance = new Foo()</code><br>
+ <br>
+<code> console.log(instance.user)</code></p>
+<p>将会输出 <code>Lucas</code><span class=" fw-cl "><span>，</span></span>也就是说此时 <code>instance</code> 是返回的目标对象实例 <code>this</code><span class=" fw-cl "><span>。</span></span></p>
+<p><br>
+&nbsp;</p>
+<p><strong style="">结论<span class=" fw-cl "><span>：</span></span></strong>如果构造函数中显式返回一个值<span class=" fw-cl "><span>，</span></span>且返回的是一个对象<span class=" fw-cl "><span>，</span></span>那么 <code>this</code> 就指向这个返回的对象<span class=" fw-cl "><span>；</span></span>如果返回的不是一个对象<span class=" fw-cl "><span>，</span></span>那么 <code>this</code> 仍然指向实例<span class=" fw-cl "><span>。</span></span></p>
+<h4>例题组合 5<span class=" fw-cl "><span>：</span></span>箭头函数中的 this 指向</h4>
+<p>首先我们再来温习一下相关结论<span class=" fw-cl "><span>。</span></span></p>
+<p><br>
+&nbsp;</p>
+<p><strong style="">结论<span class=" fw-cl "><span>：</span></span></strong>箭头函数使用 <code>this</code> 不适用以上标准规则<span class=" fw-cl "><span>，</span></span>而是根据外层<span class="fw-op  "><span>（</span></span>函数或者全局<span class=" fw-cl "><span>）</span></span>上下文来决定<span class=" fw-cl "><span>。</span></span></p>
+<p>来看题目<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const foo = { &nbsp;</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;fn: function () { &nbsp;</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(function() { &nbsp;</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(this)</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;} &nbsp;</code><br>
+ <br>
+<code> } &nbsp;</code><br>
+ <br>
+<code> console.log(foo.fn())</code></p>
+<p>这道题中<span class=" fw-cl "><span>，</span></span><code>this</code> 出现在 <code>setTimeout()</code> 中的匿名函数里<span class=" fw-cl "><span>，</span></span>因此 <code>this</code> 指向 <code>window</code> 对象<span class=" fw-cl "><span>。</span></span>如果需要 <code>this</code> 指向 <code>foo</code>这个 object 对象<span class=" fw-cl "><span>，</span></span>可以巧用箭头函数解决<span class=" fw-cl "><span>：</span></span>&nbsp;</p>
+<p><code>const foo = { &nbsp;</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;fn: function () { &nbsp;</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setTimeout(() =&gt; { &nbsp;</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(this)</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;} &nbsp;</code><br>
+ <br>
+<code> } </code><br>
+ <br>
+<code> console.log(foo.fn())</code><br>
+ <br>
+ <br>
+<code> // {fn: ƒ}</code></p>
+<p>单纯箭头函数中的 <code>this</code> 非常简单<span class=" fw-cl "><span>，</span></span><strong style="">但是综合所有情况<span class=" fw-cl "><span>，</span></span>结合</strong> <code><strong style="">this</strong></code> <strong style="">的优先级考察<span class=" fw-cl "><span>，</span></span>这时候</strong> <code><strong style="">this</strong></code> <strong style="">指向并不好确定<span class=" fw-cl "><span>。</span></span>请继续阅读<span class=" fw-cl "><span>。</span></span></strong></p>
+<h4>例题组合 6<span class=" fw-cl "><span>：</span></span>this 优先级相关</h4>
+<p>我们常常把通过 <code>call</code><span class=" fw-cl "><span>、</span></span><code>apply</code><span class=" fw-cl "><span>、</span></span><code>bind</code><span class=" fw-cl "><span>、</span></span><code>new</code> 对 <code>this</code> 绑定的情况称为显式绑定<span class=" fw-cl "><span>；</span></span>根据调用关系确定的 <code>this</code> 指向称为隐式绑定<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">那么显式绑定和隐式绑定谁的优先级更高呢<span class=" fw-cl "><span>？</span></span></strong></p>
+<p>请看例题<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo (a) {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;console.log(this.a)</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const obj1 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;a: 1,</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;foo: foo</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const obj2 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;a: 2,</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;foo: foo</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> obj1.foo.call(obj2)</code><br>
+ <br>
+<code> obj2.foo.call(obj1)</code></p>
+<p>输出分别为 2<span class=" fw-cl "><span>、</span></span>1<span class=" fw-cl "><span>，</span></span>也就是说 <code>call</code><span class=" fw-cl "><span>、</span></span><code>apply</code> 的显式绑定一般来说优先级更高<span class=" fw-cl "><span>。</span></span></p>
+<p><code>function foo (a) {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;this.a = a</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const obj1 = {}</code><br>
+ <br>
+ <br>
+<code> var bar = foo.bind(obj1)</code><br>
+ <br>
+<code> bar(2)</code><br>
+ <br>
+<code> console.log(obj1.a)</code></p>
+<p>上述代码通过 <code>bind</code><span class=" fw-cl "><span>，</span></span>将 <code>bar</code> 函数中的 <code>this</code> 绑定为 <code>obj1</code> 对象<span class=" fw-cl "><span>。</span></span>执行 <code>bar(2)</code> 后<span class=" fw-cl "><span>，</span></span><code>obj1.a</code> 值为 2<span class=" fw-cl "><span>。</span></span>即经过 <code>bar(2)</code> 执行后<span class=" fw-cl "><span>，</span></span><code>obj1</code> 对象为<span class=" fw-cl "><span>：</span></span><code>{a: 2}</code><span class=" fw-cl "><span>。</span></span></p>
+<p>当再使用 <code>bar</code> 作为构造函数时<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var baz = new bar(3)</code><br>
+ <br>
+<code> console.log(baz.a)</code></p>
+<p>将会输出 3<span class=" fw-cl "><span>。</span></span>我们看 <code>bar</code> 函数本身是通过 <code>bind</code> 方法构造的函数<span class=" fw-cl "><span>，</span></span>其内部已经对将 <code>this</code> 绑定为 <code>obj1</code><span class=" fw-cl "><span>，</span></span>它再作为构造函数<span class=" fw-cl "><span>，</span></span>通过 <code>new</code> 调用时<span class=" fw-cl "><span>，</span></span>返回的实例已经与 <code>obj1</code> 解绑<span class=" fw-cl "><span>。</span></span> 也就是说<span class=" fw-cl "><span>：</span></span></p>
+<p><code><strong style="">new</strong></code> <strong style="">绑定修改了</strong> <code><strong style="">bind</strong></code> <strong style="">绑定中的</strong> <code><strong style="">this</strong></code><strong style=""><span class=" fw-cl "><span>，</span></span>因此</strong> <code><strong style="">new</strong></code> <strong style="">绑定的优先级比显式</strong> <code><strong style="">bind</strong></code> <strong style="">绑定更高<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>我们再看<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function foo() {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;return a =&gt; {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(this.a)</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;};</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const obj1 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;a: 2</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const obj2 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;a: 3</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const bar = foo.call(obj1)</code><br>
+ <br>
+<code> console.log(bar.call(obj2))</code></p>
+<p>将会输出 2<span class=" fw-cl "><span>。</span></span>由于 <code>foo()</code> 的 <code>this</code> 绑定到 <code>obj1</code><span class=" fw-cl "><span>，</span></span><code>bar</code><span class="fw-op  "><span>（</span></span>引用箭头函数<span class=" fw-cl "><span>）</span></span>的 <code>this</code> 也会绑定到 <code>obj1</code><span class=" fw-cl "><span>，</span></span>箭头函数的绑定无法被修改<span class=" fw-cl "><span>。</span></span></p>
+<p>如果将 <code>foo</code> 完全写成箭头函数的形式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var a = 123</code><br>
+ <br>
+<code> const foo = () =&gt; a =&gt; {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;console.log(this.a)</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const obj1 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;a: 2</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const obj2 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;a: 3</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> var bar = foo.call(obj1)</code><br>
+ <br>
+<code> console.log(bar.call(obj2))</code></p>
+<p>将会输出 <code>123</code><span class=" fw-cl "><span>。</span></span></p>
+<p>这里我再<span class="fw-op  "><span>「</span></span>抖个机灵<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>仅仅将上述代码的第一处变量 <code>a</code> 的赋值改为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const a = 123</code><br>
+ <br>
+<code> const foo = () =&gt; a =&gt; {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;console.log(this.a)</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const obj1 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;a: 2</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> const obj2 = {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;a: 3</code><br>
+ <br>
+<code> }</code><br>
+ <br>
+ <br>
+<code> var bar = foo.call(obj1)</code><br>
+ <br>
+<code> console.log(bar.call(obj2))</code></p>
+<p>答案将会输出为 <code>undefined</code><span class=" fw-cl "><span>，</span></span>原因是因为使用 <code>const</code> 声明的变量不会挂载到 <code>window</code> 全局对象当中<span class=" fw-cl "><span>。</span></span>因此 <code>this</code> 指向 <code>window</code> 时<span class=" fw-cl "><span>，</span></span>自然也找不到 <code>a</code> 变量了<span class=" fw-cl "><span>。</span></span>关于 <code>const</code> 或者 <code>let</code> 等声明变量的方式不再本课的主题当中<span class=" fw-cl "><span>，</span></span>我们后续也将专门进行介绍<span class=" fw-cl "><span>。</span></span></p>
+<p>到这里<span class=" fw-cl "><span>，</span></span>读者是否有<span class="fw-op  "><span>「</span></span>融会贯通<span class=" fw-cl "><span>」</span></span>的感觉了呢<span class=" fw-cl "><span>？</span></span>如果还有困惑<span class=" fw-cl "><span>，</span></span>也不要灰心<span class=" fw-cl "><span>。</span></span>进阶的关键就是基础<span class=" fw-cl "><span>，</span></span>基础需要反复学习<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>死记硬背<span class=" fw-cl "><span>」</span></span>后才能慢慢体会<span class=" fw-cl "><span>。</span></span></p>
+<h3>开放例题分析</h3>
+<p>不知道实战例题分析是否已经把你绕晕了<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span><code>this</code> 的指向涉及的规范繁多<span class=" fw-cl "><span>，</span></span>优先级也较为混乱<span class=" fw-cl "><span>。</span></span><strong style="">刻意刁难并不是很好的面试做法<span class=" fw-cl "><span>，</span></span>一些细节候选人如果没有记住也不是太大的问题<span class=" fw-cl "><span>。</span></span>作为面试官<span class=" fw-cl "><span>，</span></span>我往往会另辟蹊径<span class=" fw-cl "><span>，</span></span>出一些开放性题目<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>其中<span class=" fw-cl "><span>，</span></span>最典型的一道题目为<span class=" fw-cl "><span>：</span></span><strong style="">实现一个</strong> <code><strong style="">bind</strong></code> <strong style="">函数<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>作为面试者<span class=" fw-cl "><span>，</span></span>我也曾经在头条的面试流程中被问到模拟 <code>bind</code><span class=" fw-cl "><span>。</span></span>这道题并不新鲜<span class=" fw-cl "><span>，</span></span>部分读者也会有自己的解答思路<span class=" fw-cl "><span>，</span></span>而且社区上关于原生 <code>bind</code> 的研究也很多<span class=" fw-cl "><span>。</span></span>但是<span class=" fw-cl "><span>，</span></span>我们这里想强调的是<span class=" fw-cl "><span>，</span></span>可能有一些细节被大家忽略了<span class=" fw-cl "><span>。</span></span>在回答时<span class=" fw-cl "><span>，</span></span>我往往先实现一个初级版本<span class=" fw-cl "><span>，</span></span>然后根据 ES5-shim 源码进一步说明<span class=" fw-cl "><span>。</span></span></p>
+<p><code>Function.prototype.bind = Function.prototype.bind || function (context) {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;var me = this;</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;var args = Array.prototype.slice.call(arguments, 1);</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;return function bound () {</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var innerArgs = Array.prototype.slice.call(arguments);</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var finalArgs = args.concat(innerArgs);</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return me.apply(context, finalArgs);</code><br>
+ <br>
+<code> &nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+<code> }</code></p>
+<p>这样的实现已经非常不错了<span class=" fw-cl "><span>。</span></span>但是<span class=" fw-cl "><span>，</span></span>就如同之前 <code>this</code> 优先级分析所示<span class=" fw-cl "><span>：</span></span><code><strong style="">bind</strong></code> <strong style="">返回的函数如果作为构造函数<span class=" fw-cl "><span>，</span></span>搭配</strong> <code><strong style="">new</strong></code> <strong style="">关键字出现的话<span class=" fw-cl "><span>，</span></span>我们的绑定</strong> <code><strong style="">this</strong></code> <strong style="">就需要<span class="fw-op  "><span>「</span></span>被忽略<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></strong></p>
+<p>为了实现这样的规则<span class=" fw-cl "><span>，</span></span>开发者就应该需要考虑如何区分这两种调用方式<span class=" fw-cl "><span>。</span></span><strong style="">具体来讲</strong> <code><strong style="">bound</strong></code> <strong style="">函数中就要进行</strong> <code><strong style="">this instanceof</strong></code> <strong style="">的判断<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>另外一个细节是<span class=" fw-cl "><span>，</span></span>函数具有 <code>length</code> 属性<span class=" fw-cl "><span>，</span></span>表示形参的个数<span class=" fw-cl "><span>。</span></span>上述实现方式形参的个数显然会失真<span class=" fw-cl "><span>。</span></span>我们的实现就需要对 <code>length</code> 属性进行还原<span class=" fw-cl "><span>。</span></span>可是<strong style="">难点在于<span class=" fw-cl "><span>：</span></span>函数的</strong> <code><strong style="">length</strong></code> <strong style="">属性值是不可重写的<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>这样的内容一般属于<span class="fw-op  "><span>「</span></span>超纲<span class=" fw-cl "><span>」</span></span>范畴<span class=" fw-cl "><span>，</span></span>但在面试中能够很好地体现面试者平时的积累<span class=" fw-cl "><span>，</span></span>以及对源码的阅读和思考<span class=" fw-cl "><span>，</span></span>显然是加分项<span class=" fw-cl "><span>。</span></span>对此进一步的理解<span class=" fw-cl "><span>，</span></span>读者可参考我的原创文章<span class=" fw-cl fw--collapsed"><span>：</span></span><span class=" fw-cl "><span>，</span></span>到<span class="fw-op  "><span>「</span></span>我可能看了假源码"&gt;从一道面试题<span class=" fw-cl "><span>，</span></span>到<span class="fw-op  "><span>「</span></span>我可能看了假源码<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>这篇文章发表于 2017 年年初<span class=" fw-cl "><span>，</span></span>可以说是现在很多研究 <code>bind</code> 相关文章的启蒙<span class=" fw-cl "><span>。</span></span>&nbsp;</p>
+<h3>总结</h3>
+<p>通过本课的学习<span class=" fw-cl "><span>，</span></span>我们看到 <code>this</code> 纷繁多象<span class=" fw-cl "><span>，</span></span>确实不容易彻底掌握<span class=" fw-cl "><span>。</span></span>本节尽可能系统地进行讲解<span class=" fw-cl "><span>、</span></span>说明<span class=" fw-cl "><span>，</span></span>例题尽可能地覆盖更多 case<span class=" fw-cl "><span>。</span></span>与此同时<span class=" fw-cl "><span>，</span></span>需要读者在阅读之外继续进行消化与吸收<span class=" fw-cl "><span>。</span></span>只有<span class="fw-op  "><span>「</span></span>记死<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>才能<span class="fw-op  "><span>「</span></span>用活<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>请读者随时关注课程<span class=" fw-cl "><span>，</span></span>接下来会更新更多大家感兴趣的话题<span class=" fw-cl "><span>，</span></span>让我们一起进步<span class=" fw-cl "><span>。</span></span></p>
+<h3>分享交流</h3>
+<p>请大家留言分享开发实践中遇到的 &nbsp;<code>this</code> 相关的难忘 bug<span class=" fw-cl "><span>。</span></span>阅读文章过程中有任何疑问随时可以跟其他小伙伴讨论<span class=" fw-cl "><span>，</span></span>或者直接向作者 LucasHC 提问<span class=" fw-cl "><span>。</span></span><strong style="">你的分享不仅帮助他人<span class=" fw-cl "><span>，</span></span>更会提升自己<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>你也可以说说自己最想了解的主题<span class=" fw-cl "><span>，</span></span>课程内容会根据部分读者的意见和建议迭代和完善<span class=" fw-cl "><span>。</span></span></p>
+<p><br>
+</p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1yLrxzZktjAgXwzFk9NJ</span></p>
+</body>
+</html>

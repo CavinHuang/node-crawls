@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 19 节揭秘 React 真谛：组件设计</h1>
+  <p>组件不是 React 特有的概念<span class=" fw-cl "><span>，</span></span>但是 React 将组件化的思想发扬光大<span class=" fw-cl "><span>，</span></span>可谓用到了极致<span class=" fw-cl "><span>。</span></span>良好的组件设计会是良好的应用开发基础<span class=" fw-cl "><span>，</span></span>这一讲就让我们谈一谈组件设计的奥秘<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-b311fe6753c3b014e7903d945c2628fd.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:40.0398406374502% 0" data-src="https://pic1.zhimg.com/v2-b311fe6753c3b014e7903d945c2628fd.png">加载中...</span></figure>
+<p>我们将以 React 组件为例<span class=" fw-cl "><span>，</span></span>但是其中的设计思想具有共性<span class=" fw-cl "><span>，</span></span>不管是其他框架还是原生 Web component 都将适用<span class=" fw-cl "><span>。</span></span></p>
+<h3>单一职责没那么简单</h3>
+<p>单一职责我们并不陌生<span class=" fw-cl "><span>，</span></span>原则上讲<span class=" fw-cl "><span>，</span></span>组件只应该做一件事情<span class=" fw-cl "><span>。</span></span>但是对于应用来说<span class=" fw-cl "><span>，</span></span>全部组件都拆散<span class=" fw-cl "><span>，</span></span>只有单一职责并没有必要<span class=" fw-cl "><span>，</span></span>反而增加了编写的繁琐程度<span class=" fw-cl "><span>。</span></span>那什么时候需要拆分组件<span class=" fw-cl "><span>，</span></span>保证单一职责呢<span class=" fw-cl "><span>？</span></span>我认为如果一个功能集合有可能发生变化<span class=" fw-cl "><span>，</span></span>那么就需要最大程度地保证单一职责<span class=" fw-cl "><span>。</span></span></p>
+<p>单一职责带来的最大好处就是在修改组件时<span class=" fw-cl "><span>，</span></span>能够做到全在掌控下<span class=" fw-cl "><span>，</span></span>不必担心对其他组件造成影响<span class=" fw-cl "><span>。</span></span>举个例子<span class=" fw-cl "><span>：</span></span>我们的组件需要通过网络请求获取数据并展示数据内容<span class=" fw-cl "><span>，</span></span>这样一来潜在的功能集合改变就有<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">请求 API 地址发生变化</li>
+  <li style="">请求返回数据格式变化</li>
+  <li style="">开发者想更换网络请求第三方库<span class=" fw-cl "><span>，</span></span>比如 jQuery.ajax 改成 axios</li>
+  <li style="">更改请求数据逻辑</li>
+</ul>
+<p>再看一个例子<span class=" fw-cl "><span>：</span></span>我们需要一个 table 组件<span class=" fw-cl "><span>，</span></span>渲染一个 list<span class=" fw-cl "><span>，</span></span>那么潜在更改的可能有<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">限制一次性渲染的 item 个数<span class="fw-op  "><span>（</span></span>只渲染前 10 个<span class=" fw-cl "><span>，</span></span>剩下的懒加载<span class=" fw-cl "><span>）</span></span></li>
+  <li style="">当数据列表为空时显示 <span class="fw-op  "><span>「</span></span>This list is empty<span class=" fw-cl "><span>」</span></span></li>
+  <li style="">任何渲染逻辑的更改</li>
+</ul>
+<p>这个图很好地说明了问题<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-dadda26c6ab1172fc7a778b9a50e4bb3.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:66.6875% 0" data-src="https://pic1.zhimg.com/v2-dadda26c6ab1172fc7a778b9a50e4bb3.png">加载中...</span></figure>
+<p>我们来实际看一个场景<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import axios from 'axios'<br>
+<br>
+class Weather extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { temperature: 'N/A', windSpeed: 'N/A' }<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;componentDidMount() {<br>
+ &nbsp;&nbsp;&nbsp;axios.get('http://weather.com/api').then(response =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const { current } = response.data<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.setState({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;temperature: current.temperature,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;windSpeed: current.windSpeed<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;const { temperature, windSpeed } = this.state<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div classname="weather"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div>Temperature: {temperature} °C</div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div>Wind: {windSpeed} km/h</div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<p>这个组件很容易理解<span class=" fw-cl "><span>，</span></span>并且看上去没什么大问题<span class=" fw-cl "><span>，</span></span>但是并不符合单一职责<span class=" fw-cl "><span>。</span></span>比如这个 Weather 组件将数据获取与渲染逻辑耦合在一起<span class=" fw-cl "><span>，</span></span>如果数据请求有变化<span class=" fw-cl "><span>，</span></span>就需要在 componentDidMount 生命周期中进行改动<span class=" fw-cl "><span>；</span></span>如果展示天气的逻辑有变化<span class=" fw-cl "><span>，</span></span>render 方法又需要变动<span class=" fw-cl "><span>。</span></span></p>
+<p>如果我们将这个组件拆分成<span class=" fw-cl "><span>：</span></span>WeatherFetch 和 WeatherInfo 两个组件<span class=" fw-cl "><span>，</span></span>这两个组件各自只做一件事情<span class=" fw-cl "><span>，</span></span>保持单一职责<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import axios from 'axios'<br>
+import WeatherInfo from './weatherInfo'<br>
+<br>
+class WeatherFetch extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { temperature: 'N/A', windSpeed: 'N/A' }<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;componentDidMount() {<br>
+ &nbsp;&nbsp;&nbsp;axios.get('http://weather.com/api').then(response =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const { current } = response.data<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.setState({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;temperature: current.temperature,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;windSpeed: current.windSpeed<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;const { temperature, windSpeed } = this.state<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<weatherinfo temperature="{temperature}" windspeed="{windSpeed}"><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</weatherinfo></code></p>
+<p>另一个文件中<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const WeatherInfo = ({ temperature, windSpeed }) =&gt; <br>
+ &nbsp;(<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div classname="weather"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div>Temperature: {temperature} °C</div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div>Wind: {windSpeed} km/h</div><br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;)</code><p></p>
+<p>如果我们想进行重构<span class=" fw-cl "><span>，</span></span>使用 async/await 代替 Promise<span class=" fw-cl "><span>，</span></span>只需要直接更改 WeatherFetch 组件<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class WeatherFetch extends Component { &nbsp;<br>
+ &nbsp;// ...<br>
+<br>
+ &nbsp;async componentDidMount() {<br>
+ &nbsp;&nbsp;&nbsp;const response = await axios.get('http://weather.com/api')<br>
+ &nbsp;&nbsp;&nbsp;const { current } = response.data<br>
+<br>
+ &nbsp;&nbsp;&nbsp;this.setState({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;temperature: current.temperature,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;windSpeed: current.windSpeed<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// ...<br>
+}</code></p>
+<p>而不会对 WeatherInfo 组件有任何影响<span class=" fw-cl "><span>。</span></span></p>
+<p>或者显示风速的逻辑从 Wind: 0 km/h 改为文字描述 Wind: 风平浪静<span class=" fw-cl "><span>，</span></span>也只需要改动 WeatherInfo<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const WeatherInfo = ({ temperature, windSpeed }) =&gt; {<br>
+ &nbsp;const windInfo = windSpeed === 0 ? 'calm' : `${windSpeed} km/h`<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;</code></p><div classname="weather"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div>Temperature: {temperature} °C</div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div>Wind: {windSpeed} km/h</div><br>
+ &nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>这只是一个简单的例子<span class=" fw-cl "><span>，</span></span>在真实项目中<span class=" fw-cl "><span>，</span></span>保持组件的单一职责将会非常重要<span class=" fw-cl "><span>，</span></span>甚至我们可以使用 HoC 强制组件的单一职责性<span class=" fw-cl "><span>。</span></span></p>
+<p>来思考这样的代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class PersistentForm extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { inputValue: localStorage.getItem('inputValue') }<br>
+ &nbsp;&nbsp;&nbsp;this.handleChange = this.handleChange.bind(this)<br>
+ &nbsp;&nbsp;&nbsp;this.handleClick = this.handleClick.bind(this)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;handleChange(event) {<br>
+ &nbsp;&nbsp;&nbsp;this.setState({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inputValue: event.target.value<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;handleClick() {<br>
+ &nbsp;&nbsp;&nbsp;localStorage.setItem('inputValue', this.state.inputValue)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;const { inputValue } = this.state<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div classname="persistent-form"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" value="{inputValue}" <br="">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onChange={this.handleChange}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&gt; <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{this.handleClick}"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Save to storage<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<p>这是一个持久化存储的表单<span class=" fw-cl "><span>，</span></span>我们将表单字段内容存储在 localStorage 中<span class=" fw-cl "><span>，</span></span>这样不管是刷新页面还是重新进入页面<span class=" fw-cl "><span>，</span></span>都会保存上一次点击提交时的内容<span class=" fw-cl "><span>。</span></span>可惜 PersistentForm 组件也是包含了两部分职责<span class=" fw-cl "><span>：</span></span>存储内容和渲染内容<span class=" fw-cl "><span>。</span></span></p>
+<p>这次我们的重构不再是简单的拆分组件<span class=" fw-cl "><span>，</span></span>而是使用 HoC 来完成职责单一的实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class PersistentForm extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { inputValue: props.initialValue }<br>
+ &nbsp;&nbsp;&nbsp;this.handleChange = this.handleChange.bind(this)<br>
+ &nbsp;&nbsp;&nbsp;this.handleClick = this.handleClick.bind(this)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;handleChange(event) {<br>
+ &nbsp;&nbsp;&nbsp;this.setState({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inputValue: event.target.value<br>
+ &nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;handleClick() {<br>
+ &nbsp;&nbsp;&nbsp;this.props.saveValue(this.state.inputValue)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;const { inputValue } = this.state<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div classname="persistent-form"><code><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" value="{inputValue}" <br="">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onChange={this.handleChange}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&gt; <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{this.handleClick}"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Save to storage<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<p>我们只是改变了两行代码<span class=" fw-cl "><span>，</span></span>初始 state 不再直接读取 localStorage<span class=" fw-cl "><span>，</span></span>而是由 this.props.initialValue 提供<span class=" fw-cl "><span>；</span></span>handleClick 逻辑调用 this.props.saveValue<span class=" fw-cl "><span>，</span></span>而不再直接操作 localStorage<span class=" fw-cl "><span>，</span></span>this.props.saveValue 将会由 withPersistence 这个 HoC 提供<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function withPersistence(storageKey, storage) { &nbsp;<br>
+ &nbsp;return function(WrappedComponent) {<br>
+ &nbsp;&nbsp;&nbsp;return class PersistentComponent extends Component {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.state = { initialValue: storage.getItem(storageKey) }<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<wrappedcomponent<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;initialValue={this.state.initialValue}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;saveValue={this.saveValue}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{...this.props}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&gt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;saveValue(value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;storage.setItem(storageKey, value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</wrappedcomponent<br></code></p>
+<p>使用方式<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const LocalStoragePersistentForm &nbsp;<br>
+ &nbsp;= withPersistence('key', localStorage)(PersistentForm)</code></p>
+<p>这种方式是组件单一职责和组件复用的结合体现<span class=" fw-cl "><span>，</span></span>其他组件当然也可以使用这个 HoC:</p>
+<p><code>const LocalStorageMyOtherForm &nbsp;<br>
+ &nbsp;= withPersistence('key', localStorage)(MyOtherForm)</code></p>
+<p>存储和渲染职责解耦<span class=" fw-cl "><span>，</span></span>我们便可以随时切换存储方式<span class=" fw-cl "><span>，</span></span>比如切换为 sessionStorage 代替 localStorage<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const SessionStoragePersistentForm &nbsp;<br>
+ &nbsp;= withPersistence('key', sessionStorage)(PersistentForm)</code></p>
+<h3>组件通信和封装</h3>
+<p>另一个和组件职责单一相关的话题是组件的封装<span class=" fw-cl "><span>，</span></span>封装又涉及到组件间的通信<span class=" fw-cl "><span>。</span></span>因为我们知道<span class=" fw-cl "><span>，</span></span>组件再封装<span class=" fw-cl "><span>，</span></span>还是要和其他组件去交互通信的<span class=" fw-cl "><span>，</span></span>那么当我们说封装时在说些什么呢<span class=" fw-cl "><span>？</span></span></p>
+<p>组件关联有紧耦合和松耦合之分<span class=" fw-cl "><span>，</span></span>紧耦合是指两个或多个组件之间需要了解彼此的组件内设计<span class=" fw-cl "><span>，</span></span>这样的情况是我们不想看到的<span class=" fw-cl "><span>，</span></span>这破坏了组件的独立性<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>牵一发动全身<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>这么看来<span class=" fw-cl "><span>，</span></span>松耦合带来的好处是很直接的<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">一处组件的改动完全独立<span class=" fw-cl "><span>，</span></span>不影响其他组件</li>
+  <li style="">更好的复用设计</li>
+  <li style="">更好的可测试性</li>
+</ul>
+<p>我们直接来看场景代码<span class=" fw-cl "><span>，</span></span>一个简单的计数器足以说明问题<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class App extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { number: 0 }<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div classname="app"><code> <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span classname="number">{this.state.number}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<controls parent="{this}"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</controls></code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}<br>
+<br>
+class Controls extends Component {<br>
+ &nbsp;updateNumber(toAdd) {<br>
+ &nbsp;&nbsp;&nbsp;this.props.parent.setState(prevState =&gt; ({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;number: prevState.number + toAdd &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;}))<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div classname="controls"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{()" ==""> this.updateNumber(+1)}&gt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Increase<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button> <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{()" ==""> this.updateNumber(-1)}&gt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Decrease<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<p>这样的组件实现问题很明显<span class=" fw-cl "><span>：</span></span>App 组件不具有封装性<span class=" fw-cl "><span>，</span></span>它将实例传给 Controls 组件<span class=" fw-cl "><span>，</span></span>Controls 组件可以直接更改 App state 的内容<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span>我们并不是不允许 Controls 组件修改 App 组件<span class=" fw-cl "><span>，</span></span>只是 Controls 组件直接调用 App 组件的 setState 方法是不被建议的<span class=" fw-cl "><span>，</span></span>因为 Controls 组件如果要调用 App 的 setState<span class=" fw-cl "><span>，</span></span>就得需要知道 App 组件 state 的结构<span class=" fw-cl "><span>，</span></span>需要感知 this.props.parent.state.number 等详情<span class=" fw-cl "><span>。</span></span></p>
+<p>同时上述代码也不利于测试<span class=" fw-cl "><span>，</span></span>这个我们将在后面进行说明<span class=" fw-cl "><span>。</span></span>那么该如何重构呢<span class=" fw-cl "><span>？</span></span>我们应该用更加<span class="fw-op  "><span>「</span></span>含蓄<span class=" fw-cl "><span>」</span></span>或者更加<span class="fw-op  "><span>「</span></span>粗暴<span class=" fw-cl "><span>、</span></span>直接地<span class=" fw-cl "><span>」</span></span>方式修改 number 值<span class=" fw-cl "><span>。</span></span>秉承封装性<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>只有组件自己知道自己的 state 结构<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>将 updateNumber 迁移至 App 组件内<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class App extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { number: 0 }<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;updateNumber(toAdd) {<br>
+ &nbsp;&nbsp;&nbsp;this.setState(prevState =&gt; ({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;number: prevState.number + toAdd &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;}))<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div classname="app"><code> <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span classname="number">{this.state.number}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<controls <br="">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onIncrease={() =&gt; this.updateNumber(+1)}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onDecrease={() =&gt; this.updateNumber(-1)} <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&gt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</controls></code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}<br>
+<br>
+<br>
+const Controls = ({ onIncrease, onDecrease }) =&gt; { &nbsp;<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;<div classname="controls"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{onIncrease}">Increase</button> <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{onDecrease}">Decrease</button><br>
+ &nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;)<br>
+}</code><p></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>Controls 组件就不需要再知道 App 组件的内部情况<span class=" fw-cl "><span>，</span></span>实现了更好的复用性和可测试性<span class=" fw-cl "><span>，</span></span>App 组件因此也具有了更好的封装性<span class=" fw-cl "><span>。</span></span></p>
+<h3>组合性是灵魂</h3>
+<p>如果说组件单一职责确定了如何拆分组件<span class=" fw-cl "><span>，</span></span>封装性明确了组件如何组织<span class=" fw-cl "><span>，</span></span>那么组合性就完成了整个应用的拼接<span class=" fw-cl "><span>。</span></span></p>
+<p>React 具有天生的组合基因<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-0447e2b118215ffc6b9ffc3f8d60c179.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:23.06451612903226% 0" data-src="https://pic2.zhimg.com/v2-0447e2b118215ffc6b9ffc3f8d60c179.png">加载中...</span></figure>
+<p>对应声明式代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const app = ( &nbsp;<br>
+ &nbsp;<application><br>
+ &nbsp;&nbsp;&nbsp;</application></code></p><header><code><br>
+ &nbsp;&nbsp;&nbsp;<sidebar><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</sidebar></code><menu><code><br>
+ &nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;<content><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</content></code><article><code><br>
+ &nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;</code><footer><code><br>
+ &nbsp;<br>
+)</code><p></p>
+<p>如果两个组件 Composed1 和 Composed2 具有相同的逻辑<span class=" fw-cl "><span>，</span></span>我们可以使用组合性进行拆分重组<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const instance1 = ( &nbsp;<br>
+ &nbsp;<composed1><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Composed1 逻辑<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 重复逻辑<br>
+ &nbsp;</composed1><br>
+)<br>
+const instance2 = ( &nbsp;<br>
+ &nbsp;<composed2><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 重复逻辑<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Composed2 逻辑<br>
+ &nbsp;</composed2><br>
+)</code></p>
+<p>重复逻辑提取为 Common 组件<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const instance1 = ( &nbsp;<br>
+ &nbsp;<composed1><br>
+ &nbsp;&nbsp;&nbsp;<logic1><br>
+ &nbsp;&nbsp;&nbsp;<common><br>
+ &nbsp;</common></logic1></composed1><br>
+)<br>
+const instance2 = ( &nbsp;<br>
+ &nbsp;<composed2><br>
+ &nbsp;&nbsp;&nbsp;<common><br>
+ &nbsp;&nbsp;&nbsp;<logic2><br>
+ &nbsp;</logic2></common></composed2><br>
+)</code></p>
+<p>另外一个典型应用就是 render prop 模式<span class=" fw-cl "><span>，</span></span>这个我们前面已经介绍过<span class=" fw-cl "><span>，</span></span>这里给出一个很简单的示例<span class=" fw-cl "><span>，</span></span>具体不再展开<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const ByDevice = ({ children: { mobile, other } }) =&gt; { &nbsp;<br>
+ &nbsp;return Utils.isMobile() ? mobile : other<br>
+}<br>
+<br>
+<bydevice><br>
+ &nbsp;&nbsp;&nbsp;{{ &nbsp;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mobile: </bydevice></code></p><div><code>Mobile detected!</code></div><code>,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;other: &nbsp;<div>Not a mobile device</div><br>
+ &nbsp;&nbsp;&nbsp;}}<br>
+</code><p></p>
+<h3>副作用和<span class="fw-op  "><span>（</span></span>准<span class=" fw-cl "><span>）</span></span>纯组件</h3>
+<p>纯函数和非纯函数概念大家并不陌生<span class=" fw-cl "><span>，</span></span>简单来说<span class=" fw-cl "><span>，</span></span>通过函数参数能够唯一确定函数返回值的函数<span class=" fw-cl "><span>，</span></span>我们称之为纯函数<span class=" fw-cl "><span>，</span></span>反之就是有副作用的非纯函数<span class=" fw-cl "><span>。</span></span>纯/非纯函数延伸到组件中<span class=" fw-cl "><span>，</span></span>就是纯/非纯组件<span class=" fw-cl "><span>。</span></span></p>
+<p>在理想主义者眼中<span class=" fw-cl "><span>，</span></span>最好的情况是应用组件全部由纯组件组成<span class=" fw-cl "><span>，</span></span>这样对于组件的调试和强健性非常重要<span class=" fw-cl "><span>。</span></span>但这只能是理想情况<span class=" fw-cl "><span>，</span></span>在真实环境中<span class=" fw-cl "><span>，</span></span>我们需要发送网络请求以获取数据<span class="fw-op  "><span>（</span></span>副作用<span class=" fw-cl "><span>，</span></span>因为数据不固定<span class=" fw-cl "><span>，</span></span>需要从网络获取<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>进行条件渲染等操作<span class=" fw-cl "><span>，</span></span>如何最大限度地保证纯组件或者<span class="fw-op  "><span>（</span></span>准<span class=" fw-cl "><span>）</span></span>纯组件呢<span class=" fw-cl "><span>？</span></span>我们先来下一个定义<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p><span class="fw-op  "><span>（</span></span>准<span class=" fw-cl "><span>）</span></span>纯组件是渲染数据全部来自于 props<span class=" fw-cl "><span>，</span></span>但是会产生副作用的组件</p>
+<p>从非纯组件中提取纯组件部分<span class=" fw-cl "><span>，</span></span>是一个很常见有效的做法<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const globalConfig = { &nbsp;<br>
+ &nbsp;siteName: 'Animals in Zoo'<br>
+}<br>
+<br>
+const Header = ({ children }) =&gt; { &nbsp;<br>
+ &nbsp;const heading = <br>
+ &nbsp;&nbsp;&nbsp;globalConfig.siteName ? </code></p><h1><code>{globalConfig.siteName}</code></h1><code> : null<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;<div><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{heading}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{children}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;);<br>
+}</code><p></p>
+<p>这个组件是典型的非纯组件<span class=" fw-cl "><span>，</span></span>因为它依赖全局变量 siteName<span class=" fw-cl "><span>，</span></span>可能渲染出<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><div><code> &nbsp;<br>
+ &nbsp;<h1>Animals in Zoo</h1><br>
+ &nbsp;Some content<br>
+<p></p>
+<p>或者<span class=" fw-cl "><span>：</span></span></p>
+<p><code></code></p><div><code> &nbsp;<br>
+ &nbsp;Some content<br>
+</code></div><p></p>
+<p>在编写测试用例时<span class=" fw-cl "><span>，</span></span>还需要考虑 globalConfig.siteName<span class=" fw-cl "><span>，</span></span>使得逻辑更加复杂<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import assert from 'assert'<br>
+import { shallow } from 'enzyme'<br>
+import { globalConfig } from './config'<br>
+import Header from './Header'<br>
+<br>
+describe('</code></p><header><code>', function() { &nbsp;<br>
+ &nbsp;it('should render the heading', function() {<br>
+ &nbsp;&nbsp;&nbsp;const wrapper = shallow(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<header>Some content</header><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;assert(wrapper.contains(<h1>Animals in Zoo</h1>))<br>
+ &nbsp;})<br>
+<br>
+ &nbsp;it('should not render the heading', function() {<br>
+ &nbsp;&nbsp;&nbsp;// 改动全局变量<br>
+ &nbsp;&nbsp;&nbsp;globalConfig.siteName = null<br>
+ &nbsp;&nbsp;&nbsp;const wrapper = shallow(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<header>Some content</header><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;assert(appWithHeading.find('h1').length === 0)<br>
+ &nbsp;})<br>
+})</code><p></p>
+<p>在测试 Header 组件时<span class=" fw-cl "><span>，</span></span>多了一种 case 不说<span class=" fw-cl "><span>，</span></span>我们还需要手动改写全局变量的值<span class=" fw-cl "><span>。</span></span></p>
+<p>一个常用的优化方式是使全局变量作为 Header 的 props 出现<span class=" fw-cl "><span>，</span></span>而不再是一个外部变量<span class=" fw-cl "><span>，</span></span>那么函数式组件 Header 就完全依赖其参数<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const Header = ({ children, siteName }) =&gt; { &nbsp;<br>
+ &nbsp;const heading = siteName ? </code></p><h1><code>{siteName}</code></h1><code> : null;<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;<div classname="header"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{heading}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{children}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;);<br>
+}<br>
+<br>
+Header.defaultProps = { &nbsp;<br>
+ &nbsp;siteName: globalConfig.siteName<br>
+}</code><p></p>
+<p>这样一来 Header 就成了纯组件<span class=" fw-cl "><span>，</span></span>测试用例便可以简化为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import assert from 'assert'<br>
+import { shallow } from 'enzyme' <br>
+import { Header } from './Header';<br>
+<br>
+describe('</code></p><header><code>', function() { &nbsp;<br>
+ &nbsp;it('should render the heading', function() {<br>
+ &nbsp;&nbsp;&nbsp;const wrapper = shallow(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<header sitename="Animals in Zoo">Some content</header><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;assert(wrapper.contains(<h1>Animals in Zoo</h1>))<br>
+ &nbsp;});<br>
+<br>
+ &nbsp;it('should not render the heading', function() {<br>
+ &nbsp;&nbsp;&nbsp;const wrapper = shallow(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<header sitename="{null}">Some content</header><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;assert(appWithHeading.find('h1').length === 0)<br>
+ &nbsp;})<br>
+})</code><p></p>
+<p>且不需再手动改动变量的值<span class=" fw-cl "><span>，</span></span>以完成测试逻辑<span class=" fw-cl "><span>。</span></span></p>
+<p>另一个重构非纯组件的典型案例就是针对有网络请求的副作用情况<span class=" fw-cl "><span>，</span></span>重放我们在组件单一职责中的代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import axios from 'axios'<br>
+import WeatherInfo from './weatherInfo'<br>
+<br>
+class WeatherFetch extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { temperature: 'N/A', windSpeed: 'N/A' }<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;componentDidMount() {<br>
+ &nbsp;&nbsp;&nbsp;axios.get('http://weather.com/api').then(response =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const { current } = response.data<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.setState({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;temperature: current.temperature,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;windSpeed: current.windSpeed<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;const { temperature, windSpeed } = this.state<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<weatherinfo temperature="{temperature}" windspeed="{windSpeed}"><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</weatherinfo></code></p>
+<p>从表面上看<span class=" fw-cl "><span>，</span></span>WeatherFetch 组件不得不<span class="fw-op  "><span>「</span></span>非纯<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>因为网络请求不可避免<span class=" fw-cl "><span>，</span></span>但是我们可以将请求的主体逻辑分离出组件<span class=" fw-cl "><span>，</span></span>而组件只负责调用请求<span class=" fw-cl "><span>，</span></span>这样的操作我称之为<span class="fw-op  "><span>「</span></span><span class="fw-op  fw--collapsed"><span>（</span></span>准<span class=" fw-cl "><span>）</span></span>纯组件<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>：</span></span></p>
+<p><code>import { connect } from 'react-redux' <br>
+import { fetch } from './action'<br>
+<br>
+export class WeatherFetch extends Component { &nbsp;<br>
+ &nbsp;&nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;const { temperature, windSpeed } = this.props<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<weatherinfo temperature="{temperature}" windspeed="{windSpeed}"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;componentDidMount() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.props.fetch()<br>
+ &nbsp;&nbsp;}<br>
+}<br>
+<br>
+function mapStateToProps(state) { &nbsp;<br>
+ &nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;temperature: state.temperate,<br>
+ &nbsp;&nbsp;&nbsp;windSpeed: state.windSpeed<br>
+ &nbsp;}<br>
+}<br>
+<br>
+export default connect(mapStateToProps, { fetch })</weatherinfo></code></p>
+<p>我们使用 Redux 来完成<span class=" fw-cl "><span>，</span></span>这样一来 WeatherFetch 组件至少可以保证<span class="fw-op  "><span>「</span></span>相同的 props<span class=" fw-cl "><span>，</span></span>会渲染相同的结果<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>测试也就变得可行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import assert from 'assert'<br>
+import { shallow, mount } from 'enzyme'<br>
+import { spy } from 'sinon'<br>
+<br>
+import { WeatherFetch } from './WeatherFetch'; &nbsp;<br>
+import WeatherInfo from './WeatherInfo'<br>
+<br>
+describe('<weatherfetch>', function() { &nbsp;<br>
+ &nbsp;it('should render the weather info', function() {<br>
+ &nbsp;&nbsp;&nbsp;function noop() {}<br>
+ &nbsp;&nbsp;&nbsp;const wrapper = shallow(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<weatherfetch temperature="30" windspeed="10" fetch="{noop}"><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;assert(wrapper.contains(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<weatherinfo temperature="30" windspeed="10"><br>
+ &nbsp;&nbsp;&nbsp;))<br>
+ &nbsp;});<br>
+<br>
+ &nbsp;it('should fetch weather when mounted', function() {<br>
+ &nbsp;&nbsp;&nbsp;const fetchSpy = spy()<br>
+ &nbsp;&nbsp;&nbsp;const wrapper = mount(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;<weatherfetch temperature="30" windspeed="10" fetch="{fetchSpy}/"><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;&nbsp;&nbsp;assert(fetchSpy.calledOnce)<br>
+ &nbsp;})<br>
+})</weatherfetch></weatherinfo></weatherfetch></weatherfetch></code></p>
+<h3>组件可测试性</h3>
+<p>我们一直在提<span class="fw-op  "><span>「</span></span>可测试性<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>上面也出现了测试用例代码<span class=" fw-cl "><span>，</span></span>我认为是否具有测试意识<span class=" fw-cl "><span>，</span></span>是区别高级和一般程序员的考证之一<span class=" fw-cl "><span>。</span></span></p>
+<p>还记得我们在上面提到的 Controls 组件吗<span class=" fw-cl "><span>？</span></span>最初实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class App extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { number: 0 }<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div classname="app"><code> <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span classname="number">{this.state.number}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<controls parent="{this}"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</controls></code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}<br>
+<br>
+class Controls extends Component {<br>
+ &nbsp;updateNumber(toAdd) {<br>
+ &nbsp;&nbsp;&nbsp;this.props.parent.setState(prevState =&gt; ({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;number: prevState.number + toAdd &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;}))<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div classname="controls"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{()" ==""> this.updateNumber(+1)}&gt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Increase<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button> <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{()" ==""> this.updateNumber(-1)}&gt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Decrease<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}</code><p></p>
+<p>因为 Controls 组件的行为完全依赖其父组件<span class=" fw-cl "><span>，</span></span>因此为了测试<span class=" fw-cl "><span>，</span></span>我们需要临时构造一个父组件 Temp 来完成<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Temp extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { number: 0 }<br>
+ &nbsp;}<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return null<br>
+ &nbsp;}<br>
+}<br>
+<br>
+describe('<controls>', function() { &nbsp;<br>
+ &nbsp;it('should update parent state', function() {<br>
+ &nbsp;&nbsp;&nbsp;const parent = shallow(<temp>)<br>
+ &nbsp;&nbsp;&nbsp;const wrapper = shallow(<controls parent="{parent}">)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;assert(parent.state('number') === 0)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;wrapper.find('button').at(0).simulate('click')<br>
+ &nbsp;&nbsp;&nbsp;assert(parent.state('number') === 1)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;wrapper.find('button').at(1).simulate('click')<br>
+ &nbsp;&nbsp;&nbsp;assert(parent.state('number') === 0)<br>
+ &nbsp;});<br>
+});</controls></temp></controls></code></p>
+<p>测试编写的非常痛苦<span class=" fw-cl "><span>，</span></span>而经过我们重构之后<span class=" fw-cl "><span>，</span></span>变的就非常简单了<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class App extends Component { &nbsp;<br>
+ &nbsp;constructor(props) {<br>
+ &nbsp;&nbsp;&nbsp;super(props)<br>
+ &nbsp;&nbsp;&nbsp;this.state = { number: 0 }<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;updateNumber(toAdd) {<br>
+ &nbsp;&nbsp;&nbsp;this.setState(prevState =&gt; ({<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;number: prevState.number + toAdd &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+ &nbsp;&nbsp;&nbsp;}))<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;render() {<br>
+ &nbsp;&nbsp;&nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code></p><div classname="app"><code> <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span classname="number">{this.state.number}</span><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<controls <br="">
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onIncrease={() =&gt; this.updateNumber(+1)}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onDecrease={() =&gt; this.updateNumber(-1)} <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&gt;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</controls></code></div><code><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+ &nbsp;}<br>
+}<br>
+<br>
+<br>
+const Controls = ({ onIncrease, onDecrease }) =&gt; { &nbsp;<br>
+ &nbsp;return (<br>
+ &nbsp;&nbsp;&nbsp;<div classname="controls"><br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{onIncrease}">Increase</button> <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="{onDecrease}">Decrease</button><br>
+ &nbsp;&nbsp;&nbsp;</div><br>
+ &nbsp;)<br>
+}<br>
+<br>
+describe('<controls>', function() { &nbsp;<br>
+ &nbsp;it('should execute callback on buttons click', function() {<br>
+ &nbsp;&nbsp;&nbsp;const increase = sinon.spy()<br>
+ &nbsp;&nbsp;&nbsp;const descrease = sinon.spy()<br>
+ &nbsp;&nbsp;&nbsp;const wrapper = shallow(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<controls onincrease="{increase}" ondecrease="{descrease}"><br>
+ &nbsp;&nbsp;&nbsp;)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;wrapper.find('button').at(0).simulate('click')<br>
+ &nbsp;&nbsp;&nbsp;assert(increase.calledOnce)<br>
+ &nbsp;&nbsp;&nbsp;wrapper.find('button').at(1).simulate('click')<br>
+ &nbsp;&nbsp;&nbsp;assert(descrease.calledOnce)<br>
+ &nbsp;})<br>
+})</controls></controls></code><p></p>
+<p>有的开发者觉得<span class="fw-op  "><span>「</span></span>测试不重要<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>因此也不用关心组件编写的可测试性<span class=" fw-cl "><span>。</span></span>其实我认为<span class=" fw-cl "><span>，</span></span>之所以会有程序员认为<span class="fw-op  "><span>「</span></span>测试不重要<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>是因为他不具有看待项目的更高视野和角度<span class=" fw-cl "><span>，</span></span>也没有编写稳定可靠组件库或其他库的经验<span class=" fw-cl "><span>。</span></span>我们要端正态度<span class=" fw-cl "><span>，</span></span>想要进阶<span class=" fw-cl "><span>，</span></span>就要从态度入手<span class=" fw-cl "><span>，</span></span>从掌握一门测试用例的使用入手<span class=" fw-cl "><span>。</span></span></p>
+<h3>组件命名是意识和态度问题</h3>
+<p>我为什么要把组件命名放在最后一部分呢<span class=" fw-cl "><span>？</span></span>因为组件命名太简单了<span class=" fw-cl "><span>，</span></span>任何一个开发者只要有意识<span class=" fw-cl "><span>，</span></span>能用心<span class=" fw-cl "><span>，</span></span>都能完成很好的命名<span class=" fw-cl "><span>；</span></span>同时组件命名又太重要了<span class=" fw-cl "><span>，</span></span>良好的组件命名就是<span class="fw-op  "><span>「</span></span>行走着的注释<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>但意识是一个很虚的概念<span class=" fw-cl "><span>，</span></span>有的程序员也许天生就不具备<span class=" fw-cl "><span>，</span></span>有的程序员即便具备了<span class=" fw-cl "><span>，</span></span>也懒得去琢磨<span class=" fw-cl "><span>。</span></span>这里<span class=" fw-cl "><span>，</span></span>我不赘述太多道理<span class=" fw-cl "><span>，</span></span>读者只需观察两段代码即可<span class=" fw-cl "><span>，</span></span>其中第一段<span class=" fw-cl "><span>，</span></span>我加了大量的注释辅助<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// <games> 返回一组 game 信息<br>
+// data 是一个数组<span class=" fw-cl "><span>，</span></span>包含了所有 game 信息<br>
+function Games({ data }) { &nbsp;<br>
+ &nbsp;// 选出前 10 条 games<br>
+ &nbsp;const data1 = data.slice(0, 10)<br>
+ &nbsp;// list 是包含了 10 条 games 的 Game 组件集合<br>
+ &nbsp;const list = data1.map(function(v) {<br>
+ &nbsp;&nbsp;&nbsp;// v 代码当前 game<br>
+ &nbsp;&nbsp;&nbsp;return <game key="{v.id}" name="{v.name}"><br>
+ &nbsp;})<br>
+ &nbsp;return </game></games></code></p><ul><code>{list}</code></ul><code><br>
+}<br>
+<br>
+<games &nbsp;<br="">
+ &nbsp;&nbsp;data=[{ id: 1, name: 'Mario' }, { id: 2, name: 'Doom' }] <br>
+/&gt;</games></code><p></p>
+<p>第二段代码不需要一行注释<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const GAMES_LIMIT = 10<br>
+<br>
+const GamesList = ({ items }) =&gt; { &nbsp;<br>
+ &nbsp;const itemsSlice = items.slice(0, GAMES_LIMIT)<br>
+ &nbsp;const games = itemsSlice.map(gameItem =&gt; <br>
+ &nbsp;&nbsp;&nbsp;<game key="{gameItem.id}" name="{gameItem.name}"><br>
+ &nbsp;)<br>
+ &nbsp;return </game></code></p><ul><code>{games}</code></ul><code><br>
+}<br>
+<br>
+<gameslist &nbsp;<br="">
+ &nbsp;items=[{ id: 1, name: 'Mario' }, { id: 2, name: 'Doom' }]<br>
+/&gt;</gameslist></code><p></p>
+<p>组件设计功力<span class=" fw-cl "><span>，</span></span>其实一个命名就能看出来<span class=" fw-cl "><span>；</span></span>在做 code review 时<span class=" fw-cl "><span>，</span></span>一个命名也能出卖你的深浅<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>本讲我们剖析了组件设计的基本原则<span class=" fw-cl "><span>，</span></span>在原则范畴内<span class=" fw-cl "><span>，</span></span>展现了组件的灵活性<span class=" fw-cl "><span>，</span></span>并将组件复用性融汇在课程中<span class=" fw-cl "><span>。</span></span>其实不光 React 组件如此<span class=" fw-cl "><span>，</span></span>任何框架的组件也都是如此<span class=" fw-cl "><span>，</span></span>超脱于组件范畴之外<span class=" fw-cl "><span>，</span></span>API 设计也应用着相同的原则<span class=" fw-cl "><span>。</span></span>这是编程最本质的思想<span class=" fw-cl "><span>，</span></span>甚至从某种程度上<span class=" fw-cl "><span>，</span></span>在编程之外<span class=" fw-cl "><span>，</span></span>原子组建成大千世界的哲学道理都是异曲同工的<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1QZKkM0wTMBZY3DFb8lX</span></p></header></header></code></div></footer></article></menu></header>
+</body>
+</html>

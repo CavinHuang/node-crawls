@@ -69,8 +69,12 @@ function saveBookData(book, charpt = {}) {
 </html>`;
   fs.writeFileSync(`${charptPath}.html`, htmlContent)
 
-  const markdownContent = sitdown.HTMLToMD(charpt.content)
-  fs.writeFileSync(`${charptPath}.md`, markdownContent);
+  try {
+    const markdownContent = sitdown.HTMLToMD(charpt.content)
+    fs.writeFileSync(`${charptPath}.md`, markdownContent);
+  } catch (e) {
+    console.log('转markdown失败')
+  }
 }
 
 /**

@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 17 节触类旁通各种框架</h1>
+  <p>框架在任何一种语言编程范畴中都扮演了举足轻重的地位<span class=" fw-cl "><span>，</span></span>前端尤是如此<span class=" fw-cl "><span>。</span></span>目前流行的前端框架三驾马车<span class=" fw-cl "><span>：</span></span>Angular<span class=" fw-cl "><span>、</span></span>React 和 Vue<span class=" fw-cl "><span>，</span></span>它们各有特点和受众<span class=" fw-cl "><span>，</span></span>都值得开发者认真思考和学习<span class=" fw-cl "><span>。</span></span>那么我们在精力有限的情况下<span class=" fw-cl "><span>，</span></span>如何做到<span class="fw-op  "><span>「</span></span>触类旁通<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>、</span></span>如何提取框架共性<span class=" fw-cl "><span>、</span></span>提高学习和应用效率呢<span class=" fw-cl "><span>？</span></span></p>
+<p>我们这一讲就来剖析这些框架的特点和本质<span class=" fw-cl "><span>，</span></span>介绍如何学习并使用这些框架<span class=" fw-cl "><span>，</span></span>进而了解前端框架的真谛<span class=" fw-cl "><span>。</span></span></p>
+<p>相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-90d67f5483d3dfc71605759b47064000.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:36.152416356877325% 0" data-src="https://pic4.zhimg.com/v2-90d67f5483d3dfc71605759b47064000.png">加载中...</span><figcaption>图片</figcaption></figure>
+<p>我把现代框架的关键词进行提炼<span class=" fw-cl "><span>，</span></span>掌握这些关键词<span class=" fw-cl "><span>，</span></span>是我们学习的重要环节<span class=" fw-cl "><span>。</span></span>这些关键词有<span class=" fw-cl "><span>：</span></span>双向绑定<span class=" fw-cl "><span>、</span></span>依赖收集<span class=" fw-cl "><span>、</span></span>发布订阅模式<span class=" fw-cl "><span>、</span></span>MVVM / MVC<span class=" fw-cl "><span>、</span></span>虚拟 DOM<span class=" fw-cl "><span>、</span></span>虚拟 DOM diff<span class=" fw-cl "><span>、</span></span>模版编译等<span class=" fw-cl "><span>。</span></span></p>
+<h3>响应式框架基本原理</h3>
+<p>我们不再赘述响应式或数据双向绑定的基本概念<span class=" fw-cl "><span>，</span></span>这里直接思考其行为<span class=" fw-cl "><span>：</span></span>直观上<span class=" fw-cl "><span>，</span></span>数据在变化时<span class=" fw-cl "><span>，</span></span>不再需要开发者去手动更新视图<span class=" fw-cl "><span>，</span></span>而视图会根据变化的数据<span class="fw-op  "><span>「</span></span>自动<span class=" fw-cl "><span>」</span></span>进行更新<span class=" fw-cl "><span>。</span></span>想完成这个过程<span class=" fw-cl "><span>，</span></span>我们需要<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">收集视图依赖了哪些数据</li>
+  <li style="">感知被依赖数据的变化</li>
+  <li style="">数据变化时<span class=" fw-cl "><span>，</span></span>自动<span class="fw-op  "><span>「</span></span>通知<span class=" fw-cl "><span>」</span></span>需要更新的视图部分<span class=" fw-cl "><span>，</span></span>并进行更新</li>
+</ul>
+<p>道理很简单<span class=" fw-cl "><span>，</span></span>这个思考过程换成对应的技术概念就是<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">依赖收集</li>
+  <li style="">数据劫持 / 数据代理</li>
+  <li style="">发布订阅模式</li>
+</ul>
+<p>接下来<span class=" fw-cl "><span>，</span></span>我们一步步拆解<span class=" fw-cl "><span>。</span></span></p>
+<h4>数据劫持与代理</h4>
+<p>感知数据变化的方法很直接<span class=" fw-cl "><span>，</span></span>就是进行数据劫持或数据代理<span class=" fw-cl "><span>。</span></span>我们往往通过 Object.defineProperty 实现<span class=" fw-cl "><span>。</span></span>这个方法可以定义数据的 getter 和 setter<span class=" fw-cl "><span>，</span></span>具体用法不再赘述<span class=" fw-cl "><span>。</span></span>下面来看一个场景<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let data = {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;stage: 'GitChat',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;course: {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title: '前端开发进阶',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;author: 'Lucas',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;publishTime: '2018 年 5 月'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;Object.keys(data).forEach(key =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let currentValue = data[key]</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;Object.defineProperty(data, key, {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: true,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;configurable: false,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get() {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`getting ${key} value now, getting value is:`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return currentValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set(newValue) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentValue = newValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`setting ${key} value now, setting value is`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;})</code></p>
+<p>这段代码对 data 数据的 getter 和 setter 进行定义拦截<span class=" fw-cl "><span>，</span></span>当我们读取或者改变 data 的值时<span class=" fw-cl "><span>：</span></span></p>
+<p><code>data.course</code><br>
+ <br>
+ <code>&nbsp;// getting course value now, getting value is: {title: "前端开发进阶", author: "Lucas", publishTime: "2018 年 5 月"}</code></p>
+<p><code>data.course = '前端开发进阶 2'</code><br>
+ <code>&nbsp;// setting course value now, setting value is 前端开发进阶 2</code></p>
+<p>但是这种实现有一个问题<span class=" fw-cl "><span>，</span></span>例如<span class=" fw-cl "><span>：</span></span></p>
+<p><code>data.course.title = '前端开发进阶 2'</code><br>
+ <br>
+ <code>&nbsp;// getting course value now, getting value is: {title: "前端开发进阶", author: "Lucas", publishTime: "2018 年 5 月"}</code></p>
+<p>只会有 getting course value now, getting value is: {title: "前端开发进阶", author: "Lucas", publishTime: "2018 年 5 月"} 的输出<span class=" fw-cl "><span>，</span></span>这是因为我们尝试读取了 data.course 信息<span class=" fw-cl "><span>。</span></span>但是修改 data.course.title 的信息并没有打印出来<span class=" fw-cl "><span>。</span></span></p>
+<p>出现这个问题的原因是因为我们的实现代码只进行了一层 Object.defineProperty<span class=" fw-cl "><span>，</span></span>或者说只对 data 的第一层属性进行了 Object.defineProperty<span class=" fw-cl "><span>，</span></span>对于嵌套的引用类型数据结构<span class=" fw-cl "><span>：</span></span>data.course<span class=" fw-cl "><span>，</span></span>我们同样应该进行拦截<span class=" fw-cl "><span>。</span></span></p>
+<p>为了达到深层拦截的目的<span class=" fw-cl "><span>，</span></span>将 Object.defineProperty 的逻辑抽象为 observe 函数<span class=" fw-cl "><span>，</span></span>并改用递归实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let data = {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;stage: 'GitChat',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;course: {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title: '前端开发进阶',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;author: 'Lucas',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;publishTime: '2018 年 5 月'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const observe = data =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;if (!data || typeof data !== 'object') {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;Object.keys(data).forEach(key =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentValue = data[key]</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;observe(currentValue)</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(data, key, {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: true,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;configurable: false,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get() {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`getting ${key} value now, getting value is:`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return currentValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set(newValue) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentValue = newValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`setting ${key} value now, setting value is`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}) </code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;observe(data)</code></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>就实现了深层数据拦截<span class=" fw-cl "><span>：</span></span></p>
+<p><code>data.course.title = '前端开发进阶 2'</code><br>
+ <br>
+ <code>&nbsp;// getting course value now, getting value is: {// ...}</code><br>
+ <code>&nbsp;// setting title value now, setting value is 前端开发进阶 2</code></p>
+<p>请注意<span class=" fw-cl "><span>，</span></span>我们在 set 代理中<span class=" fw-cl "><span>，</span></span>并没有对 newValue 再次递归进行 observe(newValue)<span class=" fw-cl "><span>。</span></span>也就是说<span class=" fw-cl "><span>，</span></span>如果赋值是一个引用类型<span class=" fw-cl "><span>：</span></span></p>
+<p><code>data.course.title = {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title: '前端开发进阶 2'</code><br>
+ <code>&nbsp;}</code></p>
+<p>无法实现对 data.course.title 数据的观察<span class=" fw-cl "><span>。</span></span>这里为了简化学习成本<span class=" fw-cl "><span>，</span></span>默认修改的数值符合语义<span class=" fw-cl "><span>，</span></span>都是基本类型<span class=" fw-cl "><span>。</span></span></p>
+<p>在尝试对 data.course.title 赋值时<span class=" fw-cl "><span>，</span></span>首先会读取 data.course<span class=" fw-cl "><span>，</span></span>因此输出<span class=" fw-cl "><span>：</span></span>getting course value now, getting value is: {// ...}<span class=" fw-cl "><span>，</span></span>赋值后<span class=" fw-cl "><span>，</span></span>触发 data.course.title 的 setter<span class=" fw-cl "><span>，</span></span>输出<span class=" fw-cl "><span>：</span></span>setting title value now, setting value is 前端开发进阶 2<span class=" fw-cl "><span>。</span></span></p>
+<p>因此我们总结出<span class=" fw-cl "><span>：</span></span>对数据进行拦截并不复杂<span class=" fw-cl "><span>，</span></span>这也是很多框架实现的第一步<span class=" fw-cl "><span>。</span></span></p>
+<h4>监听数组变化</h4>
+<p>如果上述数据中某一项变为数组<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let data = {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;stage: 'GitChat',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;course: {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title: '前端开发进阶',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;author: ['Lucas', 'Ronaldo'],</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;publishTime: '2018 年 5 月'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const observe = data =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;if (!data || typeof data !== 'object') {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;Object.keys(data).forEach(key =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentValue = data[key]</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;observe(currentValue)</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(data, key, {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: true,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;configurable: false,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get() {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`getting ${key} value now, getting value is:`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return currentValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set(newValue) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentValue = newValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`setting ${key} value now, setting value is`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}) </code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;observe(data)</code><br>
+ <br>
+ <br>
+ <code>&nbsp;data.course.author.push('Messi')</code><br>
+ <code>&nbsp;// getting course value now, getting value is: {//...}</code><br>
+ <code>&nbsp;// getting author value now, getting value is: (2) [(...), (...)]</code></p>
+<p>我们只监听到了 data.course 以及 data.course.author 的读取<span class=" fw-cl "><span>，</span></span>而数组 push 行为并没有被拦截<span class=" fw-cl "><span>。</span></span>这是因为 Array.prototype 上挂载的方法并不能触发 data.course.author 属性值的 setter<span class=" fw-cl "><span>，</span></span>由于这并不属于做赋值操作<span class=" fw-cl "><span>，</span></span>而是 push API 调用操作<span class=" fw-cl "><span>。</span></span>然而对于框架实现来说<span class=" fw-cl "><span>，</span></span>这显然是不满足要求的<span class=" fw-cl "><span>，</span></span>当数组变化时我们应该也有所感知<span class=" fw-cl "><span>。</span></span></p>
+<p>Vue 同样存在这样的问题<span class=" fw-cl "><span>，</span></span>它的解决方法是<span class=" fw-cl "><span>：</span></span>将数组的常用方法进行重写<span class=" fw-cl "><span>，</span></span>进而覆盖掉原生的数组方法<span class=" fw-cl "><span>，</span></span>重写之后的数组方法需要能够被拦截<span class=" fw-cl "><span>。</span></span></p>
+<p>实现逻辑如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const arrExtend = Object.create(Array.prototype)</code><br>
+ <code>&nbsp;const arrMethods = [</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'push',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'pop',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'shift',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'unshift',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'splice',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'sort',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'reverse'</code><br>
+ <code>&nbsp;]</code><br>
+ <br>
+ <code>&nbsp;arrMethods.forEach(method =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;const oldMethod = Array.prototype[method]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;const newMethod = function(...args) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;oldMethod.apply(this, args)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`${method} 方法被执行了`)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;arrExtend[method] = newMethod</code><br>
+ <code>&nbsp;})</code></p>
+<p>对于数组原生的 7 个方法<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">push</li>
+  <li style="">pop</li>
+  <li style="">shift</li>
+  <li style="">unshift</li>
+  <li style="">splice</li>
+  <li style="">sort</li>
+  <li style="">reverse</li>
+</ul>
+<p>进行重写<span class=" fw-cl "><span>，</span></span>核心操作还是调用原生方法<span class=" fw-cl "><span>：</span></span>oldMethod.apply(this, args)<span class=" fw-cl "><span>，</span></span>除此之外可以在调用 oldMethod.apply(this, args) 前后加入我们需要的任何逻辑<span class=" fw-cl "><span>。</span></span>示例代码中加入了一行 console.log<span class=" fw-cl "><span>。</span></span>使用时<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Array.prototype = Object.assign(Array.prototype, arrExtend)</code><br>
+ <br>
+ <code>&nbsp;let array = [1, 2, 3]</code><br>
+ <code>&nbsp;array.push(4)</code><br>
+ <code>&nbsp;// push 方法被执行了</code></p>
+<p>对应我们的代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const arrExtend = Object.create(Array.prototype)</code><br>
+ <code>&nbsp;const arrMethods = [</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'push',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'pop',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'shift',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'unshift',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'splice',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'sort',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;'reverse'</code><br>
+ <code>&nbsp;]</code><br>
+ <br>
+ <code>&nbsp;arrMethods.forEach(method =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;const oldMethod = Array.prototype[method]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;const newMethod = function(...args) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;oldMethod.apply(this, args)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`${method} 方法被执行了`)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;arrExtend[method] = newMethod</code><br>
+ <code>&nbsp;})</code><br>
+ <br>
+ <code>&nbsp;Array.prototype = Object.assign(Array.prototype, arrExtend)</code><br>
+ <br>
+ <br>
+ <code>&nbsp;let data = {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;stage: 'GitChat',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;course: {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title: '前端开发进阶',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;author: ['Lucas', 'Ronaldo'],</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;publishTime: '2018 年 5 月'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const observe = data =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;if (!data || typeof data !== 'object') {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;Object.keys(data).forEach(key =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentValue = data[key]</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;observe(currentValue)</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(data, key, {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: true,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;configurable: false,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get() {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`getting ${key} value now, getting value is:`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return currentValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set(newValue) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentValue = newValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`setting ${key} value now, setting value is`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}) </code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;observe(data)</code><br>
+ <br>
+ <code>&nbsp;data.course.author.push('Messi')</code></p>
+<p>将会输出<span class=" fw-cl "><span>：</span></span></p>
+<p><code>getting course value now, getting value is: {//...}</code><br>
+ <code>&nbsp;getting author value now, getting value is: (2) [(...), (...)]</code><br>
+ <code>&nbsp;// push 方法被执行了</code></p>
+<p>这种 monkey patch 本质是重写原生方法<span class=" fw-cl "><span>，</span></span>这天生不是很安全<span class=" fw-cl "><span>，</span></span>也很不优雅<span class=" fw-cl "><span>，</span></span>能有更好的实现吗<span class=" fw-cl "><span>？</span></span></p>
+<p>答案是有的<span class=" fw-cl "><span>，</span></span>使用 ES Next 的新特性——Proxy<span class=" fw-cl "><span>，</span></span>之前也介绍过<span class=" fw-cl "><span>，</span></span>它可以完成对数据的代理<span class=" fw-cl "><span>。</span></span></p>
+<p>那么这两种方式有何区别呢<span class=" fw-cl "><span>？</span></span>请继续阅读<span class=" fw-cl "><span>。</span></span></p>
+<h4>Object.defineProperty VS Proxy</h4>
+<p>我们首先尝试使用 Proxy 来完成代码重构<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let data = {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;stage: 'GitChat',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;course: {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title: '前端开发进阶',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;author: ['Lucas'],</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;publishTime: '2018 年 5 月'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const observe = data =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;if (!data || Object.prototype.toString.call(data) !== '[object Object]') {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;Object.keys(data).forEach(key =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let currentValue = data[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 事实上 proxy 也可以对函数类型进行代理<span class=" fw-cl "><span>。</span></span>这里只对承载数据类型的 object 进行处理<span class=" fw-cl "><span>，</span></span>读者了解即可<span class=" fw-cl "><span>。</span></span></code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof currentValue === 'object') {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;observe(currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data[key] = new Proxy(currentValue, {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set(target, property, value, receiver) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 因为数组的 push 会引起 length 属性的变化<span class=" fw-cl "><span>，</span></span>所以 push 之后会触发两次 set 操作<span class=" fw-cl "><span>，</span></span>我们只需要保留一次即可<span class=" fw-cl "><span>，</span></span>property 为 length 时<span class=" fw-cl "><span>，</span></span>忽略</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (property !== 'length') {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`setting ${key} value now, setting value is`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Reflect.set(target, property, value, receiver)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Object.defineProperty(data, key, {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enumerable: true,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;configurable: false,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get() {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`getting ${key} value now, getting value is:`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return currentValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set(newValue) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentValue = newValue</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(`setting ${key} value now, setting value is`, currentValue)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}) </code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;observe(data)</code></p>
+<p>此时对数组进行操作<span class=" fw-cl "><span>：</span></span></p>
+<p><code>data.course.author.push('messi')</code><br>
+ <code>&nbsp;// setting author value now, setting value is ["Lucas"]</code></p>
+<p>已经符合我们的需求了<span class=" fw-cl "><span>。</span></span>注意这里在使用 Proxy 进行代理时<span class=" fw-cl "><span>，</span></span>并没有对 getter 进行代理<span class=" fw-cl "><span>，</span></span>因此上述代码的输出结果并不像之前使用 Object.defineProperty 那样也会有 getting value 输出<span class=" fw-cl "><span>。</span></span></p>
+<p>整体实现并不难理解<span class=" fw-cl "><span>，</span></span>需要读者了解最基本的 Proxy 知识<span class=" fw-cl "><span>。</span></span>简单总结一下<span class=" fw-cl "><span>，</span></span>对于数据键值为基本类型的情况<span class=" fw-cl "><span>，</span></span>我们使用 Object.defineProperty<span class=" fw-cl "><span>；</span></span>对于键值为对象类型的情况<span class=" fw-cl "><span>，</span></span>继续递归调用 observe 方法<span class=" fw-cl "><span>，</span></span>并通过 Proxy 返回的新对象对 data[key] 重新赋值<span class=" fw-cl "><span>，</span></span>这个新值的 getter 和 setter 已经被添加了代理<span class=" fw-cl "><span>。</span></span></p>
+<p>了解了 Proxy 实现之后<span class=" fw-cl "><span>，</span></span>我们对 Proxy 实现数据代理和 Object.defineProperty 实现数据拦截进行对比<span class=" fw-cl "><span>，</span></span>会发现<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">Object.defineProperty 不能监听数组的变化<span class=" fw-cl "><span>，</span></span>需要进行数组方法的重写</li>
+  <li style="">Object.defineProperty 必须遍历对象的每个属性<span class=" fw-cl "><span>，</span></span>且对于嵌套结构需要深层遍历</li>
+  <li style="">Proxy 的代理是针对整个对象的<span class=" fw-cl "><span>，</span></span>而不是对象的某个属性<span class=" fw-cl "><span>，</span></span>因此不同于 Object.defineProperty 的必须遍历对象每个属性<span class=" fw-cl "><span>，</span></span>Proxy 只需要做一层代理就可以监听同级结构下的所有属性变化<span class=" fw-cl "><span>，</span></span>当然对于深层结构<span class=" fw-cl "><span>，</span></span>递归还是需要进行的</li>
+  <li style="">Proxy 支持代理数组的变化</li>
+  <li style="">Proxy 的第二个参数除了 set 和 get 以外<span class=" fw-cl "><span>，</span></span>可以有 13 种拦截方法<span class=" fw-cl "><span>，</span></span>比起 Object.defineProperty() 更加强大<span class=" fw-cl "><span>，</span></span>这里不再一一列举</li>
+  <li style="">Proxy 性能将会被底层持续优化<span class=" fw-cl "><span>，</span></span>而 Object.defineProperty 已经不再是优化重点</li>
+</ul>
+<h3>模版编译原理介绍</h3>
+<p>到此<span class=" fw-cl "><span>，</span></span>我们了解了如何监听数据的变化<span class=" fw-cl "><span>，</span></span>那么下一步呢<span class=" fw-cl "><span>？</span></span>以类 Vue 框架为例<span class=" fw-cl "><span>，</span></span>我们看看一个典型的用法<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<p><br>
+ <code>{{stage}} 平台课程<span class=" fw-cl "><span>：</span></span>{{course.title}}</code><br>
+ <br>
+ <code>{{course.title}} 是 {{course.author}} 发布的课程</code><br>
+ <br>
+ <code>发布时间为 {{course.publishTime}} </code><br>
+ <br>
+&nbsp;</p>
+<p><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let vue = new Vue({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ele: '#app', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data: {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stage: 'GitChat',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;course: {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title: '前端开发进阶',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;author: 'Lucas',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;publishTime: '2018 年 5 月'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+&nbsp;</p>
+<p><br>
+&nbsp;</p>
+<p>其中模版变量使用了 {{}} 的表达方式输出模版变量<span class=" fw-cl "><span>。</span></span>最终输出的 HTML 内容应该被合适的数据进行填充替换<span class=" fw-cl "><span>，</span></span>因此还需要一步编译过程<span class=" fw-cl "><span>，</span></span>该过程任何框架或类库中都是相通的<span class=" fw-cl "><span>，</span></span>比如 React 中的 JSX<span class=" fw-cl "><span>，</span></span>也是编译为 React.createElement<span class=" fw-cl "><span>，</span></span>并在生成虚拟 DOM 时进行数据填充<span class=" fw-cl "><span>。</span></span></p>
+<p>我们这里简化过程<span class=" fw-cl "><span>，</span></span>将模版内容<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<p><br>
+ <code>{{stage}} 平台课程<span class=" fw-cl "><span>：</span></span>{{course.title}}</code><br>
+ <br>
+ <code>{{course.title}} 是 {{course.author}} 发布的课程</code><br>
+ <br>
+ <code>发布时间为 {{course.publishTime}} </code><br>
+ <br>
+&nbsp;</p>
+<p><br>
+&nbsp;</p>
+<p>输出为真实 HTML 即可<span class=" fw-cl "><span>。</span></span></p>
+<h4>模版编译实现</h4>
+<p>一提到这样的<span class="fw-op  "><span>「</span></span>模版编译<span class=" fw-cl "><span>」</span></span>过程<span class=" fw-cl "><span>，</span></span>很多开发者都会想到词法分析<span class=" fw-cl "><span>，</span></span>也许都会感到头大<span class=" fw-cl "><span>。</span></span>其实原理很简单<span class=" fw-cl "><span>，</span></span>就是使用正则 + 遍历<span class=" fw-cl "><span>，</span></span>有时也需要一些算法知识<span class=" fw-cl "><span>，</span></span>我们来看现在的场景<span class=" fw-cl "><span>，</span></span>只需要对 #app 节点下内容进行替换<span class=" fw-cl "><span>，</span></span>通过正则识别出模版变量<span class=" fw-cl "><span>，</span></span>获取对应的数据即可<span class=" fw-cl "><span>：</span></span></p>
+<p><code>compile(document.querySelector('#app'), data)</code><br>
+ <br>
+ <code>&nbsp;function compile(el, data) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let fragment = document.createDocumentFragment()</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;while (child = el.firstChild) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fragment.appendChild(child)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;// 对 el 里面的内容进行替换</code><br>
+ <code>&nbsp;&nbsp;&nbsp;function replace(fragment) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Array.from(fragment.childNodes).forEach(node =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let textContent = node.textContent</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let reg = /\{\{(.*?)\}\}/g</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (node.nodeType === 3 &amp;&amp; reg.test(textContent)) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const nodeTextContent = node.textContent</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const replaceText = () =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.textContent = nodeTextContent.replace(reg, (matched, placeholder) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return placeholder.split('.').reduce((prev, key) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return prev[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}, data)</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replaceText()</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果还有子节点<span class=" fw-cl "><span>，</span></span>继续递归 replace</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (node.childNodes &amp;&amp; node.childNodes.length) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replace(node)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;replace(fragment)</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;el.appendChild(fragment)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;return el</code><br>
+ <code>&nbsp;}</code></p>
+<p>代码分析<span class=" fw-cl "><span>：</span></span>我们使用 fragment 变量储存生成的真实 HTML 节点内容<span class=" fw-cl "><span>。</span></span>通过 replace 方法对 {{变量}} 进行数据替换<span class=" fw-cl "><span>，</span></span>同时 {{变量}} 的表达只会出现在 nodeType === 3 的文本类型节点中<span class=" fw-cl "><span>，</span></span>因此对于符合 <code>node.nodeType === 3 &amp;&amp; reg.test(textContent)</code> 条件的情况<span class=" fw-cl "><span>，</span></span>进行数据获取和填充<span class=" fw-cl "><span>。</span></span>我们借助字符串 replace 方法第二个参数进行一次性替换<span class=" fw-cl "><span>，</span></span>此时对于形如 {{data.course.title}} 的深层数据<span class=" fw-cl "><span>，</span></span>通过 reduce 方法<span class=" fw-cl "><span>，</span></span>获得正确的值<span class=" fw-cl "><span>。</span></span></p>
+<p>因为 DOM 结构可能是多层的<span class=" fw-cl "><span>，</span></span>所以对存在子节点的节点<span class=" fw-cl "><span>，</span></span>依然使用递归进行 replace 替换<span class=" fw-cl "><span>。</span></span></p>
+<p>这个编译过程比较简单<span class=" fw-cl "><span>，</span></span>没有考虑到边界情况<span class=" fw-cl "><span>，</span></span>只是单纯完成模版变量到真实 DOM 的转换<span class=" fw-cl "><span>，</span></span>读者只需体会简单道理即可<span class=" fw-cl "><span>。</span></span></p>
+<h4>双向绑定实现</h4>
+<p>上述实现是单向的<span class=" fw-cl "><span>，</span></span>数据变化引起了视图变化<span class=" fw-cl "><span>，</span></span>那么如果页面中存在一个输入框<span class=" fw-cl "><span>，</span></span>如何触发数据变化呢<span class=" fw-cl "><span>？</span></span>比如<span class=" fw-cl "><span>：</span></span></p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-e3dae2d6f90f1c587afd65bbec4b743b.png" alt="" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:5.693069306930694% 0" data-src="https://pic1.zhimg.com/v2-e3dae2d6f90f1c587afd65bbec4b743b.png">加载中...</span></figure>
+<p>我们需要在模版编译中<span class=" fw-cl "><span>，</span></span>对于存在 v-model 属性的 node 进行事件监听<span class=" fw-cl "><span>，</span></span>在输入框输入时<span class=" fw-cl "><span>，</span></span>改变 v-model 属性值对应的数据即可<span class="fw-op  "><span>（</span></span>这里为 inputData<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>增加 compile 中的 replace 方法逻辑<span class=" fw-cl "><span>，</span></span>对于 node.nodeType === 1 的 DOM 类型<span class=" fw-cl "><span>，</span></span>伪代码如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function replace(el, data) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// 省略...</code><br>
+ <code>&nbsp;&nbsp;&nbsp;if (node.nodeType === 1) {</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let attributesArray = node.attributes</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Array.from(attributesArray).forEach(attr =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let attributeName = attr.name</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let attributeValue = attr.value</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (name.includes('v-')) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.value = data[attributeValue]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.addEventListener('input', e =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let newVal = e.target.value</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data[attributeValue] = newVal</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ...</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 更改数据源<span class=" fw-cl "><span>，</span></span>触发 setter</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ...</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;if (node.childNodes &amp;&amp; node.childNodes.length) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;replace(node)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code></p>
+<h3>发布订阅模式简单应用</h3>
+<p>作为前端开发人员<span class=" fw-cl "><span>，</span></span>我们对于所谓的<span class="fw-op  "><span>「</span></span>事件驱动<span class=" fw-cl "><span>」</span></span>理念——即<span class="fw-op  "><span>「</span></span>事件发布订阅模式<span class="fw-op  "><span>（</span></span>Pub/Sub 模式<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>」</span></span>一定再熟悉不过了<span class=" fw-cl "><span>。</span></span>这种模式在 JavaScript 里面有与生俱来的基因<span class=" fw-cl "><span>：</span></span>我们可以认为 JavaScript 本身就是事件驱动型语言<span class=" fw-cl "><span>，</span></span>比如<span class=" fw-cl "><span>，</span></span>应用中对一个 button 进行了事件绑定<span class=" fw-cl "><span>，</span></span>用户点击之后就会触发按钮上面的 click 事件<span class=" fw-cl "><span>。</span></span>这是因为此时有特定程序正在监听这个事件<span class=" fw-cl "><span>，</span></span>随之触发了相关的处理程序<span class=" fw-cl "><span>。</span></span></p>
+<p>这个模式的一个好处之一在于能够解耦<span class=" fw-cl "><span>，</span></span>实现<span class="fw-op  "><span>「</span></span>高内聚<span class=" fw-cl "><span>、</span></span>低耦合<span class=" fw-cl "><span>」</span></span>的理念<span class=" fw-cl "><span>。</span></span>这种模式对于我们框架的设计同样也不可或缺<span class=" fw-cl "><span>。</span></span>请思考<span class=" fw-cl "><span>：</span></span>通过前面内容的学习<span class=" fw-cl "><span>，</span></span>我们了解了如何监听数据的变化<span class=" fw-cl "><span>。</span></span>如果最终想实现响应式 MVVM<span class=" fw-cl "><span>，</span></span>或所谓的双向绑定<span class=" fw-cl "><span>，</span></span>那么还需要根据这个数据变化作出相应的视图更新<span class=" fw-cl "><span>。</span></span>这个逻辑和我们在页面中对 button 绑定事件处理函数是多么相近<span class=" fw-cl "><span>。</span></span></p>
+<p>那么这样一个<span class="fw-op  "><span>「</span></span>熟悉的<span class=" fw-cl "><span>」</span></span>模式应该怎么实现呢<span class=" fw-cl "><span>，</span></span>又该如何在框架中具体应用呢<span class=" fw-cl "><span>？</span></span>看代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Notify {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;constructor() {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.subscribers = []</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;add(handler) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.subscribers.push(handler)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;emit() {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.subscribers.forEach(subscriber =&gt; subscriber())</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code></p>
+<p>使用<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let notify = new Notify()</code><br>
+ <br>
+ <code>&nbsp;notify.add(() =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('emit here')</code><br>
+ <code>&nbsp;})</code><br>
+ <br>
+ <code>&nbsp;notify.emit()</code><br>
+ <code>&nbsp;// emit here</code></p>
+<p>这就是一个简单实现的<span class="fw-op  "><span>「</span></span>事件发布订阅模式<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>当然代码只是启发思路<span class=" fw-cl "><span>，</span></span>真实应用还比较<span class="fw-op  "><span>「</span></span>粗糙<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>没有进行事件名设置<span class=" fw-cl "><span>，</span></span>APIs 也并不丰富<span class=" fw-cl "><span>，</span></span>但完全能够说明问题了<span class=" fw-cl "><span>。</span></span>其实读者翻看 Vue 源码<span class=" fw-cl "><span>，</span></span>也能了解 Vue 中的发布订阅模式很简单<span class=" fw-cl "><span>。</span></span></p>
+<h3>MVVM 融会贯通</h3>
+<p>回顾一下前面的基本内容<span class=" fw-cl "><span>：</span></span>数据拦截和代理<span class=" fw-cl "><span>、</span></span>发布订阅模式<span class=" fw-cl "><span>、</span></span>模版编译<span class=" fw-cl "><span>，</span></span>那么如何根据这些概念实现一个 MVVM 框架呢<span class=" fw-cl "><span>？</span></span>其实不管是 Vue 还是其他类库或框架<span class=" fw-cl "><span>，</span></span>其解决思想都是建立在前文所述概念之上的<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来进行串联<span class=" fw-cl "><span>，</span></span>整个过程是<span class=" fw-cl "><span>：</span></span>首先对数据进行深度拦截或代理<span class=" fw-cl "><span>，</span></span>对每一个属性的 getter 和 setter 进行<span class="fw-op  "><span>「</span></span>加工<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>该<span class="fw-op  "><span>「</span></span>加工<span class=" fw-cl "><span>」</span></span>具体做些什么后面马上会有说明<span class=" fw-cl "><span>。</span></span>在模版初次编译时<span class=" fw-cl "><span>，</span></span>解析指令<span class="fw-op  "><span>（</span></span>如 v-model<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>并进行依赖收集<span class="fw-op  "><span>（</span></span>{{变量}}<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>订阅数据的变化<span class=" fw-cl "><span>。</span></span></p>
+<p>这里的依赖收集过程具体指<span class=" fw-cl "><span>：</span></span>当调用 compiler 中的 replace 方法时<span class=" fw-cl "><span>，</span></span>我们会读取数据进行模版变量的替换<span class=" fw-cl "><span>，</span></span>这时候<span class="fw-op  "><span>「</span></span>读取数据时<span class=" fw-cl "><span>」</span></span>需要做一个标记<span class=" fw-cl "><span>，</span></span>用来表示<span class="fw-op  "><span>「</span></span>我依赖这一项数据<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>因此我要订阅这个属性值的变化<span class=" fw-cl "><span>。</span></span>Vue 中定义一个 Watcher 类来表示观察订阅依赖<span class=" fw-cl "><span>。</span></span>这就实现了整套流程<span class=" fw-cl "><span>，</span></span>换个思路再复述一遍<span class=" fw-cl "><span>：</span></span>我们知道模版编译过程中会读取数据<span class=" fw-cl "><span>，</span></span>进而触发数据源属性值的 getter<span class=" fw-cl "><span>，</span></span>因此上面所说的数据代理的<span class="fw-op  "><span>「</span></span>加工<span class=" fw-cl "><span>」</span></span>就是在数据监听的 getter 中记录这个依赖<span class=" fw-cl "><span>，</span></span>同时在 setter 触发数据变化时<span class=" fw-cl "><span>，</span></span>执行依赖对应的相关操作<span class=" fw-cl "><span>，</span></span>最终触发模版中数据的变化<span class=" fw-cl "><span>。</span></span></p>
+<p>我们抽象成流程图来理解<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<figure class="central"><img data-src="https://pic1.zhimg.com/v2-8843899c1ab5c883fc67e605d600153a.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:26.491935483870964% 0" data-src="https://pic1.zhimg.com/v2-8843899c1ab5c883fc67e605d600153a.png">加载中...</span><figcaption>图片</figcaption></figure>
+<p>这也是 Vue 框架<span class="fw-op  "><span>（</span></span>类库<span class=" fw-cl "><span>）</span></span>的基本架构图<span class=" fw-cl "><span>。</span></span>由此看出<span class=" fw-cl "><span>，</span></span>Vue 的实现<span class=" fw-cl "><span>，</span></span>或者大部分 MVVM 的实现<span class=" fw-cl "><span>，</span></span>就是我们本节课程介绍的概念组合应用<span class=" fw-cl "><span>。</span></span></p>
+<p>关于框架的对比剖析<span class=" fw-cl "><span>，</span></span>更多话题我们留在<span class="fw-op  "><span>《</span></span>第 4-7 课<span class=" fw-cl "><span>：</span></span>从框架和类库<span class=" fw-cl "><span>，</span></span>我们该学到什么<span class=" fw-cl "><span>》</span></span>一课中介绍<span class=" fw-cl "><span>。</span></span></p>
+<h3>揭秘虚拟 DOM</h3>
+<p>我们来看现代框架中另一个重头戏——虚拟 DOM<span class=" fw-cl "><span>。</span></span>虚拟 DOM 这个概念其实并没有那么新<span class=" fw-cl "><span>，</span></span>甚至在前端三大框架问世之前<span class=" fw-cl "><span>，</span></span>虚拟 DOM 就已经存在了<span class=" fw-cl "><span>，</span></span>只不过 React 创造性的应用了虚拟 DOM<span class=" fw-cl "><span>，</span></span>为前端发展带来了变革<span class=" fw-cl "><span>。</span></span>Vue 2.0 也很快跟进<span class=" fw-cl "><span>，</span></span>使得虚拟 DOM 彻底成为现代框架的重要基因<span class=" fw-cl "><span>。</span></span>简单来说<span class=" fw-cl "><span>，</span></span>虚拟 DOM 就是用数据结构表示 DOM 结构<span class=" fw-cl "><span>，</span></span>它并没有真实 append 到 DOM 上<span class=" fw-cl "><span>，</span></span>因此称之为<span class="fw-op  "><span>「</span></span>虚拟<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>应用虚拟 DOM 的收益也很直观<span class=" fw-cl "><span>：</span></span>操作数据结构远比和浏览器交互去操作 DOM 快很多<span class=" fw-cl "><span>。</span></span>请读者准确理解这句话<span class=" fw-cl "><span>：</span></span>操作数据结构是指改变对象<span class="fw-op  "><span>（</span></span>虚拟 DOM<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>这个过程比修改真实 DOM 快很多<span class=" fw-cl "><span>。</span></span>但虚拟 DOM 也最终是要挂载到浏览器上成为真实 DOM 节点<span class=" fw-cl "><span>，</span></span>因此使用虚拟 DOM 并不能使得操作 DOM 的数量减少<span class=" fw-cl "><span>，</span></span>但能够精确地获取最小的<span class=" fw-cl "><span>、</span></span>最必要的操作 DOM 的集合<span class=" fw-cl "><span>。</span></span></p>
+<p>这样一来<span class=" fw-cl "><span>，</span></span>我们抽象表示 DOM<span class=" fw-cl "><span>，</span></span>每次通过 DOM diff 计算出视图前后更新的最小差异<span class=" fw-cl "><span>，</span></span>再去把最小差异应用到真实 DOM 上的做法<span class=" fw-cl "><span>，</span></span>无疑更为可靠<span class=" fw-cl "><span>，</span></span>性能更有保障<span class=" fw-cl "><span>。</span></span></p>
+<p>那我们该如何表示虚拟 DOM 呢<span class=" fw-cl "><span>？</span></span>又该如何产出虚拟 DOM 呢<span class=" fw-cl "><span>？</span></span></p>
+<p>直观上我们看这样一段 DOM 结构<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<p><br>
+&nbsp;</p>
+<ul>
+  <li style=""><code>chapter1</code></li>
+</ul>
+<p><br>
+&nbsp;</p>
+<ul>
+  <li style=""><code>chapter2</code></li>
+</ul>
+<p><br>
+&nbsp;</p>
+<ul>
+  <li style=""><code>chapter3</code></li>
+</ul>
+<p><br>
+&nbsp;</p>
+<p><br>
+&nbsp;</p>
+<p>如果用 JavaScript 来表示<span class=" fw-cl "><span>，</span></span>我们采用对象结构<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const chapterListVirtualDom = {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;tagName: 'ul',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;attributes: {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id: 'chapterList'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;},</code><br>
+ <code>&nbsp;&nbsp;&nbsp;children: [</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ tagName: 'li', attributes: { class: 'chapter' }, children: ['chapter1'] },</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ tagName: 'li', attributes: { class: 'chapter' }, children: ['chapter2'] },</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ tagName: 'li', attributes: { class: 'chapter' }, children: ['chapter3'] },</code><br>
+ <code>&nbsp;&nbsp;&nbsp;]</code><br>
+ <code>&nbsp;}</code></p>
+<p>很好理解<span class=" fw-cl "><span>：</span></span>tagName 表示虚拟 DOM 对应的真实 DOM 标签类型<span class=" fw-cl "><span>；</span></span>attributes 是一个对象<span class=" fw-cl "><span>，</span></span>表示真实 DOM 节点上所有的属性<span class=" fw-cl "><span>；</span></span>children 对应真实 DOM 的 childNodes<span class=" fw-cl "><span>，</span></span>其中 childNodes 每一项又是类似的结构<span class=" fw-cl "><span>。</span></span></p>
+<p>我们来实现一个虚拟 DOM 生成类<span class=" fw-cl "><span>，</span></span>用于生产虚拟 DOM<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Element {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;constructor(tagName, attributes = {}, children = []) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tagName = tagName</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.attributes = attributes</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.children = children</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;function element(tagName, attributes, children) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;return new Element(tagName, attributes, children)</code><br>
+ <code>&nbsp;}</code></p>
+<p>上述虚拟 DOM 就可以这样生成<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const chapterListVirtualDom = element('ul', { id: 'list' }, [</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter1']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter2']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter3'])</code><br>
+ <code>&nbsp;])</code></p>
+<p>如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-7daf942d7d4a458aa2fe1eb1477b5420.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:37.45059288537549% 0" data-src="https://pic4.zhimg.com/v2-7daf942d7d4a458aa2fe1eb1477b5420.png">加载中...</span><figcaption>图片</figcaption></figure>
+<p>是不是很简单<span class=" fw-cl "><span>？</span></span>我们继续完成虚拟 DOM 向真实 DOM 节点的生成<span class=" fw-cl "><span>。</span></span>首先实现一个 setAttribute 方法<span class=" fw-cl "><span>，</span></span>后续的代码都将使用 setAttribute 方法来对 DOM 节点进行属性设置<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const setAttribute = (node, key, value) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;switch (key) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'style':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.style.cssText = value</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'value':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let tagName = node.tagName || ''</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tagName = tagName.toLowerCase()</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tagName === 'input' || tagName === 'textarea'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.value = value</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果节点不是 input 或者 textarea, 则使用 setAttribute 去设置属性</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.setAttribute(key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.setAttribute(key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code></p>
+<p>Element 类中加入 render 原型方法<span class=" fw-cl "><span>，</span></span>该方法的目的是根据虚拟 DOM 生成真实 DOM 片段<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Element {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;constructor(tagName, attributes = {}, children = []) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tagName = tagName</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.attributes = attributes</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.children = children</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;render () {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let element = document.createElement(this.tagName)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let attributes = this.attributes</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in attributes) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setAttribute(element, key, attributes[key])</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let children = this.children</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;children.forEach(child =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let childElement = child instanceof Element</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? child.render() // 若 child 也是虚拟节点<span class=" fw-cl "><span>，</span></span>递归进行</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: document.createTextNode(child) &nbsp;// 若是字符串<span class=" fw-cl "><span>，</span></span>直接创建文本节点</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;element.appendChild(childElement)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return element</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;function element (tagName, attributes, children) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;return new Element(tagName, attributes, children)</code><br>
+ <code>&nbsp;}</code></p>
+<p>实现也不困难<span class=" fw-cl "><span>，</span></span>我们借助工具方法<span class=" fw-cl "><span>：</span></span>setAttribute 进行属性的创建<span class=" fw-cl "><span>；</span></span>对 children 每一项类型进行判断<span class=" fw-cl "><span>，</span></span>如果是 Element 实例<span class=" fw-cl "><span>，</span></span>进行递归调用 child 的 render 方法<span class=" fw-cl "><span>；</span></span>直到遇见文本节点类型<span class=" fw-cl "><span>，</span></span>进行内容渲染<span class=" fw-cl "><span>。</span></span></p>
+<p>有了真实的 DOM 节点片段<span class=" fw-cl "><span>，</span></span>我们趁热打铁<span class=" fw-cl "><span>，</span></span>将真实的 DOM 节点渲染到浏览器上<span class=" fw-cl "><span>，</span></span>实现 renderDOM 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const renderDom = (element, target) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;target.appendChild(element)</code><br>
+ <code>&nbsp;}</code></p>
+<p>执行代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const setAttribute = (node, key, value) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;switch (key) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'style':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.style.cssText = value</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'value':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let tagName = node.tagName || ''</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tagName = tagName.toLowerCase()</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tagName === 'input' || tagName === 'textarea'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.value = value</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果节点不是 input 或者 textarea<span class=" fw-cl "><span>，</span></span>则使用 setAttribute 去设置属性</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.setAttribute(key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.setAttribute(key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;class Element {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;constructor(tagName, attributes = {}, children = []) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tagName = tagName</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.attributes = attributes</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.children = children</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;render () {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let element = document.createElement(this.tagName)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let attributes = this.attributes</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in attributes) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setAttribute(element, key, attributes[key])</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let children = this.children</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;children.forEach(child =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let childElement = child instanceof Element</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? child.render() // 若 child 也是虚拟节点<span class=" fw-cl "><span>，</span></span>递归进行</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: document.createTextNode(child) &nbsp;// 若是字符串<span class=" fw-cl "><span>，</span></span>直接创建文本节点</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;element.appendChild(childElement)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return element</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;function element (tagName, attributes, children) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;return new Element(tagName, attributes, children)</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const renderDom = (element, target) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;target.appendChild(element)</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const chapterListVirtualDom = element('ul', { id: 'list' }, [</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter1']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter2']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter3'])</code><br>
+ <code>&nbsp;])</code><br>
+ <br>
+ <code>&nbsp;const dom = chapterListVirtualDom.render()</code><br>
+ <br>
+ <code>&nbsp;renderDom(dom, document.body)</code></p>
+<p>得到如图<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-be273e9b1780cb8966bb329f9af16622.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:36.1003861003861% 0" data-src="https://pic2.zhimg.com/v2-be273e9b1780cb8966bb329f9af16622.png">加载中...</span><figcaption>图片</figcaption></figure>
+<h4>虚拟 DOM diff</h4>
+<p>有了上述基础<span class=" fw-cl "><span>，</span></span>我们可以产出一份虚拟 DOM<span class=" fw-cl "><span>，</span></span>并渲染在浏览器中<span class=" fw-cl "><span>。</span></span>当用户在特定操作后<span class=" fw-cl "><span>，</span></span>会产出新的一份虚拟 DOM<span class=" fw-cl "><span>，</span></span>如何得出前后两份虚拟 DOM 的差异<span class=" fw-cl "><span>，</span></span>并交给浏览器需要更新的结果呢<span class=" fw-cl "><span>？</span></span>这就涉及到 DOM diff 的过程<span class=" fw-cl "><span>。</span></span></p>
+<p>直观上<span class=" fw-cl "><span>，</span></span>因为虚拟 DOM 是个树形结构<span class=" fw-cl "><span>，</span></span>所以我们需要对两份虚拟 DOM 进行递归比较<span class=" fw-cl "><span>，</span></span>将变化存储在一个变量 patches 中<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const diff = (oldVirtualDom, newVirtualDom) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let patches = {}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 递归树<span class=" fw-cl "><span>，</span></span>比较后的结果放到 patches</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walkToDiff(oldVirtualDom, newVirtualDom, 0, patches)</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 返回 diff 结果 </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return patches</code><br>
+ <code>&nbsp;}</code></p>
+<p>walkToDiff 前两个参数是两个需要比较的虚拟 DOM 对象<span class=" fw-cl "><span>；</span></span>第三个参数记录 nodeIndex<span class=" fw-cl "><span>，</span></span>在删除节点时使用<span class=" fw-cl "><span>，</span></span>初始为 0<span class=" fw-cl "><span>；</span></span>第四个参数是一个闭包变量<span class=" fw-cl "><span>，</span></span>记录 diff 结果<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let initialIndex = 0</code><br>
+ <br>
+ <code>&nbsp;const walkToDiff = (oldVirtualDom, newVirtualDom, index, patches) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let diffResult = []</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;// 如果 newVirtualDom 不存在<span class=" fw-cl "><span>，</span></span>说明该节点被移除<span class=" fw-cl "><span>，</span></span>我们将 type 为 REMOVE 的对象推进 diffResult 变量<span class=" fw-cl "><span>，</span></span>并记录 index</code><br>
+ <code>&nbsp;&nbsp;&nbsp;if (!newVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'REMOVE',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;index</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// 如果新旧节点都是文本节点<span class=" fw-cl "><span>，</span></span>是字符串</code><br>
+ <code>&nbsp;&nbsp;&nbsp;else if (typeof oldVirtualDom === 'string' &amp;&amp; typeof newVirtualDom === 'string') {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 比较文本是否相同<span class=" fw-cl "><span>，</span></span>如果不同则记录新的结果</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (oldVirtualDom !== newVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'MODIFY_TEXT',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data: newVirtualDom,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;index</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// 如果新旧节点类型相同</code><br>
+ <code>&nbsp;&nbsp;&nbsp;else if (oldVirtualDom.tagName === newVirtualDom.tagName) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 比较属性是否相同</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let diffAttributeResult = {}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in oldVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (oldVirtualDom[key] !== newVirtualDom[key]) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAttributeResult[key] = newVirtualDom[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in newVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 旧节点不存在的新属性</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!oldVirtualDom.hasOwnProperty(key)) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAttributeResult[key] = newVirtualDom[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (Object.keys(diffAttributeResult).length &gt; 0) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'MODIFY_ATTRIBUTES', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAttributeResult </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果有子节点<span class=" fw-cl "><span>，</span></span>遍历子节点</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;oldVirtualDom.children.forEach((child, index) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walkToDiff(child, newVirtualDom.children[index], ++initialIndex, patches)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// else 说明节点类型不同<span class=" fw-cl "><span>，</span></span>被直接替换了<span class=" fw-cl "><span>，</span></span>我们直接将新的结果 push</code><br>
+ <code>&nbsp;&nbsp;&nbsp;else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'REPLACE', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;newVirtualDom</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;if (!oldVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'REPLACE', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;newVirtualDom</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;if (diffResult.length) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patches[index] = diffResult</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code></p>
+<p>我们最后将所有代码放在一起<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const setAttribute = (node, key, value) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;switch (key) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'style':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.style.cssText = value</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'value':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let tagName = node.tagName || ''</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tagName = tagName.toLowerCase()</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tagName === 'input' || tagName === 'textarea'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.value = value</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果节点不是 input 或者 textarea<span class=" fw-cl "><span>，</span></span>则使用 setAttribute 去设置属性</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.setAttribute(key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.setAttribute(key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;class Element {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;constructor(tagName, attributes = {}, children = []) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tagName = tagName</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.attributes = attributes</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.children = children</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;render () {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let element = document.createElement(this.tagName)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let attributes = this.attributes</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in attributes) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setAttribute(element, key, attributes[key])</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let children = this.children</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;children.forEach(child =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let childElement = child instanceof Element</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? child.render() // 若 child 也是虚拟节点<span class=" fw-cl "><span>，</span></span>递归进行</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: document.createTextNode(child) &nbsp;// 若是字符串<span class=" fw-cl "><span>，</span></span>直接创建文本节点</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;element.appendChild(childElement)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return element</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;function element (tagName, attributes, children) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;return new Element(tagName, attributes, children)</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const renderDom = (element, target) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;target.appendChild(element)</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const diff = (oldVirtualDom, newVirtualDom) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let patches = {}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;// 递归树 比较后的结果放到 patches</code><br>
+ <code>&nbsp;&nbsp;&nbsp;walkToDiff(oldVirtualDom, newVirtualDom, 0, patches)</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;return patches</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;let initialIndex = 0</code><br>
+ <br>
+ <code>&nbsp;const walkToDiff = (oldVirtualDom, newVirtualDom, index, patches) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let diffResult = []</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;// 如果 newVirtualDom 不存在<span class=" fw-cl "><span>，</span></span>说明该节点被移除<span class=" fw-cl "><span>，</span></span>我们将 type 为 REMOVE 的对象推进 diffResult 变量<span class=" fw-cl "><span>，</span></span>并记录 index</code><br>
+ <code>&nbsp;&nbsp;&nbsp;if (!newVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'REMOVE',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;index</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// 如果新旧节点都是文本节点<span class=" fw-cl "><span>，</span></span>是字符串</code><br>
+ <code>&nbsp;&nbsp;&nbsp;else if (typeof oldVirtualDom === 'string' &amp;&amp; typeof newVirtualDom === 'string') {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 比较文本是否相同<span class=" fw-cl "><span>，</span></span>如果不同则记录新的结果</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (oldVirtualDom !== newVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'MODIFY_TEXT',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data: newVirtualDom,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;index</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// 如果新旧节点类型相同</code><br>
+ <code>&nbsp;&nbsp;&nbsp;else if (oldVirtualDom.tagName === newVirtualDom.tagName) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 比较属性是否相同</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let diffAttributeResult = {}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in oldVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (oldVirtualDom[key] !== newVirtualDom[key]) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAttributeResult[key] = newVirtualDom[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in newVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 旧节点不存在的新属性</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!oldVirtualDom.hasOwnProperty(key)) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAttributeResult[key] = newVirtualDom[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (Object.keys(diffAttributeResult).length &gt; 0) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'MODIFY_ATTRIBUTES', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAttributeResult </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果有子节点<span class=" fw-cl "><span>，</span></span>遍历子节点</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;oldVirtualDom.children.forEach((child, index) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walkToDiff(child, newVirtualDom.children[index], ++initialIndex, patches)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// else 说明节点类型不同<span class=" fw-cl "><span>，</span></span>被直接替换了<span class=" fw-cl "><span>，</span></span>我们直接将新的结果 push</code><br>
+ <code>&nbsp;&nbsp;&nbsp;else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'REPLACE', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;newVirtualDom</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;if (!oldVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'REPLACE', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;newVirtualDom</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;if (diffResult.length) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patches[index] = diffResult</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code></p>
+<p>我们对 diff 进行测试<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const chapterListVirtualDom = element('ul', { id: 'list' }, [</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter1']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter2']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter3'])</code><br>
+ <code>&nbsp;])</code><br>
+ <br>
+ <code>&nbsp;const chapterListVirtualDom1 = element('ul', { id: 'list2' }, [</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter2' }, ['chapter4']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter2' }, ['chapter5']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter2' }, ['chapter6'])</code><br>
+ <code>&nbsp;])</code><br>
+ <br>
+ <code>&nbsp;diff(chapterListVirtualDom, chapterListVirtualDom1)</code></p>
+<p>得到如图 diff 数组<span class=" fw-cl "><span>：</span></span></p>
+<p><br>
+&nbsp;</p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-dd803730f478c058c5592519ea94ac95.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:47.445972495088405% 0" data-src="https://pic3.zhimg.com/v2-dd803730f478c058c5592519ea94ac95.png">加载中...</span><figcaption>图片</figcaption></figure>
+<h4>最小化差异应用</h4>
+<p>大功告成之前<span class=" fw-cl "><span>，</span></span>我们来看看都做了哪些事情<span class=" fw-cl "><span>：</span></span>通过 Element class 生成了虚拟 DOM<span class=" fw-cl "><span>，</span></span>通过 diff 方法对任意两个虚拟 DOM 进行比对<span class=" fw-cl "><span>，</span></span>得到差异<span class=" fw-cl "><span>。</span></span>那么这个差异如何更新到现有的 DOM 节点中呢<span class=" fw-cl "><span>？</span></span>看上去需要一个 patch 方法来完成<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const patch = (node, patches) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let walker = { index: 0 }</code><br>
+ <code>&nbsp;&nbsp;&nbsp;walk(node, walker, patches)</code><br>
+ <code>&nbsp;}</code></p>
+<p>patch 方法接受一个真实的 DOM 节点<span class=" fw-cl "><span>，</span></span>它是现有的浏览器中需要进行更新的 DOM 节点<span class=" fw-cl "><span>，</span></span>同时接受一个最小化差异集合<span class=" fw-cl "><span>，</span></span>该集合对接 diff 方法返回的结果<span class=" fw-cl "><span>。</span></span>在 patch 方法内部<span class=" fw-cl "><span>，</span></span>我们调用了 walk 函数<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const walk = (node, walker, patches) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let currentPatch = patches[walker.index]</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;let childNodes = node.childNodes</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;childNodes.forEach(child =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walker.index++</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walk(child, walker, patches)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;})</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;if (currentPatch) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;doPatch(node, currentPatch)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code></p>
+<p>walk 进行自身递归<span class=" fw-cl "><span>，</span></span>对于当前节点的差异调用 doPatch 方法进行更新<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const doPatch = (node, patches) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;patches.forEach(patch =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;switch (patch.type) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'MODIFY_ATTRIBUTES':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const attributes = patch.diffAttributeResult.attributes</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in attributes) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (node.nodeType !== 1) return</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const value = attributes[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (value) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setAttribute(node, key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.removeAttribute(key)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'MODIFY_TEXT':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.textContent = patch.data</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'REPLACE':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let newNode = (patch.newNode instanceof Element) ? render(patch.newNode) : document.createTextNode(patch.newNode)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.parentNode.replaceChild(newNode, node)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'REMOVE':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.parentNode.removeChild(node)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;}</code></p>
+<p>doPatch 对四种类型的 diff 进行处理<span class=" fw-cl "><span>，</span></span>最终进行测试<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var element = chapterListVirtualDom.render()</code><br>
+ <code>&nbsp;renderDom(element, document.body)</code><br>
+ <br>
+ <code>&nbsp;const patches = diff(chapterListVirtualDom, chapterListVirtualDom1)</code><br>
+ <br>
+ <code>&nbsp;patch(element, patches)</code></p>
+<p>全部代码放在一起<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const setAttribute = (node, key, value) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;switch (key) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'style':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.style.cssText = value</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'value':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let tagName = node.tagName || ''</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tagName = tagName.toLowerCase()</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tagName === 'input' || tagName === 'textarea'</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.value = value</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果节点不是 input 或者 textarea, 则使用 setAttribute 去设置属性</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.setAttribute(key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.setAttribute(key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;class Element {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;constructor(tagName, attributes = {}, children = []) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tagName = tagName</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.attributes = attributes</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.children = children</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;render () {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let element = document.createElement(this.tagName)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let attributes = this.attributes</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in attributes) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setAttribute(element, key, attributes[key])</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let children = this.children</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;children.forEach(child =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let childElement = child instanceof Element</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? child.render() // 若 child 也是虚拟节点<span class=" fw-cl "><span>，</span></span>递归进行</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: document.createTextNode(child) &nbsp;// 若是字符串<span class=" fw-cl "><span>，</span></span>直接创建文本节点</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;element.appendChild(childElement)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return element</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;function element (tagName, attributes, children) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;return new Element(tagName, attributes, children)</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const renderDom = (element, target) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;target.appendChild(element)</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const diff = (oldVirtualDom, newVirtualDom) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let patches = {}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;// 递归树 比较后的结果放到 patches</code><br>
+ <code>&nbsp;&nbsp;&nbsp;walkToDiff(oldVirtualDom, newVirtualDom, 0, patches)</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;return patches</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;let initialIndex = 0</code><br>
+ <br>
+ <code>&nbsp;const walkToDiff = (oldVirtualDom, newVirtualDom, index, patches) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let diffResult = []</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;// 如果 newVirtualDom 不存在<span class=" fw-cl "><span>，</span></span>说明该节点被移除<span class=" fw-cl "><span>，</span></span>我们将 type 为 REMOVE 的对象推进 diffResult 变量<span class=" fw-cl "><span>，</span></span>并记录 index</code><br>
+ <code>&nbsp;&nbsp;&nbsp;if (!newVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'REMOVE',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;index</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// 如果新旧节点都是文本节点<span class=" fw-cl "><span>，</span></span>是字符串</code><br>
+ <code>&nbsp;&nbsp;&nbsp;else if (typeof oldVirtualDom === 'string' &amp;&amp; typeof newVirtualDom === 'string') {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 比较文本是否相同<span class=" fw-cl "><span>，</span></span>如果不同则记录新的结果</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (oldVirtualDom !== newVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'MODIFY_TEXT',</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data: newVirtualDom,</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;index</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// 如果新旧节点类型相同</code><br>
+ <code>&nbsp;&nbsp;&nbsp;else if (oldVirtualDom.tagName === newVirtualDom.tagName) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 比较属性是否相同</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let diffAttributeResult = {}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in oldVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (oldVirtualDom[key] !== newVirtualDom[key]) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAttributeResult[key] = newVirtualDom[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in newVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 旧节点不存在的新属性</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!oldVirtualDom.hasOwnProperty(key)) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAttributeResult[key] = newVirtualDom[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (Object.keys(diffAttributeResult).length &gt; 0) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'MODIFY_ATTRIBUTES', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffAttributeResult </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果有子节点<span class=" fw-cl "><span>，</span></span>遍历子节点</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;oldVirtualDom.children.forEach((child, index) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walkToDiff(child, newVirtualDom.children[index], ++initialIndex, patches)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;// else 说明节点类型不同<span class=" fw-cl "><span>，</span></span>被直接替换了<span class=" fw-cl "><span>，</span></span>我们直接将新的结果 push</code><br>
+ <code>&nbsp;&nbsp;&nbsp;else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'REPLACE', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;newVirtualDom</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;if (!oldVirtualDom) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;diffResult.push({ </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'REPLACE', </code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;newVirtualDom</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;if (diffResult.length) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patches[index] = diffResult</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const chapterListVirtualDom = element('ul', { id: 'list' }, [</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter1']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter2']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter' }, ['chapter3'])</code><br>
+ <code>&nbsp;])</code><br>
+ <br>
+ <code>&nbsp;const chapterListVirtualDom1 = element('ul', { id: 'list2' }, [</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter2' }, ['chapter4']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter2' }, ['chapter5']),</code><br>
+ <code>&nbsp;&nbsp;&nbsp;element('li', { class: 'chapter2' }, ['chapter6'])</code><br>
+ <code>&nbsp;])</code><br>
+ <br>
+ <code>&nbsp;const patch = (node, patches) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let walker = { index: 0 }</code><br>
+ <code>&nbsp;&nbsp;&nbsp;walk(node, walker, patches)</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const walk = (node, walker, patches) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;let currentPatch = patches[walker.index]</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;let childNodes = node.childNodes</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;childNodes.forEach(child =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walker.index++</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;walk(child, walker, patches)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;})</code><br>
+ <br>
+ <code>&nbsp;&nbsp;&nbsp;if (currentPatch) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;doPatch(node, currentPatch)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;}</code><br>
+ <br>
+ <code>&nbsp;const doPatch = (node, patches) =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;patches.forEach(patch =&gt; {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;switch (patch.type) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'MODIFY_ATTRIBUTES':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const attributes = patch.diffAttributeResult.attributes</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let key in attributes) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (node.nodeType !== 1) return</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const value = attributes[key]</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (value) {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setAttribute(node, key, value)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.removeAttribute(key)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'MODIFY_TEXT':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.textContent = patch.data</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'REPLACE':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let newNode = (patch.newNode instanceof Element) ? render(patch.newNode) : document.createTextNode(patch.newNode)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.parentNode.replaceChild(newNode, node)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'REMOVE':</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.parentNode.removeChild(node)</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break</code><br>
+ <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code><br>
+ <code>&nbsp;&nbsp;&nbsp;})</code><br>
+ <code>&nbsp;}</code></p>
+<p>先执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var element = chapterListVirtualDom.render()</code><br>
+ <code>&nbsp;renderDom(element, document.body)</code></p>
+<p>再执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const patches = diff(chapterListVirtualDom, chapterListVirtualDom1)</code><br>
+ <br>
+ <code>&nbsp;patch(element, patches)</code></p>
+<p>生成结果符合预期<span class=" fw-cl "><span>。</span></span></p>
+<p>短短不到两百行代码<span class=" fw-cl "><span>，</span></span>就实现了虚拟 DOM 思想的全部流程<span class=" fw-cl "><span>。</span></span>当然其中还有一些优化手段<span class=" fw-cl "><span>，</span></span>一些边界情况并没有进行特别处理<span class=" fw-cl "><span>，</span></span>但是我们去翻看一些著名的虚拟 DOM 库<span class=" fw-cl "><span>：</span></span>snabbdom<span class=" fw-cl "><span>、</span></span>etch 等<span class=" fw-cl "><span>，</span></span>其实现思想和上述教例完全一致<span class=" fw-cl "><span>。</span></span></p>
+<h3>总结</h3>
+<p>现代框架无疑极大程度上解放了前端生产力<span class=" fw-cl "><span>，</span></span>其设计思想相互借鉴<span class=" fw-cl "><span>，</span></span>存在非常多的共性<span class=" fw-cl "><span>。</span></span>本讲我们通过分析前端框架中的共性<span class=" fw-cl "><span>，</span></span>梳理概念原理<span class=" fw-cl "><span>，</span></span>希望达到<span class="fw-op  "><span>「</span></span>任何一种框架变得不再神秘<span class=" fw-cl "><span>」</span></span>的目的<span class=" fw-cl "><span>。</span></span>掌握了这些基本思想<span class=" fw-cl "><span>，</span></span>我们不仅能触类旁通<span class=" fw-cl "><span>，</span></span>更快地上手框架<span class=" fw-cl "><span>，</span></span>更能学习进阶<span class=" fw-cl "><span>，</span></span>吸取优秀框架的精华<span class=" fw-cl "><span>。</span></span></p>
+<h3><br>
+&nbsp;</h3><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX18ZybPO6CPZAB61sbdLe</span></p>
+</body>
+</html>

@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 40 节剖析无处不在的数据结构</h1>
+  <p>数据结构是计算机中组织和存储数据的特定方式<span class=" fw-cl "><span>，</span></span>它的目的是方便且高效地对数据进行访问和修改<span class=" fw-cl "><span>。</span></span>数据结构表述了数据之间的关系<span class=" fw-cl "><span>，</span></span>以及操作数据的一系列方法<span class=" fw-cl "><span>。</span></span>数据又是程序的基本单元<span class=" fw-cl "><span>，</span></span>因此无论是哪种语言<span class=" fw-cl "><span>、</span></span>哪种领域<span class=" fw-cl "><span>，</span></span>都离不开数据结构<span class=" fw-cl "><span>；</span></span>另一方面<span class=" fw-cl "><span>，</span></span>数据结构是算法的基础<span class=" fw-cl "><span>，</span></span>其本身也包含了算法的部分内容<span class=" fw-cl "><span>。</span></span>也就是说<span class=" fw-cl "><span>，</span></span>想要掌握算法<span class=" fw-cl "><span>，</span></span>先有一个巩固的数据结构基础是必要条件<span class=" fw-cl "><span>。</span></span></p>
+<p>前端领域也到处体现着数据结构的应用<span class=" fw-cl "><span>，</span></span>尤其是随着需求的复杂度上升<span class=" fw-cl "><span>，</span></span>前端工程师越来越离不开数据结构<span class=" fw-cl "><span>。</span></span>React<span class=" fw-cl "><span>、</span></span>Vue 这些设计精巧的框架<span class=" fw-cl "><span>，</span></span>在线文档编辑系统<span class=" fw-cl "><span>、</span></span>大型管理系统<span class=" fw-cl "><span>，</span></span>甚至一个简单的检索需求<span class=" fw-cl "><span>，</span></span>都离不开数据结构的支持<span class=" fw-cl "><span>。</span></span>是否能够掌握这个难点内容<span class=" fw-cl "><span>，</span></span>将是进阶的重要考量<span class=" fw-cl "><span>。</span></span>我们应该如何学习数据结构呢<span class=" fw-cl "><span>？</span></span></p>
+<p>下图是本讲内容的提纲<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-e871420f3714037475dd5cf16fdcf66b.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:41.31534569983137% 0" data-src="https://pic2.zhimg.com/v2-e871420f3714037475dd5cf16fdcf66b.png">加载中...</span></figure>
+<h3>数据结构和学习方法概览</h3>
+<p>我通常将数据结构分为八大类<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">数组<span class=" fw-cl "><span>：</span></span>Array</li>
+  <li style="">堆栈<span class=" fw-cl "><span>：</span></span>Stack</li>
+  <li style="">队列<span class=" fw-cl "><span>：</span></span>Queue</li>
+  <li style="">链表<span class=" fw-cl "><span>：</span></span>Linked Lists</li>
+  <li style="">树<span class=" fw-cl "><span>：</span></span>Trees</li>
+  <li style="">图<span class=" fw-cl "><span>：</span></span>Graphs</li>
+  <li style="">字典树<span class=" fw-cl "><span>：</span></span>Trie</li>
+  <li style="">散列表<span class="fw-op  "><span>（</span></span>哈希表<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span>Hash Tables</li>
+</ul>
+<p>这么多的类型<span class=" fw-cl "><span>，</span></span>这节课该如何介绍呢<span class=" fw-cl "><span>？</span></span>我认为<span class=" fw-cl "><span>，</span></span>按部就班地只是实现各种数据结构的意义不大<span class=" fw-cl "><span>，</span></span>这些内容读者都可以从算法书籍中找到<span class=" fw-cl "><span>。</span></span>更重要地是应用<span class=" fw-cl "><span>，</span></span>也只有在应用中<span class=" fw-cl "><span>，</span></span>才能真正地记住并掌握特定的数据结构<span class=" fw-cl "><span>，</span></span>才能在下次有类似场景时<span class=" fw-cl "><span>，</span></span>能够想起来相关的数据结构实现<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>这节课程我将从前端出发<span class=" fw-cl "><span>，</span></span>从前端类库或者典型场景入手<span class=" fw-cl "><span>，</span></span>结合数据结构来剖析其实现和应用<span class=" fw-cl "><span>。</span></span>这需要读者首先对每种数据结构有一个大概认知<span class=" fw-cl "><span>，</span></span>我们可以先来细化感知一下<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">栈和队列是类似数组的结构<span class=" fw-cl "><span>，</span></span>非常多的初级题目要求用数组实现栈和队列<span class=" fw-cl "><span>，</span></span>他们在插入和删除的方式上和数组有所差异<span class=" fw-cl "><span>，</span></span>但是实现还是非常简单的<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">链表<span class=" fw-cl "><span>、</span></span>树和图这种数据结构的特点是<span class=" fw-cl "><span>，</span></span>其节点需要引用到其他节点<span class=" fw-cl "><span>，</span></span>因此在增删时<span class=" fw-cl "><span>，</span></span>需要注意对相关前驱和后继节点的影响<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">可以从堆栈和队列出发<span class=" fw-cl "><span>，</span></span>构建出链表<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">树和图最为复杂<span class=" fw-cl "><span>，</span></span>因为他们本质上是扩展了链表的概念<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">散列表的关键是理解散列函数<span class=" fw-cl "><span>，</span></span>明白依赖散列函数实现保存和定位数据的过程<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">直观上认为<span class=" fw-cl "><span>，</span></span>链表适合记录和存储数据<span class=" fw-cl "><span>；</span></span>哈希表和字典树在检索数据以及搜索方面有更大的应用场景<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>以上这些<span class="fw-op  "><span>「</span></span>直观感性<span class=" fw-cl "><span>」</span></span>的认知并不是<span class="fw-op  "><span>「</span></span>恒等式<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span> <strong style="">我们将在下面的学习中去印证这些<span class="fw-op  "><span>「</span></span>认知<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>你将会看到熟悉的 React<span class=" fw-cl "><span>、</span></span>Vue 框架的部分实现<span class=" fw-cl "><span>，</span></span>将会看到典型的算法场景<span class=" fw-cl "><span>，</span></span>也请读者做好基础知识的储备<span class=" fw-cl "><span>。</span></span></strong></p>
+<h3>堆栈和队列</h3>
+<p>栈和队列是一种操作受限的线性结构<span class=" fw-cl "><span>，</span></span>它们非常简单<span class=" fw-cl "><span>，</span></span>虽然 JavaScript 并没有原生内置这样的数据结构<span class=" fw-cl "><span>，</span></span>但是我们可以轻松地模拟出来<span class=" fw-cl "><span>。</span></span></p>
+<p>栈的实现<span class=" fw-cl "><span>，</span></span>后进先出 LIFO<span class="fw-op  "><span>（</span></span>Last in<span class=" fw-cl "><span>、</span></span>First out<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Stack {<br>
+ &nbsp;constructor(...args) {<br>
+ &nbsp;&nbsp;&nbsp;this.stack = [...args]<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// Modifiers<br>
+ &nbsp;push(...items) {<br>
+ &nbsp;&nbsp;&nbsp;return this.stack.push(... items)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;pop() {<br>
+ &nbsp;&nbsp;&nbsp;return this.stack.pop()<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// Element access<br>
+ &nbsp;peek() {<br>
+ &nbsp;&nbsp;&nbsp;return this.isEmpty() <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? undefined<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: this.stack[this.size() - 1]<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// Capacity<br>
+ &nbsp;isEmpty() {<br>
+ &nbsp;&nbsp;&nbsp;return this.size() == 0<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;size() {<br>
+ &nbsp;&nbsp;&nbsp;return this.stack.length<br>
+ &nbsp;}<br>
+}</code></p>
+<p>队列的实现<span class=" fw-cl "><span>，</span></span>先进先出 FIFO<span class="fw-op  "><span>（</span></span>First in<span class=" fw-cl "><span>、</span></span>First out<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Queue {<br>
+ &nbsp;constructor(...args) {<br>
+ &nbsp;&nbsp;&nbsp;this.queue = [...args]<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// Modifiers<br>
+ &nbsp;enqueue(...items) {<br>
+ &nbsp;&nbsp;&nbsp;return this.queue.push(... items)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;dequeue() {<br>
+ &nbsp;&nbsp;&nbsp;return this.queue.shift()<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// Element access<br>
+ &nbsp;front() { <br>
+ &nbsp;&nbsp;&nbsp;return this.isEmpty()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? undefined<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: this.queue[0]<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;back() {<br>
+ &nbsp;&nbsp;&nbsp;return this.isEmpty()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? undefined<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: this.queue[this.size() - 1]<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// Capacity<br>
+ &nbsp;isEmpty() {<br>
+ &nbsp;&nbsp;&nbsp;return this.size() == 0<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;size() {<br>
+ &nbsp;&nbsp;&nbsp;return this.queue.length<br>
+ &nbsp;}<br>
+}</code></p>
+<p>关于栈和队列的实际应用比比皆是<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">浏览器的历史记录<span class=" fw-cl "><span>，</span></span>因为回退总是回退<span class="fw-op  "><span>「</span></span>上一个<span class=" fw-cl "><span>」</span></span>最近的页面<span class=" fw-cl "><span>，</span></span>它需要遵循栈的原则<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">类似浏览器的历史记录<span class=" fw-cl "><span>，</span></span>任何 undo/redo 都是一个栈的实现<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">在代码中<span class=" fw-cl "><span>，</span></span>广泛应用的递归产生的调用栈<span class=" fw-cl "><span>，</span></span>同样也是栈思想的体现<span class=" fw-cl "><span>，</span></span>想想我们常说的<span class="fw-op  "><span>「</span></span>栈溢出<span class=" fw-cl "><span>」</span></span>就是这个道理<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">同上<span class=" fw-cl "><span>，</span></span>浏览器在抛出异常时<span class=" fw-cl "><span>，</span></span>常规都会抛出调用栈信息<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">在计算机科学领域应用广泛<span class=" fw-cl "><span>，</span></span>如进制转换<span class=" fw-cl "><span>、</span></span>括号匹配<span class=" fw-cl "><span>、</span></span>栈混洗<span class=" fw-cl "><span>、</span></span>表达式求值等<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">队列的应用更为直观<span class=" fw-cl "><span>，</span></span>我们常说的宏任务 / 微任务都是队列<span class=" fw-cl "><span>，</span></span>不管是什么类型的任务<span class=" fw-cl "><span>，</span></span>都是先进先执行<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">后端也应用广泛<span class=" fw-cl "><span>，</span></span>如消息队列<span class=" fw-cl "><span>、</span></span>RabbitMQ<span class=" fw-cl "><span>、</span></span>ActiveMQ 等<span class=" fw-cl "><span>，</span></span>能起到延迟缓冲的功效<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>我们看到不管是栈还是队列<span class=" fw-cl "><span>，</span></span>都是用数组来模拟的<span class=" fw-cl "><span>。</span></span>数组是最基本的数据结构<span class=" fw-cl "><span>，</span></span>但是它的价值是惊人的<span class=" fw-cl "><span>，</span></span>这里稍微提一下 React hooks 的本质就是数组<span class=" fw-cl "><span>。</span></span>给大家推荐文章<span class=" fw-cl "><span>：</span></span><a href="https://medium.com/@ryardley/react-hooks-not-magic-just-arrays-cd4f1857236e" title="React hooks: not magic, just arrays">React hooks: not magic, just arrays</a></p>
+<p>另外<span class=" fw-cl "><span>，</span></span>与性能后话相关<span class=" fw-cl "><span>，</span></span>HTTP 1.1 有一个队头阻塞问题<span class=" fw-cl "><span>，</span></span>这个原因就在于队列这样的数据结构<span class=" fw-cl "><span>：</span></span>我们先看 HTTP 1.0<span class=" fw-cl "><span>，</span></span>对于同一个 tcp 连接<span class=" fw-cl "><span>，</span></span>HTTP 1.0 是将所有请求都放入队列当中<span class=" fw-cl "><span>，</span></span>这么一来<span class=" fw-cl "><span>，</span></span>在客户端<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>先进先出<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>只有前一个请求得到了响应<span class=" fw-cl "><span>，</span></span>下一个请求才会发出<span class=" fw-cl "><span>。</span></span>在 HTTP 1.1 中<span class=" fw-cl "><span>，</span></span>这样的情况得到了改观<span class=" fw-cl "><span>，</span></span>每一个链接都默认是长链接<span class=" fw-cl "><span>，</span></span>因此对于同一个 tcp 链接<span class=" fw-cl "><span>，</span></span>不必等到前一个响应回来<span class=" fw-cl "><span>。</span></span>但是这只是解决了客户端的队头阻塞问题<span class=" fw-cl "><span>，</span></span>事实上<span class=" fw-cl "><span>，</span></span>HTTP 1.1 规定<span class=" fw-cl "><span>：</span></span>服务端的响应返回顺序需要遵循其接收到相应的顺序<span class=" fw-cl "><span>，</span></span>这样的问题是<span class=" fw-cl "><span>：</span></span>如果第一个请求处理需要较长时间<span class=" fw-cl "><span>，</span></span>响应较慢<span class=" fw-cl "><span>，</span></span>也都会<span class="fw-op  "><span>「</span></span>拖累<span class=" fw-cl "><span>」</span></span>其他后续请求的响应<span class=" fw-cl "><span>，</span></span>这仍然是一种队头阻塞<span class=" fw-cl "><span>。</span></span></p>
+<p>HTTP 2 采用了二进制分帧和多路复用等方法<span class=" fw-cl "><span>，</span></span> 同域名下的通信都是在同一个连接上完成<span class=" fw-cl "><span>，</span></span>并且这种链接是双向的<span class=" fw-cl "><span>，</span></span>在这个链接上可以并行请求和响应而互不干扰<span class=" fw-cl "><span>。</span></span></p>
+<p>这里延伸的有点多了<span class=" fw-cl "><span>，</span></span>主要是读者需要明白队列和栈这种数据结构的应用<span class=" fw-cl "><span>，</span></span>以及利弊<span class=" fw-cl "><span>。</span></span></p>
+<h3>链表<span class="fw-op  "><span>（</span></span>单向链表和双向链表<span class=" fw-cl "><span>）</span></span></h3>
+<p>堆栈和队列都可以用数组实现<span class=" fw-cl "><span>，</span></span>链表同样和数组一样<span class=" fw-cl "><span>，</span></span>都实现了<strong style="">按照一定的顺序</strong>存储元素<span class=" fw-cl "><span>，</span></span>不同的地方在于链表不能像数组一样通过下标访问<span class=" fw-cl "><span>，</span></span>而是每一个元素指向下一个元素<span class=" fw-cl "><span>。</span></span>我们不再过多介绍链表方面的基础知识<span class=" fw-cl "><span>，</span></span>对于链表仍不理解的读者可以先自行学习<span class=" fw-cl "><span>。</span></span></p>
+<p>直观上我们就可以得出结论<span class=" fw-cl "><span>：</span></span>链表不需要一段连续的存储空间<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>指向下一个元素<span class=" fw-cl "><span>」</span></span>的方式能够更大限度地利用内存<span class=" fw-cl "><span>。</span></span></p>
+<p>根据上面结论可以继续总结<span class=" fw-cl "><span>，</span></span>链表的优点在于<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">链表的插入和删除操作的时间复杂度是常数级的<span class=" fw-cl "><span>，</span></span>我们只需要改变相关节点的指针指向即可<span class=" fw-cl "><span>；</span></span></li>
+  <li style="">链表可以像数组一样顺序访问<span class=" fw-cl "><span>，</span></span>查找元素的时间复杂度是线性的<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>我们来看看链表的应用场景<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">React 的核心算法 Fiber 的实现就是链表</li>
+</ul>
+<p>关于此我们可以稍作展开<span class=" fw-cl "><span>。</span></span>React 最早开始使用大名鼎鼎的 Stack reconciler 调度算法<span class=" fw-cl "><span>，</span></span>关于此在之前的课程中已经有所涉及<span class=" fw-cl "><span>。</span></span>Stack reconciler 调度算法最大的问题在于<span class=" fw-cl "><span>：</span></span><strong style="">它是像函数调用栈一样<span class=" fw-cl "><span>，</span></span>递归地<span class=" fw-cl "><span>、</span></span>自顶向下进行 diff 和 render 相关操作的</strong><span class=" fw-cl "><span>，</span></span>在 Stack reconciler 执行的过程当中<span class=" fw-cl "><span>，</span></span>该调度算法始终会占据浏览器主线程<span class=" fw-cl "><span>。</span></span>也就是说在此期间<span class=" fw-cl "><span>，</span></span>用户的交互所触发的布局行为<span class=" fw-cl "><span>、</span></span>动画执行任务都不会被立即响应<span class=" fw-cl "><span>，</span></span>从而影响用户体验<span class=" fw-cl "><span>。</span></span></p>
+<p>因此 React Fiber 将渲染和更新过程进行了拆解<span class=" fw-cl "><span>，</span></span>简单来说<span class=" fw-cl "><span>，</span></span>就是每次检查虚拟 DOM 的一小部分<span class=" fw-cl "><span>，</span></span>在检查间隙会检查<span class="fw-op  "><span>「</span></span>是否还有时间继续执行下一个虚拟 DOM 树上某个分支任务<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>同时观察是否有更优先的任务需要响应<span class=" fw-cl "><span>，</span></span>如果<span class="fw-op  "><span>「</span></span>没有时间执行下一个虚拟 DOM 树上某个分支任务<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>且有更高优先级<span class=" fw-cl "><span>，</span></span>React 就会让出主线程<span class=" fw-cl "><span>，</span></span>直到主线程<span class="fw-op  "><span>「</span></span>不忙<span class=" fw-cl "><span>」</span></span>的时候继续执行任务<span class=" fw-cl "><span>。</span></span></p>
+<p>React Fiber 因此也很简单<span class=" fw-cl "><span>，</span></span>它是将 Stack reconciler 过程分成块<span class=" fw-cl "><span>，</span></span>一次执行一块<span class=" fw-cl "><span>，</span></span>执行完一块需要将结果保存起来<span class=" fw-cl "><span>，</span></span>根据是否还有空闲的响应时间<span class="fw-op  "><span>（</span></span>requestIdleCallback<span class=" fw-cl "><span>）</span></span>来决定下一步策略<span class=" fw-cl "><span>。</span></span>当所有的块都已经执行完<span class=" fw-cl "><span>，</span></span>就进入提交阶段<span class=" fw-cl "><span>，</span></span>这个阶段需要更新 DOM<span class=" fw-cl "><span>，</span></span>它是一口气完成的<span class=" fw-cl "><span>。</span></span></p>
+<p>以上是比较主观地介绍<span class=" fw-cl "><span>，</span></span>我们来看更具体的实现<span class=" fw-cl "><span>。</span></span></p>
+<p>为了达到<span class="fw-op  "><span>「</span></span>随意中断调用栈并手动操作调用栈<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>React Fiber 就是专门用于 React 组件堆栈调用的重新实现<span class=" fw-cl "><span>，</span></span>也就是说一个 Fiber 就是一个虚拟堆栈帧<span class=" fw-cl "><span>，</span></span>一个 Fiber 的结构类似<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function FiberNode(<br>
+ &nbsp;tag: WorkTag,<br>
+ &nbsp;pendingProps: mixed,<br>
+ &nbsp;key: null | string,<br>
+ &nbsp;mode: TypeOfMode,<br>
+) {<br>
+ &nbsp;// Instance<br>
+ &nbsp;// ...<br>
+ &nbsp;this.tag = tag; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+<br>
+ &nbsp;// Fiber<br>
+ &nbsp;this.return = null;<br>
+ &nbsp;this.child = null;<br>
+ &nbsp;this.sibling = null;<br>
+ &nbsp;this.index = 0;<br>
+<br>
+ &nbsp;this.ref = null;<br>
+<br>
+ &nbsp;this.pendingProps = pendingProps;<br>
+ &nbsp;this.memoizedProps = null;<br>
+ &nbsp;this.updateQueue = null;<br>
+ &nbsp;this.memoizedState = null;<br>
+ &nbsp;this.dependencies = null;<br>
+<br>
+ &nbsp;// Effects<br>
+ &nbsp;// ...<br>
+ &nbsp;this.alternate = null; <br>
+}</code></p>
+<p>这么看 Fiber 就是一个对象<span class=" fw-cl "><span>，</span></span>通过 parent<span class=" fw-cl "><span>、</span></span>children<span class=" fw-cl "><span>、</span></span>sibling 维护一个树形关系<span class=" fw-cl "><span>，</span></span>同时 parent<span class=" fw-cl "><span>、</span></span>children<span class=" fw-cl "><span>、</span></span>sibling 也都是一个 Fiber 结构<span class=" fw-cl "><span>，</span></span>FiberNode.alternate 这个属性来存储上一次渲染过的结果<span class=" fw-cl "><span>，</span></span>事实上整个 Fiber 模式就是一个链表<span class=" fw-cl "><span>。</span></span>React 也借此<span class=" fw-cl "><span>，</span></span>从依赖于内置堆栈的同步递归模型<span class=" fw-cl "><span>，</span></span>变为具有链表和指针的异步模型了<span class=" fw-cl "><span>。</span></span></p>
+<p>具体的渲染过程<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function renderNode(node) {<br>
+ &nbsp;&nbsp;// 判断是否需要渲染该节点<span class=" fw-cl "><span>，</span></span>如果 props 发生变化<span class=" fw-cl "><span>，</span></span>则调用 render<br>
+ &nbsp;&nbsp;if (node.memoizedProps !== node.pendingProps) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;render(node)<br>
+ &nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;// 是否有子节点<span class=" fw-cl "><span>，</span></span>进行子节点渲染<br>
+ &nbsp;&nbsp;if (node.child !== null) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return node.child<br>
+ &nbsp;&nbsp;// 是否有兄弟节点<span class=" fw-cl "><span>，</span></span>进行兄弟点渲染<br>
+ &nbsp;&nbsp;} else if (node.sibling !== null){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return node.sibling<br>
+ &nbsp;&nbsp;// 没有子节点和兄弟节点<br>
+ &nbsp;&nbsp;} else if (node.return !== null){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return node.return<br>
+ &nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return null<br>
+ &nbsp;&nbsp;}<br>
+}<br>
+<br>
+function workloop(root) {<br>
+ &nbsp;&nbsp;nextNode = root<br>
+ &nbsp;&nbsp;while (nextNode !== null &amp;&amp; (no other high priority task)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nextNode = renderNode(nextNode)<br>
+ &nbsp;&nbsp;}<br>
+}</code></p>
+<p>注意在 workloop 当中<span class=" fw-cl "><span>，</span></span>while 条件 nextNode !== null &amp;&amp; (no other high priority task)<span class=" fw-cl "><span>，</span></span>这是描述 Fiber 工作原理的关键伪代码<span class=" fw-cl "><span>。</span></span></p>
+<p>当然这里是为了说明链表的数据结构<span class=" fw-cl "><span>，</span></span>伪代码较为简略<span class=" fw-cl "><span>，</span></span>也没有深入<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">requestAnimationFrame(callback)</li>
+  <li style="">requestIdleCallback(callback)</li>
+</ul>
+<p>的实现和应用<span class=" fw-cl "><span>。</span></span>React Fiber 的介绍我们先到此为止<span class=" fw-cl "><span>，</span></span>重点是体会链表数据结构的思想<span class=" fw-cl "><span>。</span></span></p>
+<h3>链表实现</h3>
+<p>实现链表<span class=" fw-cl "><span>，</span></span>我们需要先对链表进行分类<span class=" fw-cl "><span>，</span></span>常见的有<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">单链表<span class=" fw-cl "><span>：</span></span>单链表是维护一系列节点的数据结构<span class=" fw-cl "><span>，</span></span>其特点是<span class=" fw-cl "><span>：</span></span>每个节点包含了数据<span class=" fw-cl "><span>，</span></span>同时包含指向链表中下一个节点的指针<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">双向链表<span class=" fw-cl "><span>：</span></span>不同于单链表<span class=" fw-cl "><span>，</span></span>双向链表特点<span class=" fw-cl "><span>：</span></span>每个节点分除了包含其数据以外<span class=" fw-cl "><span>，</span></span>还包含了分别指向其前驱和后继节点的指针<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>由于篇幅有原因<span class=" fw-cl "><span>，</span></span>我们挑选更加复杂的双向链表进行实现<span class=" fw-cl "><span>，</span></span>实现思路如下<span class=" fw-cl "><span>。</span></span></p>
+<p>首先<span class=" fw-cl "><span>，</span></span>根据双向链表的特点<span class=" fw-cl "><span>，</span></span>我们实现一个节点构造函数<span class="fw-op  "><span>（</span></span>节点类<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Node {<br>
+ &nbsp;&nbsp;&nbsp;constructor(data) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// data 为当前节点所储存的数据<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.data = data<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// next 指向下一个节点<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.next = null<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// prev 指向前一个节点<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.prev = null<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>有了节点类<span class=" fw-cl "><span>，</span></span>我们来初步实现双向链表类<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class DoublyLinkedList {<br>
+ &nbsp;&nbsp;&nbsp;constructor() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 双向链表开头<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.head = null<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 双向链表结尾<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tail = null<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+}</code></p>
+<p>接下来<span class=" fw-cl "><span>，</span></span>需要实现双向链表原型上的一些方法<span class=" fw-cl "><span>，</span></span>这些方法包括</p>
+<ul>
+  <li style="">add<span class=" fw-cl "><span>：</span></span>在链表尾部添加一个新的节点</li>
+  <li style="">addAt<span class=" fw-cl "><span>：</span></span>在链表指定位置添加一个新的节点</li>
+  <li style="">remove<span class=" fw-cl "><span>：</span></span>删除链表指定数据项节点</li>
+  <li style="">removeAt<span class=" fw-cl "><span>：</span></span>删除链表指定位置节点</li>
+  <li style="">reverse<span class=" fw-cl "><span>：</span></span>翻转链表</li>
+  <li style="">swap<span class=" fw-cl "><span>：</span></span>交换两个节点数据</li>
+  <li style="">isEmpty<span class=" fw-cl "><span>：</span></span>查询链表是否为空</li>
+  <li style="">length<span class=" fw-cl "><span>：</span></span>查询链表长度</li>
+  <li style="">traverse<span class=" fw-cl "><span>：</span></span>遍历链表</li>
+  <li style="">find<span class=" fw-cl "><span>：</span></span>查找某个节点的索引</li>
+</ul>
+<p>add 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>add(item) {<br>
+ &nbsp;// 实例化一个节点<br>
+ &nbsp;let node = new Node(item)<br>
+<br>
+ &nbsp;// 如果当前链表还没有头<br>
+ &nbsp;if(!this.head) {<br>
+ &nbsp;&nbsp;&nbsp;this.head = node<br>
+ &nbsp;&nbsp;&nbsp;this.tail = node<br>
+ &nbsp;} <br>
+ &nbsp;// 如果当前链表已经有了头<span class=" fw-cl "><span>，</span></span>只需要在尾部加上该节点<br>
+ &nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;node.prev = this.tail<br>
+ &nbsp;&nbsp;&nbsp;this.tail.next = node<br>
+ &nbsp;&nbsp;&nbsp;this.tail = node<br>
+ &nbsp;}<br>
+}</code></p>
+<p>addAt 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>addAt(index, item) {<br>
+ &nbsp;&nbsp;let current = this.head<br>
+ &nbsp;&nbsp;// 维护查找时当前节点的索引<br>
+ &nbsp;&nbsp;let counter = 1<br>
+ &nbsp;&nbsp;let node = new Node(item)<br>
+<br>
+ &nbsp;&nbsp;// 如果在头部插入<br>
+ &nbsp;&nbsp;if (index === 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.head.prev = node<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;node.next = this.head<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.head = node<br>
+ &nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;// 非头部插入<span class=" fw-cl "><span>，</span></span>需要从头开始<span class=" fw-cl "><span>，</span></span>找寻插入位置<br>
+ &nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;while(current) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current = current.next<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if( counter === index) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.prev = current.prev<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current.prev.next = node<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.next = current<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current.prev = node<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;counter++<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>remove 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>remove(item) {<br>
+ &nbsp;let current = this.head<br>
+<br>
+ &nbsp;while (current) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 找到了目标节点<br>
+ &nbsp;&nbsp;&nbsp;if (current.data === item ) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 目标链表只有当前目标项<span class=" fw-cl "><span>，</span></span>即目标节点即是链表头又是链表尾<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (current == this.head &amp;&amp; current == this.tail) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.head = null<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tail = null<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 目标节点为链表头<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (current == this.head ) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.head = this.head.next<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.head.prev = null<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 目标节点为链表尾部<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (current == this.tail ) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tail = this.tail.prev;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.tail.next = null;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 目标节点在链表收尾之间<span class=" fw-cl "><span>，</span></span>中部<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current.prev.next = current.next;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current.next.prev = current.prev;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;current = current.next<br>
+ &nbsp;}<br>
+}</code></p>
+<p>removeAt 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>removeAt(index) {<br>
+ &nbsp;// 都是从<span class="fw-op  "><span>「</span></span>头<span class=" fw-cl "><span>」</span></span>开始遍历<br>
+ &nbsp;let current = this.head<br>
+ &nbsp;let counter = 1<br>
+<br>
+ &nbsp;// 删除链表头部<br>
+ &nbsp;if (index === 0 ) {<br>
+ &nbsp;&nbsp;this.head = this.head.next<br>
+ &nbsp;&nbsp;this.head.prev = null<br>
+ &nbsp;} <br>
+ &nbsp;else {<br>
+ &nbsp;&nbsp;while(current) {<br>
+ &nbsp;&nbsp;&nbsp;current = current.next<br>
+ &nbsp;&nbsp;&nbsp;// 如果目标节点在链表尾<br>
+ &nbsp;&nbsp;&nbsp;if (current == this.tail) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.tail = this.tail.prev<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;this.tail.next = null<br>
+ &nbsp;&nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;&nbsp;else if (counter === index) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;current.prev.next = current.next<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;current.next.prev = current.prev<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;counter++<br>
+ &nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>reverse 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>reverse() {<br>
+ &nbsp;let current = this.head<br>
+ &nbsp;let prev = null<br>
+<br>
+ &nbsp;while (current) {<br>
+ &nbsp;&nbsp;let next = current.next<br>
+<br>
+ &nbsp;&nbsp;// 前后倒置<br>
+ &nbsp;&nbsp;current.next = prev<br>
+ &nbsp;&nbsp;current.prev = next<br>
+<br>
+ &nbsp;&nbsp;prev = current<br>
+ &nbsp;&nbsp;current = next<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;this.tail = this.head<br>
+ &nbsp;this.head = prev<br>
+}</code></p>
+<p>swap 方法<span class=" fw-cl "><span>，</span></span>交换两个节点数据值<span class=" fw-cl "><span>：</span></span></p>
+<p><code>swap(index1, index2) {<br>
+ &nbsp;// 使 index1 始终小于 index2<span class=" fw-cl "><span>，</span></span>方便后面查找交换<br>
+ &nbsp;if (index1 &gt; index2) {<br>
+ &nbsp;&nbsp;&nbsp;return this.swap(index2, index1)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;let current = this.head<br>
+ &nbsp;let counter = 0<br>
+ &nbsp;let firstNode<br>
+<br>
+ &nbsp;while(current !== null) {<br>
+ &nbsp;&nbsp;&nbsp;// 找到第一个节点<span class=" fw-cl "><span>，</span></span>先存起来<br>
+ &nbsp;&nbsp;&nbsp;if (counter === index1 ){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;firstNode = current<br>
+ &nbsp;&nbsp;&nbsp;} <br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 找到第二个节点<span class=" fw-cl "><span>，</span></span>进行数据交换<br>
+ &nbsp;&nbsp;&nbsp;else if (counter === index2) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ES 提供了更简洁交换数据的方法<span class=" fw-cl "><span>，</span></span>这里我们用传统方式实现<span class=" fw-cl "><span>，</span></span>更为直观<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let temp = current.data<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current.data = firstNode.data<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;firstNode.data = temp<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;current = current.next<br>
+ &nbsp;&nbsp;&nbsp;counter++<br>
+ &nbsp;}<br>
+ &nbsp;return true<br>
+}</code></p>
+<p>isEmpty 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>isEmpty() {<br>
+ &nbsp;return this.length() &lt; 1<br>
+}</code></p>
+<p>这里通过 DoublyLinkedList 类 length 的方法实现<span class=" fw-cl "><span>。</span></span>马上看一下 length 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>length() {<br>
+ &nbsp;let current = this.head<br>
+ &nbsp;let counter = 0<br>
+ &nbsp;while(current !== null) {<br>
+ &nbsp;&nbsp;&nbsp;counter++<br>
+ &nbsp;&nbsp;&nbsp;current = current.next<br>
+ &nbsp;}<br>
+ &nbsp;return counter<br>
+}</code></p>
+<p>length 方法通过遍历链表<span class=" fw-cl "><span>，</span></span>返回链表的长度<span class=" fw-cl "><span>。</span></span></p>
+<p>traverse 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>traverse(fn) {<br>
+ &nbsp;let current = this.head<br>
+ &nbsp;while(current !== null) {<br>
+ &nbsp;&nbsp;&nbsp;fn(current)<br>
+ &nbsp;&nbsp;&nbsp;current = current.next<br>
+ &nbsp;}<br>
+ &nbsp;return true<br>
+}</code></p>
+<p>有了上面 length 方法的遍历实现<span class=" fw-cl "><span>，</span></span>traverse 也就不难理解了<span class=" fw-cl "><span>，</span></span>它接受一个遍历执行函数<span class=" fw-cl "><span>，</span></span>在 while 循环中进行调用<span class=" fw-cl "><span>。</span></span></p>
+<p>最后一个 search 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>search(item) {<br>
+ &nbsp;let current = this.head<br>
+ &nbsp;let counter = 0<br>
+<br>
+ &nbsp;while( current ) {<br>
+ &nbsp;&nbsp;&nbsp;if( current.data == item ) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return counter<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;current = current.next<br>
+ &nbsp;&nbsp;&nbsp;counter++<br>
+ &nbsp;}<br>
+ &nbsp;return false<br>
+}</code></p>
+<p>到此<span class=" fw-cl "><span>，</span></span>我们就实现了所有 DoublyLinkedList 类双向链表的方法<span class=" fw-cl "><span>。</span></span>仔细分析整个实现过程<span class=" fw-cl "><span>，</span></span>可以发现<span class=" fw-cl "><span>：</span></span>双向链表的实现并不复杂<span class=" fw-cl "><span>，</span></span>在手写过程当中<span class=" fw-cl "><span>，</span></span>需要开发者做到心中有表<span class=" fw-cl "><span>，</span></span>考虑到当前节点的 next 和 prev 取值<span class=" fw-cl "><span>，</span></span>逻辑上还是很简单的<span class=" fw-cl "><span>。</span></span></p>
+<p>掌握了这些内容<span class=" fw-cl "><span>，</span></span>在回想一下链表的应用<span class=" fw-cl "><span>，</span></span>回想 React Fiber 的设计和实现<span class=" fw-cl "><span>，</span></span>也许一切都变的不再神秘<span class=" fw-cl "><span>。</span></span></p>
+<h3>树</h3>
+<p>前端开发者应该对树这个数据结构丝毫不陌生<span class=" fw-cl "><span>，</span></span>不同于之前介绍的所有数据结构<span class=" fw-cl "><span>，</span></span>树是非线性的<span class=" fw-cl "><span>。</span></span>因为树决定了其存储的数据直接有明确的层级关系<span class=" fw-cl "><span>，</span></span>因此对于维护具有层级特性的数据<span class=" fw-cl "><span>，</span></span>树是一个天然良好的选择<span class=" fw-cl "><span>。</span></span></p>
+<p>在前面总领中<span class=" fw-cl "><span>，</span></span>我们看到树有很多种分类<span class=" fw-cl "><span>，</span></span>但是他们都具有以下特性<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">除了根节点以外<span class=" fw-cl "><span>，</span></span>所有的节点都有一个父节点</li>
+  <li style="">每一个节点都<strong style="">可以有</strong>若干子节点<span class=" fw-cl "><span>，</span></span>如果没有子节点<span class=" fw-cl "><span>，</span></span>那么称此节点为叶子节点</li>
+  <li style="">一个节点所拥有的叶子节点的个数<span class=" fw-cl "><span>，</span></span>称之为该节点的度<span class=" fw-cl "><span>，</span></span>因此叶子节点的度为 0</li>
+  <li style="">所有节点中<span class=" fw-cl "><span>，</span></span>最大的度为整棵树的度</li>
+  <li style="">树的最大层次称为树的深度</li>
+</ul>
+<p>从应用上来看<span class=" fw-cl "><span>，</span></span>我们前端开发离不开的 DOM 就是一个树状结构<span class=" fw-cl "><span>；</span></span>同理<span class=" fw-cl "><span>，</span></span>不管是 React 还是 Vue 的虚拟 DOM 也都是树<span class=" fw-cl "><span>。</span></span></p>
+<p>我们从最基本的二叉树入手<span class=" fw-cl "><span>，</span></span>来慢慢深入<span class=" fw-cl "><span>。</span></span></p>
+<h4>二叉搜索树的实现和遍历</h4>
+<p>说二叉树最为基本<span class=" fw-cl "><span>，</span></span>因为他的结构最简单<span class=" fw-cl "><span>，</span></span>每个节点至多包含两个子节点<span class=" fw-cl "><span>。</span></span>二叉树又非常有用<span class=" fw-cl "><span>：</span></span>因为根据二叉树<span class=" fw-cl "><span>，</span></span>我们可以延伸出二叉搜索树<span class="fw-op  "><span>（</span></span>BST<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span>平衡二叉搜索树<span class="fw-op  "><span>（</span></span>AVL<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>、</span></span>红黑树<span class="fw-op  "><span>（</span></span>R/B Tree<span class=" fw-cl "><span>）</span></span>等<span class=" fw-cl "><span>。</span></span></p>
+<p>二叉搜索树有以下特性<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">左子树上所有结点的值均小于或等于它的根结点的值</li>
+  <li style="">右子树上所有结点的值均大于或等于它的根结点的值</li>
+  <li style="">左<span class=" fw-cl "><span>、</span></span>右子树也分别为二叉搜索树</li>
+</ul>
+<p>根据其特性<span class=" fw-cl "><span>，</span></span>我们实现二叉搜索树还是应该先构造一个节点类<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Node { <br>
+ &nbsp;constructor(data) { <br>
+ &nbsp;&nbsp;&nbsp;this.left = null<br>
+ &nbsp;&nbsp;&nbsp;this.right = null<br>
+ &nbsp;&nbsp;&nbsp;this.value = data<br>
+ &nbsp;} <br>
+}</code></p>
+<p>接着按照惯例<span class=" fw-cl "><span>，</span></span>我们实现二叉搜索树的以下方法<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">insertNode<span class=" fw-cl "><span>：</span></span>根据一个父节点<span class=" fw-cl "><span>，</span></span>插入一个子节点</li>
+  <li style="">insert<span class=" fw-cl "><span>：</span></span>插入一个新节点</li>
+  <li style="">removeNode<span class=" fw-cl "><span>：</span></span>根据一个父节点<span class=" fw-cl "><span>，</span></span>移除一个子节点</li>
+  <li style="">remove<span class=" fw-cl "><span>：</span></span>移除一个节点</li>
+  <li style="">findMinNode<span class=" fw-cl "><span>：</span></span>获取子节点的最小值</li>
+  <li style="">searchNode<span class=" fw-cl "><span>：</span></span>根据一个父节点<span class=" fw-cl "><span>，</span></span>查找子节点</li>
+  <li style="">search<span class=" fw-cl "><span>：</span></span>查找节点</li>
+  <li style="">preOrder<span class=" fw-cl "><span>：</span></span>前序遍历</li>
+  <li style="">InOrder<span class=" fw-cl "><span>：</span></span>中序遍历</li>
+  <li style="">PostOrder<span class=" fw-cl "><span>：</span></span>后续遍历</li>
+</ul>
+<p><code>insertNode(root, newNode) {<br>
+ &nbsp;if (newNode.value &lt; root.value) {<br>
+ &nbsp;&nbsp;&nbsp;(!root.left) ? root.left = newNode : this.insertNode(root.left, newNode)<br>
+ &nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;(!root.right) ? root.right = newNode : this.insertNode(root.right, newNode)<br>
+ &nbsp;}<br>
+}<br>
+<br>
+insert(value) {<br>
+ &nbsp;&nbsp;&nbsp;let newNode = new Node(value)<br>
+ &nbsp;&nbsp;&nbsp;if (!this.root) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.root = newNode<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.insertNode(this.root, newNode)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>理解这两个方法是理解二叉搜索树的关键<span class=" fw-cl "><span>，</span></span>下面的其他方法也就<span class="fw-op  "><span>「</span></span>不在话下<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>我们看<span class=" fw-cl "><span>，</span></span>insertNode 方法先判断目标父节点和插入节点的值<span class=" fw-cl "><span>，</span></span>如果插入节点的值更小<span class=" fw-cl "><span>，</span></span>则考虑放到父节点的左边<span class=" fw-cl "><span>，</span></span>接着递归调用 his.insertNode(root.left, newNode)<span class=" fw-cl "><span>；</span></span>如果插入节点的值更大<span class=" fw-cl "><span>，</span></span>以此类推即可<span class=" fw-cl "><span>。</span></span></p>
+<p>insert 方法只是多了一步构造 Node 节点实例<span class=" fw-cl "><span>，</span></span>接下来区分有无父节点的情况<span class=" fw-cl "><span>，</span></span>调用 this.insertNode 方法即可<span class=" fw-cl "><span>。</span></span></p>
+<p><code>&nbsp;removeNode(root, value) {<br>
+ &nbsp;&nbsp;&nbsp;if (!root) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return null<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (value &lt; root.value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;root.left = this.removeNode(root.left, value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return root<br>
+ &nbsp;&nbsp;&nbsp;} else if (value &gt; root.value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;root.right = tis.removeNode(root.right, value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return root<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 找到了需要删除的节点 <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果当前 root 节点无左右子节点<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!root.left &amp;&amp; !root.right) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;root = null<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return root<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 只有左节点<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (root.left &amp;&amp; !root.right) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;root = root.left<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return root<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 只有右节点<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (root.right) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;root = root.right<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return root<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 有左右两个子节点<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let minRight = this.findMinNode(root.right)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;root.value = minRight.value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;root.right = this.removeNode(root.right, minRight.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return root<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+<br>
+remove(value) {<br>
+ &nbsp;&nbsp;&nbsp;if (this.root) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.removeNode(this.root, value)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>上述代码不难理解<span class=" fw-cl "><span>，</span></span>可能最需要读者思考的就是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// 有左右两个子节点<br>
+let minRight = this.findMinNode(root.right)<br>
+root.value = minRight.value<br>
+root.right = this.removeNode(root.right, minRight.value)<br>
+return root</code></p>
+<p>我来特殊说明一下<span class=" fw-cl "><span>：</span></span>当需要删除的节点含有左右两个子节点时<span class=" fw-cl "><span>，</span></span>因为我们要把当前节点删除<span class=" fw-cl "><span>，</span></span>就需要找到合适的<span class="fw-op  "><span>「</span></span>补位<span class=" fw-cl "><span>」</span></span>节点<span class=" fw-cl "><span>，</span></span>这个<span class="fw-op  "><span>「</span></span>补位<span class=" fw-cl "><span>」</span></span>节点一定在该目标节点的右侧树当中<span class=" fw-cl "><span>，</span></span>因为这样才能保证<span class="fw-op  "><span>「</span></span>补位<span class=" fw-cl "><span>」</span></span>节点的值一定大于该目标节点的左侧树所有节点<span class=" fw-cl "><span>，</span></span>而该目标节点的左侧树不需要调整<span class=" fw-cl "><span>；</span></span>同时为了保证<span class="fw-op  "><span>「</span></span>补位<span class=" fw-cl "><span>」</span></span>节点的值一定要小于该目标节点的右侧树值<span class=" fw-cl "><span>，</span></span>因此要找的<span class="fw-op  "><span>「</span></span>补位<span class=" fw-cl "><span>」</span></span>节点其实就是该目标节点的右侧树当中最小的那个节点<span class=" fw-cl "><span>。</span></span></p>
+<p>这个过程我们借助 this.findMinNode 方法实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>findMinNode(root) {<br>
+ &nbsp;&nbsp;&nbsp;if (!root.left) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return root<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.findMinNode(root.left)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>该方法不断递归<span class=" fw-cl "><span>，</span></span>直到找到最左叶子节点即可<span class=" fw-cl "><span>。</span></span></p>
+<p>查找方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>searchNode(root, value) {<br>
+ &nbsp;&nbsp;&nbsp;if (!root) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return null<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (value &lt; root.value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.searchNode(root.left, value)<br>
+ &nbsp;&nbsp;&nbsp;} else if (value &gt; root.value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.searchNode(root.right, value)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return root<br>
+}<br>
+<br>
+search(value) {<br>
+ &nbsp;&nbsp;&nbsp;if (!this.root) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return Boolean(this.searchNode(this.root, value))<br>
+}</code></p>
+<p>这也比较简单<span class=" fw-cl "><span>，</span></span>其实就是对递归的运用<span class=" fw-cl "><span>。</span></span>最能体现递归简便优势的其实是对于树的遍历<span class=" fw-cl "><span>：</span></span></p>
+<p>前序遍历<span class=" fw-cl "><span>：</span></span></p>
+<p><code>preOrder(root) {<br>
+ &nbsp;&nbsp;&nbsp;if (root) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(root.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.preOrder(root.left)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.preOrder(root.right)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>中序遍历<span class=" fw-cl "><span>：</span></span></p>
+<p><code>inOrder(root) {<br>
+ &nbsp;&nbsp;&nbsp;if (root) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.inOrder(root.left)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(root.value)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.inOrder(root.right)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>后序遍历<span class=" fw-cl "><span>：</span></span></p>
+<p><code>postOrder(root) {<br>
+ &nbsp;&nbsp;&nbsp;if (root) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.postOrder(root.left)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.postOrder(root.right)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log(root.value)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>前后中序遍历其实就在于 console.log(root.value) 方法执行的位置<span class=" fw-cl "><span>。</span></span></p>
+<h4>字典树</h4>
+<p>字典树<span class="fw-op  "><span>（</span></span>Trie<span class=" fw-cl "><span>）</span></span>是针对特定类型的搜索而优化的树数据结构<span class=" fw-cl "><span>。</span></span>典型的例子是 autoComplete<span class=" fw-cl "><span>，</span></span>也就是说它适合实现<span class=" fw-cl "><span>：</span></span>通过部分值得到完整值的场景<span class=" fw-cl "><span>。</span></span>字典树因此也是一种搜索树<span class=" fw-cl "><span>，</span></span>我们有时候也叫做前缀树<span class=" fw-cl "><span>，</span></span>因为任意一个节点的后代都存在共同的前缀<span class=" fw-cl "><span>。</span></span>更多基础概念请读者先做了解<span class=" fw-cl "><span>。</span></span>我们总结一下它的特点<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">字典树能做到高效查询和插入<span class=" fw-cl "><span>，</span></span>时间复杂度为 O(k)<span class=" fw-cl "><span>，</span></span>k 为字符串长度</li>
+  <li style="">但是如果大量字符串没有共同前缀<span class=" fw-cl "><span>，</span></span>那就很耗内存<span class=" fw-cl "><span>，</span></span>读者可以想象一下最极端的情况<span class=" fw-cl "><span>，</span></span>所有单词都没有共同前缀时<span class=" fw-cl "><span>，</span></span>这颗字典树是什么样子</li>
+  <li style="">字典树的核心就是减少没必要的字符比较<span class=" fw-cl "><span>，</span></span>使查询高效率<span class=" fw-cl "><span>，</span></span>也就是说用空间换时间<span class=" fw-cl "><span>，</span></span>再利用共同前缀来提高查询效率</li>
+</ul>
+<p>除了我们刚刚提到的 autoComplete 自动填充的情况<span class=" fw-cl "><span>，</span></span>字典树还有很多其他应用场景<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">搜索</li>
+  <li style="">输入法选项</li>
+  <li style="">分类</li>
+  <li style="">IP 地址检索</li>
+  <li style="">电话号码检索</li>
+</ul>
+<h4>字典树的实现和遍历</h4>
+<p>字典树的实现也不复杂<span class=" fw-cl "><span>，</span></span>我们慢慢一步步来<span class=" fw-cl "><span>，</span></span>首先实现一个字典树上的节点<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class PrefixTreeNode {<br>
+ &nbsp;constructor(value) {<br>
+ &nbsp;&nbsp;&nbsp;// 存储子节点<br>
+ &nbsp;&nbsp;&nbsp;this.children = {}<br>
+ &nbsp;&nbsp;&nbsp;this.isEnd = null<br>
+ &nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;}<br>
+}</code></p>
+<p>一个字典树继承 PrefixTreeNode 类<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class PrefixTree extends PrefixTreeNode {<br>
+ &nbsp;constructor() {<br>
+ &nbsp;&nbsp;&nbsp;super(null)<br>
+ &nbsp;}<br>
+}</code></p>
+<p>我们实现方法<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">addWord<span class=" fw-cl "><span>：</span></span>创建一个字典树节点</li>
+  <li style="">predictWord<span class=" fw-cl "><span>：</span></span>给定一个字符串<span class=" fw-cl "><span>，</span></span>返回字典树中以该字符串开头的所有单词</li>
+</ul>
+<p>addWord 实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>addWord(str) {<br>
+ &nbsp;&nbsp;&nbsp;const addWordHelper = (node, str) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 当前 node 不含当前 str 开头的目标<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!node.children[str[0]]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 以当前 str 开头的第一个字母<span class=" fw-cl "><span>，</span></span>创建一个 PrefixTreeNode 实例<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.children[str[0]] = new PrefixTreeNode(str[0])<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (str.length === 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.children[str[0]].isEnd = true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else if (str.length &gt; 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;addWordHelper(node.children[str[0]], str.slice(1))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;addWordHelper(this, str)<br>
+}</code></p>
+<p>predictWord 实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>predictWord(str) {<br>
+ &nbsp;&nbsp;&nbsp;let getRemainingTree = function(str, tree) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let node = tree<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (str) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node = node.children[str[0]]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;str = str.substr(1)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return node<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 该数组维护所有以 str 开头的单词<br>
+ &nbsp;&nbsp;&nbsp;let allWords = []<br>
+<br>
+ &nbsp;&nbsp;&nbsp;let allWordsHelper = function(stringSoFar, tree) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let k in tree.children) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const child = tree.children[k]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let newString = stringSoFar + child.value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (child.endWord) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allWords.push(newString)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allWordsHelper(newString, child)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;let remainingTree = getRemainingTree(str, this)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (remainingTree) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allWordsHelper(str, remainingTree)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return allWords<br>
+}</code></p>
+<h3>图</h3>
+<p>图是由具有边的节点集合组成的数据结构<span class=" fw-cl "><span>，</span></span>图可以是定向的或不定向的<span class=" fw-cl "><span>。</span></span>因此图可以分为好多种类<span class=" fw-cl "><span>，</span></span>这里不一一讲解<span class=" fw-cl "><span>，</span></span>主要看图的应用场景<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">LBS 地图服务以及 GPS 系统</li>
+  <li style="">社交媒体网站的用户关系图</li>
+  <li style="">前端工程化中的开发依赖图</li>
+  <li style="">搜索算法使用图<span class=" fw-cl "><span>，</span></span>保证搜索结果的相关性</li>
+  <li style="">寻找降低运输和交付货物和服务成本的最佳途径</li>
+</ul>
+<p>图也是应用最广泛的数据结构之一<span class=" fw-cl "><span>，</span></span>真实场景中处处有图<span class=" fw-cl "><span>。</span></span>更多概念还是需要读者先进行了解<span class=" fw-cl "><span>，</span></span>尤其是图的几种基本元素<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">节点 Node</li>
+  <li style="">边 Edge</li>
+  <li style="">|V| 图中顶点<span class="fw-op  "><span>（</span></span>节点<span class=" fw-cl "><span>）</span></span>的总数</li>
+  <li style="">|E| 图中的连接总数<span class="fw-op  "><span>（</span></span>边<span class=" fw-cl "><span>）</span></span></li>
+</ul>
+<h4>图的实现和遍历</h4>
+<p>这里我们主要实现一个有向图<span class=" fw-cl "><span>，</span></span>Graph 类<span class=" fw-cl "><span>：</span></span></p>
+<p><code>class Graph {<br>
+ &nbsp;constructor() {<br>
+ &nbsp;&nbsp;&nbsp;this.AdjList = new Map()<br>
+ &nbsp;}<br>
+}</code></p>
+<p>使用 Map 数据结构表述图中顶点关系<span class=" fw-cl "><span>。</span></span></p>
+<p>实现方法<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">添加顶点<span class=" fw-cl "><span>：</span></span>addVertex</li>
+  <li style="">添加边<span class=" fw-cl "><span>：</span></span>addEdge</li>
+  <li style="">打印图<span class=" fw-cl "><span>：</span></span>print</li>
+  <li style="">广度优先算法遍历</li>
+  <li style="">深度优先算法</li>
+</ul>
+<p>addVertex 方法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>addVertex(vertex) {<br>
+ &nbsp;if (!this.AdjList.has(vertex)) {<br>
+ &nbsp;&nbsp;&nbsp;this.AdjList.set(vertex, [])<br>
+ &nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;throw 'vertex already exist!'<br>
+ &nbsp;}<br>
+}</code></p>
+<p>创建顶点<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let graph = new Graph();<br>
+graph.addVertex('A')<br>
+graph.addVertex('B')<br>
+graph.addVertex('C')<br>
+graph.addVertex('D')</code></p>
+<p>其中 A<span class=" fw-cl "><span>、</span></span>B<span class=" fw-cl "><span>、</span></span>C<span class=" fw-cl "><span>、</span></span>D 顶点都对应一个数组<span class=" fw-cl "><span>：</span></span></p>
+<p><code>&nbsp;&nbsp;'A' =&gt; [],<br>
+ &nbsp;'B' =&gt; [],<br>
+ &nbsp;'C' =&gt; [],<br>
+ &nbsp;'D' =&gt; []</code></p>
+<p>该数组将用来存储边<span class=" fw-cl "><span>。</span></span>我们设计图预计得到如下关系<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Map {<br>
+ &nbsp;'A' =&gt; ['B', 'C', 'D'],<br>
+ &nbsp;'B' =&gt; [],<br>
+ &nbsp;'C' =&gt; ['B'],<br>
+ &nbsp;'D' =&gt; ['C']<br>
+}</code></p>
+<p>根据此描述<span class=" fw-cl "><span>，</span></span>其实已经可以把图画出来了<span class=" fw-cl "><span>。</span></span>addEdge 因此需要两个参数<span class=" fw-cl "><span>：</span></span>一个是顶点<span class=" fw-cl "><span>，</span></span>一个是连接对象 Node<span class=" fw-cl "><span>：</span></span></p>
+<p><code>&nbsp;addEdge(vertex, node) {<br>
+ &nbsp;&nbsp;&nbsp;if (this.AdjList.has(vertex)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.AdjList.has(node)){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;let arr = this.AdjList.get(vertex)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(!arr.includes(node)){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arr.push(node)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw `Can't add non-existing vertex -&gt;'${node}'`<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw `You should add '${vertex}' first`<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>理清楚数据关系<span class=" fw-cl "><span>，</span></span>我们就可以打印图了<span class=" fw-cl "><span>，</span></span>其实就是一个很简单的 for...of 循环<span class=" fw-cl "><span>：</span></span></p>
+<p><code>print() {<br>
+ &nbsp;for (let [key, value] of this.AdjList) {<br>
+ &nbsp;&nbsp;&nbsp;console.log(key, value)<br>
+ &nbsp;}<br>
+}</code></p>
+<p>剩下的内容就是遍历图了<span class=" fw-cl "><span>。</span></span></p>
+<p>广度优先算法<span class="fw-op  "><span>（</span></span>BFS<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>是一种利用队列实现的搜索算法<span class=" fw-cl "><span>。</span></span>对于图<span class=" fw-cl "><span>，</span></span>其搜索过程和 <span class="fw-op  "><span>「</span></span>湖面丢进一块石头激起层层涟漪<span class=" fw-cl "><span>」</span></span> 类似<span class=" fw-cl "><span>。</span></span>换成算法语言<span class=" fw-cl "><span>，</span></span>就是从起点出发<span class=" fw-cl "><span>，</span></span>对于每次出队列的点<span class=" fw-cl "><span>，</span></span>都要遍历其四周的点<span class=" fw-cl "><span>。</span></span></p>
+<p>因此 BFS 的实现步骤<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">起始节点作为起始<span class=" fw-cl "><span>，</span></span>并初始化一个空对象<span class=" fw-cl "><span>：</span></span>visited</li>
+  <li style="">初始化一个空数组<span class=" fw-cl "><span>，</span></span>该数组将模拟一个队列</li>
+  <li style="">将起始节点标记为已访问</li>
+  <li style="">将起始节点放入队列中</li>
+  <li style="">循环直到队列为空</li>
+</ul>
+<p>实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>createVisitedObject() {<br>
+ &nbsp;let map = {}<br>
+ &nbsp;for(let key of this.AdjList.keys()) {<br>
+ &nbsp;&nbsp;&nbsp;arr[key] = false<br>
+ &nbsp;}<br>
+ &nbsp;return map<br>
+}<br>
+<br>
+bfs(initialNode) {<br>
+ &nbsp;// 创建一个已访问节点的 map<br>
+ &nbsp;let visited = this.createVisitedObject()<br>
+ &nbsp;// 模拟一个队列<br>
+ &nbsp;let queue = []<br>
+<br>
+ &nbsp;// 第一个节点已访问<br>
+ &nbsp;visited[initialNode] = true<br>
+ &nbsp;// 第一个节点入队列<br>
+ &nbsp;queue.push(initialNode)<br>
+<br>
+ &nbsp;while(queue.length) {<br>
+ &nbsp;&nbsp;&nbsp;let current = queue.shift()<br>
+ &nbsp;&nbsp;&nbsp;console.log(current)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;// 获得该节点的其他节点关系<br>
+ &nbsp;&nbsp;&nbsp;let arr = this.AdjList.get(current)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;for (let elem of arr) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果当前节点没有访问过<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!visited[elem]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;visited[elem] = true<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;q.push(elem)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>那么对于深度优先搜索算法<span class="fw-op  "><span>（</span></span>DFS<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>我把它总结为<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>不撞南墙不回头<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>从起点出发<span class=" fw-cl "><span>，</span></span>先把一个方向的点都遍历完才会改变方向<span class=" fw-cl "><span>。</span></span>换成程序语言就是<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>DFS 是利用递归实现的搜索算法<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>因此 DFS 过程<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">起始节点作为起始<span class=" fw-cl "><span>，</span></span>创建访问对象</li>
+  <li style="">调用辅助函数递归起始节点</li>
+</ul>
+<p>实现代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>createVisitedObject() {<br>
+ &nbsp;let map = {}<br>
+ &nbsp;for (let key of this.AdjList.keys()) {<br>
+ &nbsp;&nbsp;&nbsp;arr[key] = false<br>
+ &nbsp;}<br>
+ &nbsp;return map<br>
+}<br>
+<br>
+ dfs(initialNode) {<br>
+ &nbsp;&nbsp;&nbsp;let visited = this.createVisitedObject()<br>
+ &nbsp;&nbsp;&nbsp;this.dfsHelper(initialNode, visited)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;dfsHelper(node, visited) {<br>
+ &nbsp;&nbsp;&nbsp;visited[node] = true<br>
+ &nbsp;&nbsp;&nbsp;console.log(node)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;let arr = this.AdjList.get(node)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;for (let elem of arr) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!visited[elem]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.dfsHelper(elem, visited)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;}<br>
+}</code></p>
+<p>BFS 的重点在于队列<span class=" fw-cl "><span>，</span></span>而 DFS 的重点在于递归<span class=" fw-cl "><span>，</span></span>这是它们的本质区别<span class=" fw-cl "><span>。</span></span></p>
+<h4>图在前端中的应用</h4>
+<p>图其实在前端中应用不算特别多<span class=" fw-cl "><span>，</span></span>但绝对还是不容忽视的一部分<span class=" fw-cl "><span>。</span></span>这里我举一个我现实中应用的例子——循环图<span class=" fw-cl "><span>。</span></span></p>
+<p>在前端工程化发展的今天<span class=" fw-cl "><span>，</span></span>理清项目中的依赖关系<span class=" fw-cl "><span>：</span></span>比如查找项目中的循环依赖<span class=" fw-cl "><span>，</span></span>可视化依赖都是图的应用<span class=" fw-cl "><span>，</span></span>有助于开发者在宏观上把控工程化项目<span class=" fw-cl "><span>。</span></span>在我们的项目中<span class=" fw-cl "><span>，</span></span>我借助 <a href="https://mermaidjs.github.io/#/" title="mermaidj">mermaidj</a> 画图工具<span class=" fw-cl "><span>，</span></span>实现了项目依赖的完全可视化<span class=" fw-cl "><span>。</span></span>并借助 npm script 来生成图片结果<span class=" fw-cl "><span>，</span></span>相关 script 脚本<span class=" fw-cl "><span>：</span></span></p>
+<p><code>yarn graph</code></p>
+<p>脚本<span class=" fw-cl "><span>：</span></span></p>
+<p><code>import glob from 'glob'<br>
+import readJSON from 'XXX/utils/readJSON'<br>
+<br>
+const pkgs = glob.sync('packages/*/package.json').map(readJSON)<br>
+<br>
+const deps = {}<br>
+<br>
+for (const pkg of pkgs) {<br>
+ &nbsp;deps[pkg.name] = Object.keys(pkg.dependencies || []).filter(dep =&gt;<br>
+ &nbsp;&nbsp;&nbsp;// ...<br>
+ &nbsp;)<br>
+}<br>
+<br>
+const graph = { code: '', mermaid: { theme: 'default' } }<br>
+<br>
+graph.code += 'graph TD;'<br>
+for (const name in deps) {<br>
+ &nbsp;for (const dep of deps[name]) {<br>
+ &nbsp;&nbsp;&nbsp;graph.code += `${name}--&gt;${dep};`<br>
+ &nbsp;}<br>
+}<br>
+<br>
+const base64 = Buffer.from(JSON.stringify(graph)).toString('base64')<br>
+<br>
+/* eslint-disable-next-line */<br>
+console.log(<br>
+ &nbsp;`Open in browser: https://mermaidjs.github.io/mermaid-live-editor/#/edit/${base64}`<br>
+)</code></p>
+<p>上述代码<span class=" fw-cl "><span>，</span></span>我首先获取到 packages/*/package.json 中声明的所有依赖<span class=" fw-cl "><span>，</span></span>然后对依赖进行必要性过滤之后<span class=" fw-cl "><span>，</span></span>维护到 deps 对象当中<span class=" fw-cl "><span>，</span></span>按照 mermaid 需求<span class=" fw-cl "><span>，</span></span>将 monorepo 项目中的每一个子项目名和依赖按照 → 的间隔维护为 graph.code<span class=" fw-cl "><span>，</span></span>最后通过生成 base64 交给 mermaid 进行绘图<span class=" fw-cl "><span>，</span></span>绘图过程会根据约定<span class="fw-op  "><span>（</span></span>→ 的标记<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>成生可视化的依赖图<span class=" fw-cl "><span>。</span></span></p>
+<p>最终效果<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-7f230c667d10c11878446bf06dfcc8f2.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:30.725806451612904% 0" data-src="https://pic3.zhimg.com/v2-7f230c667d10c11878446bf06dfcc8f2.png">加载中...</span></figure>
+<p>那么 mermaid 是如何对图进行绘制的呢<span class=" fw-cl "><span>？</span></span>了解了课程前面实现图的代码<span class=" fw-cl "><span>，</span></span>我们再看 mermaid 绘制图的部分源码实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>export const addVertices = function (vert, g, svgId) {<br>
+ &nbsp;const svg = d3.select(`[id="${svgId}"]`)<br>
+ &nbsp;const keys = Object.keys(vert)<br>
+<br>
+ &nbsp;const styleFromStyleArr = function (styleStr, arr) {<br>
+ &nbsp;&nbsp;&nbsp;// Create a compound style definition from the style definitions found for the node in the graph definition<br>
+ &nbsp;&nbsp;&nbsp;for (let i = 0; i &lt; arr.length; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof arr[i] !== 'undefined') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;styleStr = styleStr + arr[i] + ';'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return styleStr<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// Iterate through each item in the vertex object (containing all the vertices found) in the graph definition<br>
+ &nbsp;keys.forEach(function (id) {<br>
+ &nbsp;&nbsp;&nbsp;const vertex = vert[id]<br>
+<br>
+ &nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* Variable for storing the classes for the vertex<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @type {string}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;let classStr = ''<br>
+ &nbsp;&nbsp;&nbsp;if (vertex.classes.length &gt; 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;classStr = vertex.classes.join(' ')<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;/**<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* Variable for storing the extracted style for the vertex<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;* @type {string}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;*/<br>
+ &nbsp;&nbsp;&nbsp;let style = ''<br>
+ &nbsp;&nbsp;&nbsp;// Create a compound style definition from the style definitions found for the node in the graph definition<br>
+ &nbsp;&nbsp;&nbsp;style = styleFromStyleArr(style, vertex.styles)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// Use vertex id as text in the box if no text is provided by the graph definition<br>
+ &nbsp;&nbsp;&nbsp;let vertexText = vertex.text !== undefined ? vertex.text : vertex.id<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// We create a SVG label, either by delegating to addHtmlLabel or manually<br>
+ &nbsp;&nbsp;&nbsp;let vertexNode<br>
+ &nbsp;&nbsp;&nbsp;if (conf.htmlLabels) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// TODO: addHtmlLabel accepts a labelStyle. Do we possibly have that?<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const node = { label: vertexText.replace(/fa[lrsb]?:fa-[\w-]+/g, s =&gt; `<i class="${s.replace(" :',="" '="" ')}'=""></i>`) }<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vertexNode = addHtmlLabel(svg, node).node()<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vertexNode.parentNode.removeChild(vertexNode)<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const svgLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text')<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const rows = vertexText.split(/<br[ ]{0,1}="">/)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (let j = 0; j &lt; rows.length; j++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tspan.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tspan.setAttribute('dy', '1em')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tspan.setAttribute('x', '1')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tspan.textContent = rows[j]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;svgLabel.appendChild(tspan)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vertexNode = svgLabel<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// If the node has a link, we wrap it in a SVG link<br>
+ &nbsp;&nbsp;&nbsp;if (vertex.link) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const link = document.createElementNS('http://www.w3.org/2000/svg', 'a')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;link.setAttributeNS('http://www.w3.org/2000/svg', 'href', vertex.link)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;link.setAttributeNS('http://www.w3.org/2000/svg', 'rel', 'noopener')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;link.appendChild(vertexNode)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;vertexNode = link<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;let radious = 0<br>
+ &nbsp;&nbsp;&nbsp;let _shape = ''<br>
+ &nbsp;&nbsp;&nbsp;// Set the shape based parameters<br>
+ &nbsp;&nbsp;&nbsp;switch (vertex.type) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'round':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;radious = 5<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'rect'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'square':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'rect'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'diamond':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'question'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'odd':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'rect_left_inv_arrow'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'lean_right':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'lean_right'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'lean_left':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'lean_left'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'trapezoid':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'trapezoid'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'inv_trapezoid':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'inv_trapezoid'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'odd_right':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'rect_left_inv_arrow'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'circle':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'circle'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'ellipse':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'ellipse'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'group':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'rect'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;default:<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_shape = 'rect'<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;// Add the node<br>
+ &nbsp;&nbsp;&nbsp;g.setNode(vertex.id, { labelType: 'svg', shape: _shape, label: vertexNode, rx: radious, ry: radious, 'class': classStr, style: style, id: vertex.id })<br>
+ &nbsp;})<br>
+}<br>
+<br>
+/**<br>
+ * Add edges to graph based on parsed graph defninition<br>
+ * @param {Object} edges The edges to add to the graph<br>
+ * @param {Object} g The graph object<br>
+ */<br>
+export const addEdges = function (edges, g) {<br>
+ &nbsp;let cnt = 0<br>
+<br>
+ &nbsp;let defaultStyle<br>
+ &nbsp;if (typeof edges.defaultStyle !== 'undefined') {<br>
+ &nbsp;&nbsp;&nbsp;defaultStyle = edges.defaultStyle.toString().replace(/,/g, ';')<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;edges.forEach(function (edge) {<br>
+ &nbsp;&nbsp;&nbsp;cnt++<br>
+ &nbsp;&nbsp;&nbsp;const edgeData = {}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// Set link type for rendering<br>
+ &nbsp;&nbsp;&nbsp;if (edge.type === 'arrow_open') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.arrowhead = 'none'<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.arrowhead = 'normal'<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;let style = ''<br>
+ &nbsp;&nbsp;&nbsp;if (typeof edge.style !== 'undefined') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edge.style.forEach(function (s) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;style = style + s + ';'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;switch (edge.stroke) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'normal':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;style = 'fill:none'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof defaultStyle !== 'undefined') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;style = defaultStyle<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'dotted':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;style = 'stroke: #333; fill:none;stroke-width:2px;stroke-dasharray:3;'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;case 'thick':<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;style = 'stroke: #333; stroke-width: 3.5px;fill:none'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;edgeData.style = style<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (typeof edge.interpolate !== 'undefined') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.curve = interpolateToCurve(edge.interpolate, d3.curveLinear)<br>
+ &nbsp;&nbsp;&nbsp;} else if (typeof edges.defaultInterpolate !== 'undefined') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.curve = interpolateToCurve(edges.defaultInterpolate, d3.curveLinear)<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.curve = interpolateToCurve(conf.curve, d3.curveLinear)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (typeof edge.text === 'undefined') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof edge.style !== 'undefined') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.arrowheadStyle = 'fill: #333'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.arrowheadStyle = 'fill: #333'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof edge.style === 'undefined') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.labelpos = 'c'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (conf.htmlLabels) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.labelType = 'html'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.label = '<span class="edgeLabel">' + edge.text + '</span>'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.labelType = 'text'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.style = edgeData.style || 'stroke: #333; stroke-width: 1.5px;fill:none'<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.label = edge.text.replace(/<br>/g, '\n')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edgeData.label = edge.text.replace(/<br>/g, '\n')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;// Add the edge to the graph<br>
+ &nbsp;&nbsp;&nbsp;g.setEdge(edge.start, edge.end, edgeData, cnt)<br>
+ &nbsp;})<br>
+}</br[></code></p>
+<p><strong style="">那么根据我的脚本<span class=" fw-cl "><span>，</span></span>用 → 表现的依赖关系<span class=" fw-cl "><span>，</span></span>除了可视化以外<span class=" fw-cl "><span>，</span></span>还有其他用处吗<span class=" fw-cl "><span>？</span></span></strong> 其实肯定是有的<span class=" fw-cl "><span>，</span></span>除了<span class="fw-op  "><span>「</span></span>花架子<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>这个依赖图对于项目的部署构建也有非常重要的作用<span class=" fw-cl "><span>。</span></span>比如在对 monorepo 项目进行构建时<span class=" fw-cl "><span>，</span></span>因为子项目过多<span class=" fw-cl "><span>，</span></span>导致构建时间过长<span class=" fw-cl "><span>。</span></span>为此<span class=" fw-cl "><span>，</span></span>我给出的方案是增量构建<span class=" fw-cl "><span>，</span></span>如果这次改动只设计项目 A<span class=" fw-cl "><span>、</span></span>项目 B<span class=" fw-cl "><span>，</span></span>以及公共依赖 C<span class=" fw-cl "><span>，</span></span>那么项目 C<span class=" fw-cl "><span>，</span></span>项目 D 等其他项目在构建时只需要读取缓存构建结果即可<span class=" fw-cl "><span>。</span></span>思路是很简单<span class=" fw-cl "><span>，</span></span>但是一个直接问题是<span class=" fw-cl "><span>，</span></span>如果检测说真正需要构建的项目呢<span class=" fw-cl "><span>？</span></span></p>
+<p>举个例子<span class=" fw-cl "><span>，</span></span>项目 A 依赖公共依赖 C<span class=" fw-cl "><span>，</span></span>那么及时通过 git hook 拿到的 diff 表明项目 A 并没有代码变动<span class=" fw-cl "><span>，</span></span>但是可能因为 C 变了<span class=" fw-cl "><span>，</span></span>我们还需要重新构建项目 A<span class="fw-op  "><span>（</span></span>因为 A 依赖 C<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span>按照正常的思路<span class=" fw-cl "><span>，</span></span>需要遍历整个项目<span class=" fw-cl "><span>，</span></span>这样带来的问题是增加了回溯构建的可能<span class=" fw-cl "><span>：</span></span>构建时先遍历到 A<span class=" fw-cl "><span>，</span></span>读取缓存<span class=" fw-cl "><span>，</span></span>再遍历到 C 时<span class=" fw-cl "><span>，</span></span>不得不回退到 A<span class=" fw-cl "><span>，</span></span>重新构建<span class=" fw-cl "><span>。</span></span>解决思路就是使用一个拓扑图<span class=" fw-cl "><span>，</span></span>根据拓扑图<span class=" fw-cl "><span>，</span></span>按照一定的顺序进行遍历和编译构建即可<span class=" fw-cl "><span>。</span></span></p>
+<p>这是我近期一个使用到拓扑图数据结构的经典场景<span class=" fw-cl "><span>。</span></span>具体实施过程因为机密性<span class=" fw-cl "><span>，</span></span>我不在贴代码了<span class=" fw-cl "><span>，</span></span>对于读者来说<span class=" fw-cl "><span>，</span></span>更重要地是体会思想<span class=" fw-cl "><span>，</span></span>相信自己动手实现也不会困难<span class=" fw-cl "><span>。</span></span></p>
+<h3>散列表<span class="fw-op  "><span>（</span></span>哈希表<span class=" fw-cl "><span>）</span></span></h3>
+<p>散列表是一种以 key-value 形式存储数据的数据结构<span class=" fw-cl "><span>，</span></span>可以把散列表理解为一种高级的数组<span class=" fw-cl "><span>，</span></span>这种数组的下标可以是很大的整数<span class=" fw-cl "><span>，</span></span>浮点数<span class=" fw-cl "><span>，</span></span>字符串甚至结构体<span class=" fw-cl "><span>。</span></span>这种数据结构非常有用<span class=" fw-cl "><span>，</span></span>js 里的 Map/Set/WeakMap/WeakSet 在 v8 里都是通过散列表来实现的<span class=" fw-cl "><span>，</span></span>再比如 LRU Cache<span class=" fw-cl "><span>、</span></span>数据库索引等非常多的场景也都能看到散列表的身影<span class=" fw-cl "><span>。</span></span></p>
+<p>散列并不仅仅是一种技术<span class=" fw-cl "><span>，</span></span>从某种意义上讲<span class=" fw-cl "><span>，</span></span>它甚至是一种思想<span class=" fw-cl "><span>。</span></span>接下来让我们一起揭开散列表神秘的面纱<span class=" fw-cl "><span>。</span></span></p>
+<p>假如<span class=" fw-cl "><span>，</span></span>我们要存储 key 为 6<span class=" fw-cl "><span>、</span></span>2019<span class=" fw-cl "><span>、</span></span>2333333 的三组数据<span class=" fw-cl "><span>，</span></span>如果用数组来存<span class=" fw-cl "><span>，</span></span>至少需要一个长度为 2333333 的数组来做这件事情<span class=" fw-cl "><span>，</span></span>显然这种做法存在大量的空间浪费<span class=" fw-cl "><span>。</span></span></p>
+<p>我们也可以像下图一样<span class=" fw-cl "><span>，</span></span>准备一个长度为 10 的数组<span class="fw-op  "><span>（</span></span>bucket array<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>将每一个 key 通过一个散列函数<span class="fw-op  "><span>（</span></span>hash function<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>映射到桶数组中的一位<span class=" fw-cl "><span>，</span></span>将 key 相应的值直接存入即可<span class=" fw-cl "><span>。</span></span>可以看到这种方式只需使用一个长度为 10 的数组<span class=" fw-cl "><span>，</span></span>同时查找和插入的时间复杂度都是 O(1)<span class=" fw-cl "><span>。</span></span>这就是散列表的核心思想<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-42e8473164f29f3ced56137ed1307644.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:34.10138248847927% 0" data-src="https://pic4.zhimg.com/v2-42e8473164f29f3ced56137ed1307644.png">加载中...</span></figure>
+<p>散列表中的几个概念<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">桶<span class="fw-op  "><span>（</span></span>bucket<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>用来直接存放或间接指向一个数据</li>
+  <li style="">桶数组<span class="fw-op  "><span>（</span></span>bucket array<span class=" fw-cl "><span>）</span></span>由桶组成的数组</li>
+  <li style="">散列函数<span class="fw-op  "><span>（</span></span>hash function<span class=" fw-cl "><span>）</span></span>将 key 转换为桶数组下标的函数</li>
+</ul>
+<p>上面的例子比较简单<span class=" fw-cl "><span>，</span></span>如果我们继续在之前的基础上再存储一个 key 为 9 的数据<span class=" fw-cl "><span>，</span></span>通过 9 % 10 计算得出的也是落在下标为 9 的 bucket 上<span class=" fw-cl "><span>，</span></span>此时有两个不同的 key 落在了同一个 bucket 上<span class=" fw-cl "><span>，</span></span>这一现象被称为散列冲突<span class=" fw-cl "><span>。</span></span></p>
+<p>散列冲突理论上是不可避免的<span class=" fw-cl "><span>，</span></span>我们能做的优化主要从以下两个方面入手<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">精心设计桶数组长度及散列函数<span class=" fw-cl "><span>，</span></span>尽可能降低冲突的概率</li>
+  <li style="">发生冲突时<span class=" fw-cl "><span>，</span></span>能对冲突进行排解</li>
+</ul>
+<p>假设不用散列表直接用数组来存储需要的数组长度为 R<span class=" fw-cl "><span>，</span></span>用散列表存储需要的桶数组长度为 M<span class=" fw-cl "><span>，</span></span>需要存储的元素个数为 N<span class=" fw-cl "><span>，</span></span>则一定存在以下关系 <code>N &lt; M &lt;&lt; R</code><span class=" fw-cl "><span>，</span></span>只有这样散列表才能既保持操作的高效同时起到节省空间的效果<span class=" fw-cl "><span>。</span></span></p>
+<p>其中<span class=" fw-cl "><span>，</span></span>N / M 称为散列表的装载因子<span class=" fw-cl "><span>，</span></span>当装载因子超过一定的阈值时<span class=" fw-cl "><span>，</span></span>需要对桶数组扩容并 rehash<span class=" fw-cl "><span>。</span></span></p>
+<p>理想的散列函数遵循以下的设计原则<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">确定<span class=" fw-cl "><span>：</span></span>同一 key 总是被映射至同一地址</li>
+  <li style="">高效<span class=" fw-cl "><span>：</span></span>插入/查找/删除 excepted-O(1) 时间复杂度</li>
+  <li style="">满射<span class=" fw-cl "><span>：</span></span>尽可能充分地覆盖整个桶数组空间</li>
+  <li style="">均匀<span class=" fw-cl "><span>：</span></span>key 映射到桶数组各位置的概率尽量接近</li>
+</ul>
+<p>常用的散列函数如下<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">除余法</strong></p>
+<p><code>hash(key) = key % M</code><span class=" fw-cl "><span>，</span></span>直接对 key 按桶数组的长度取余<span class=" fw-cl "><span>，</span></span>这种方法非常简单<span class=" fw-cl "><span>，</span></span>但存在以下缺陷<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">存在不动点<span class=" fw-cl "><span>：</span></span>无论桶数组长度 M 取何值<span class=" fw-cl "><span>，</span></span>总有 <code>hash(0) = 0</code><span class=" fw-cl "><span>，</span></span>这与任何元素都有均等的概率被映射到任何位置的原则相违背<span class=" fw-cl "><span>。</span></span></li>
+  <li style="">零阶均匀<span class=" fw-cl "><span>：</span></span><code>[0, R)</code> 的关键码<span class=" fw-cl "><span>，</span></span>平均分配至 M 个桶<span class=" fw-cl "><span>；</span></span>但相邻关键码的散列地址也必相邻<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p><strong style="">MAD 法 multiply-add-divide</strong></p>
+<p><code>hash(key) = (a x key + b) % M</code><span class=" fw-cl "><span>，</span></span>跟除余法相比<span class=" fw-cl "><span>，</span></span>引入的变量 b 可以视作偏移量<span class=" fw-cl "><span>，</span></span>可有效的消除不动点<span class=" fw-cl "><span>，</span></span>另一个变量 a 扮演着步长的角色<span class=" fw-cl "><span>，</span></span>也就是说原本相邻的关键码在经过散列后步长为 a<span class=" fw-cl "><span>，</span></span>从而不再继续相邻<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">平方取中 mid-square</strong></p>
+<p>取 <code>key^2</code> 的中间若干位<span class=" fw-cl "><span>，</span></span>构成地址<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style=""><code>hash(123) = 512</code> // 保留 key^2 = 123^2 = 15219 的中间 3 位</li>
+  <li style=""><code>hash(1234567) = 556</code> // 1234567^2 = 1524155677489</li>
+</ul>
+<p>我们可以将一个数的平方运算<span class=" fw-cl "><span>，</span></span>分解为一系列的左移操作以及若干次加法<span class=" fw-cl "><span>，</span></span>从下图中不难看出<span class=" fw-cl "><span>，</span></span>每一个数位都是由原关键码中的若干数位经求和得到的<span class=" fw-cl "><span>，</span></span>因此两侧的数位由更少的原数位求和而得<span class=" fw-cl "><span>，</span></span>越是居中的数位<span class=" fw-cl "><span>，</span></span>则是由更多的原数位积累而得<span class=" fw-cl "><span>，</span></span>因此截取居中的若干位<span class=" fw-cl "><span>，</span></span>可使得原关键码的各数位都能对最终结果产生影响<span class=" fw-cl "><span>，</span></span>从而实现更好的均匀性</p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-e9bb2413a1b2e2e4cdac16bfdb94e9aa.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:27.93017456359102% 0" data-src="https://pic4.zhimg.com/v2-e9bb2413a1b2e2e4cdac16bfdb94e9aa.png">加载中...</span></figure>
+<p><strong style="">多项式法</strong></p>
+<p>在实际应用中<span class=" fw-cl "><span>，</span></span>我们的 key 不一定都是整数形式<span class=" fw-cl "><span>，</span></span>因此往往需要一个预处理将其转换为散列码(hashcode)<span class=" fw-cl "><span>，</span></span>然后才可以对其进一步处理为桶数组的下标地址<span class=" fw-cl "><span>。</span></span>整个过程可以描述为 key → hashcode → bucket addr<span class=" fw-cl "><span>，</span></span>多项式法就是一种有效的将字符串 key 转换为 hashcode 的方法 对于一个长度为 n 的字符串<span class=" fw-cl "><span>，</span></span>其计算过程如下<span class=" fw-cl "><span>：</span></span></p>
+<p><code>hash(x0 x1 ... xn-1) = x0 * a^(n-1) + x1 * a^(n-2) ... + xn-2 * a + xn-1 <br>
+// 如果上面的不是很理解<span class=" fw-cl "><span>，</span></span>它其实等价于下面这样<br>
+(...((x0 * a + x1) * a + x2) * a + ... xn-2) * a + xn-1)</code></p>
+<p>这个多项式可以在 O(n) 而不是 O(n2) 的时间复杂度内计算出结果<span class=" fw-cl "><span>，</span></span>具体证明的过程这里就不详细展开了<span class=" fw-cl "><span>。</span></span></p>
+<p>在实际的工程中会采用如下这种近似多项式<span class=" fw-cl "><span>，</span></span>但更快捷的做法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function hash(key) {<br>
+ &nbsp;&nbsp;&nbsp;let h = 0<br>
+ &nbsp;&nbsp;&nbsp;for (let n = key.length, i = 0; i != n; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;h = (h &lt;&lt; 5 | h &gt;&gt; 27)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;h += key[i].charCodeAt()<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return h &gt;&gt;&gt; 0<br>
+}</code></p>
+<p>通过一个循环依次处理字符串的每一个字符<span class=" fw-cl "><span>，</span></span>对于每一个字符将它转换为整数后累加<span class=" fw-cl "><span>，</span></span>在累加之前对原有的累积值<span class=" fw-cl "><span>，</span></span>都按照 h &lt;&lt; 5 | h &gt;&gt; 27 这样的规则做一个数位变换</p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-dfee25b2a3ee28f326cf4eebd04dca82.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:11.722488038277511% 0" data-src="https://pic4.zhimg.com/v2-dfee25b2a3ee28f326cf4eebd04dca82.png">加载中...</span></figure>
+<p>这一不断调整累加的过程<span class=" fw-cl "><span>，</span></span>实际上可以是作为是对以上多项式计算的近似<span class=" fw-cl "><span>，</span></span>只不过这里消除掉了相对耗时的乘法运算<span class=" fw-cl "><span>，</span></span>至于如何理解和解释这种近似的效果<span class=" fw-cl "><span>，</span></span>可以作为本文课后的一项作业<span class=" fw-cl "><span>。</span></span></p>
+<p>除了上文讲到的方法外<span class=" fw-cl "><span>，</span></span>还有非常多的散列函数的方法<span class=" fw-cl "><span>，</span></span>如折叠法<span class=" fw-cl "><span>、</span></span>位异或法<span class=" fw-cl "><span>、</span></span><span class="fw-op  fw--collapsed"><span>（</span></span>伪<span class=" fw-cl "><span>）</span></span>随机数法<span class=" fw-cl "><span>，</span></span>此类方法林林总总<span class=" fw-cl "><span>，</span></span>每种方法都有各自的特点及应用的场景<span class=" fw-cl "><span>，</span></span>由于篇幅原因这里就不再展开了<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以在读者群中继续研究和探讨<span class=" fw-cl "><span>。</span></span></p>
+<p>总之散列函数产生的关键码越是随机<span class=" fw-cl "><span>，</span></span>越是没有规律就越好<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">冲突解决方法</strong></p>
+<p>主要的处理散列表冲突的方法有开链法和探测法这两类<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style=""><strong style="">开链法<span class="fw-op  "><span>（</span></span>linked-list chaining / seperate chaining<span class=" fw-cl "><span>）</span></span></strong></li>
+</ul>
+<p>每个桶存放一个指针<span class=" fw-cl "><span>，</span></span>将冲突的 key 以链表的形式组织起来<span class=" fw-cl "><span>，</span></span>这种处理方式最大的优点是能解决任意次数的冲突<span class=" fw-cl "><span>，</span></span>但缺点也很明显<span class=" fw-cl "><span>，</span></span>最极端的情况所有的 key 数据都落在一个桶上时<span class=" fw-cl "><span>，</span></span>散列表将退化为一个链表<span class=" fw-cl "><span>，</span></span>查找插入删除的复杂度都将变成 O(n)<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-ee91490a27cb42446d786591a40213ce.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:83.26271186440678% 0" data-src="https://pic3.zhimg.com/v2-ee91490a27cb42446d786591a40213ce.png">加载中...</span></figure>
+<ul>
+  <li style=""><strong style="">探测法<span class="fw-op  "><span>（</span></span>open addressing / closed hashing<span class=" fw-cl "><span>）</span></span></strong></li>
+</ul>
+<p>探测法所有的冲突都在这块连续的空间中加以排解<span class=" fw-cl "><span>，</span></span>而不用像开链法那样申请额外的空间<span class=" fw-cl "><span>。</span></span>当存入一个 key 时<span class=" fw-cl "><span>，</span></span>所有的桶都按照某种优先级关系排成一个序列<span class=" fw-cl "><span>，</span></span>从本该属于该 key 的桶出发<span class=" fw-cl "><span>，</span></span>顺次查看每一个桶直到找到可用的桶<span class=" fw-cl "><span>。</span></span>每个 key 对应的这样的一个序列<span class=" fw-cl "><span>，</span></span>称为试探序列或者查找链<span class=" fw-cl "><span>，</span></span>在查找 key 时<span class=" fw-cl "><span>，</span></span>沿查找链查找有两种结果<span class=" fw-cl "><span>，</span></span>在桶中找到了查询的 key 也就是查找成功<span class=" fw-cl "><span>，</span></span>还有的一种可能是找到一个空桶<span class=" fw-cl "><span>，</span></span>则说明查找失败<span class=" fw-cl "><span>，</span></span>没有这个 key<span class=" fw-cl "><span>。</span></span></p>
+<p>最简单的试探序列的生成方法叫做线性试探<span class="fw-op  "><span>（</span></span>Linear probing<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>具体做法是一旦发生冲突<span class=" fw-cl "><span>，</span></span>则试探后一个紧邻的桶单元<span class=" fw-cl "><span>，</span></span>直到成功或失败<span class=" fw-cl "><span>。</span></span>这种做法的优点是无需附加的<span class="fw-op  "><span>（</span></span>指针<span class=" fw-cl "><span>、</span></span>链表等<span class=" fw-cl "><span>）</span></span>空间<span class=" fw-cl "><span>，</span></span>缺点也很明显<span class=" fw-cl "><span>，</span></span>以往的冲突会导致后续的冲突<span class=" fw-cl "><span>。</span></span></p>
+<p><code>[hash(key) + 1] % M<br>
+[hash(key) + 2] % M<br>
+[hash(key) + 3] % M<br>
+...</code></p>
+<p>线性试探的问题根源在于大部分的试探位置都集中在某一个相对较小的局部<span class=" fw-cl "><span>，</span></span>因此优化线性试探的方式就是适当的拉开各次探测的间距<span class=" fw-cl "><span>，</span></span>平方试探<span class="fw-op  "><span>（</span></span>Quadratic Probing<span class=" fw-cl "><span>）</span></span>就是基于这一优化思路的具体实现方式<span class=" fw-cl "><span>，</span></span>所谓平方试探顾名思义就是以平方数为距离<span class=" fw-cl "><span>，</span></span>确定下一试探桶单元<span class=" fw-cl "><span>。</span></span></p>
+<p><code>[hash(key) + 1^2] % M<br>
+[hash(key) + 2^2] % M<br>
+[hash(key) + 3^2] % M<br>
+...</code></p>
+<p>相对于线性试探<span class=" fw-cl "><span>，</span></span>平方探测的确可以在很大程度上缓解数据聚集的现象<span class=" fw-cl "><span>，</span></span>查找链上<span class=" fw-cl "><span>，</span></span>各桶间距线性递增<span class=" fw-cl "><span>，</span></span>一旦冲突<span class=" fw-cl "><span>，</span></span>可从没地跳是非之地<span class=" fw-cl "><span>。</span></span></p>
+<h3>散列表的实现</h3>
+<p>最后用 JavaScript 来模拟实现一下 hashtable<span class=" fw-cl "><span>，</span></span>这里我们采用开链法来解决散列的冲突<span class=" fw-cl "><span>。</span></span></p>
+<p><code>// 单向链表节点<br>
+class ForwardListNode {<br>
+ &nbsp;&nbsp;&nbsp;constructor(key, value) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.key = key<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.value = value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.next = null<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}<br>
+<br>
+class Hashtable {<br>
+ &nbsp;constructor(bucketSize = 97) {<br>
+ &nbsp;&nbsp;&nbsp;this._bucketSize = bucketSize<br>
+ &nbsp;&nbsp;&nbsp;this._size = 0<br>
+ &nbsp;&nbsp;&nbsp;this._buckets = new Array(this._bucketSize)<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;hash(key) {<br>
+ &nbsp;&nbsp;&nbsp;let h = 0<br>
+ &nbsp;&nbsp;&nbsp;for (let n = key.length, i = 0; i != n; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;h = (h &lt;&lt; 5 | h &gt;&gt; 27)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;h += key[i].charCodeAt()<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return (h &gt;&gt;&gt; 0) % this._bucketSize<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// Modifiers<br>
+ &nbsp;put(key, value){<br>
+ &nbsp;&nbsp;&nbsp;let index = this.hash(key);<br>
+ &nbsp;&nbsp;&nbsp;let node = new ForwardListNode(key, value)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (!this._buckets[index]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果桶是空的<span class=" fw-cl "><span>，</span></span>则直接把新节点放入桶中即可<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this._buckets[index] = node<br>
+ &nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 如果桶不为空<span class=" fw-cl "><span>，</span></span>则在链表头插入新节点<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;node.next = this._buckets[index]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this._buckets[index] = node<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;this._size++<br>
+ &nbsp;&nbsp;&nbsp;return index<br>
+ &nbsp;} &nbsp;<br>
+<br>
+ &nbsp;delete(key) {<br>
+ &nbsp;&nbsp;&nbsp;let index = this.hash(key)<br>
+ &nbsp;&nbsp;&nbsp;if (!this._buckets[index]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 添加一个虚拟头节点<span class=" fw-cl "><span>，</span></span>方便后面的删除操作<br>
+ &nbsp;&nbsp;&nbsp;let dummy = new ForwardListNode(null, null)<br>
+ &nbsp;&nbsp;&nbsp;dummy.next = this._buckets[index]<br>
+ &nbsp;&nbsp;&nbsp;let cur = dummy.next, pre = dummy<br>
+ &nbsp;&nbsp;&nbsp;while (cur) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (cur.key === key) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 从链表删除该节点<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pre.next = cur.next<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cur = pre.next<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this._size--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pre = &nbsp;cur<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cur = cur.next<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;this._buckets[index] = dummy.next<br>
+ &nbsp;&nbsp;&nbsp;return true<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;// Lookup<br>
+ &nbsp;find(key){<br>
+ &nbsp;&nbsp;&nbsp;let index = this.hash(key);<br>
+ &nbsp;&nbsp;&nbsp;// 如果对应的 bucket 为空<span class=" fw-cl "><span>，</span></span>说明不存在此 key<br>
+ &nbsp;&nbsp;&nbsp;if (!this._buckets[index]) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return null<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 遍历对应桶的链表<br>
+ &nbsp;&nbsp;&nbsp;let p = this._buckets[index]<br>
+ &nbsp;&nbsp;&nbsp;while (p) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 找到 key<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (p.key === key) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return p.value<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p = p.next<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return null<br>
+ &nbsp;} <br>
+<br>
+ &nbsp;// Capacity<br>
+ &nbsp;size() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this._size<br>
+ &nbsp;}<br>
+<br>
+ &nbsp;isEmpty() {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this._size == 0<br>
+ &nbsp;}<br>
+}</code></p>
+<h3>总结</h3>
+<p>这一节课我们介绍了和前端最为贴合的几种数据结构<span class=" fw-cl "><span>，</span></span>虽然篇幅较长<span class=" fw-cl "><span>，</span></span>但是内容算不上太难<span class=" fw-cl "><span>。</span></span>一些基本概念并没有深入讲解<span class=" fw-cl "><span>，</span></span> 因为数据结构更重要的是应用<span class=" fw-cl "><span>，</span></span>我希望读者能够做到的是<span class=" fw-cl "><span>：</span></span>在需要的场景<span class=" fw-cl "><span>，</span></span>能够想到最为适合的数据结构处理问题<span class=" fw-cl "><span>。</span></span>请读者务必掌握好这些内容<span class=" fw-cl "><span>，</span></span>接下来的算法章节需要对数据结构有一个较为熟练地掌握和了解<span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1p6PmXXYCXLQyEwI5olY</span></p>
+</body>
+</html>

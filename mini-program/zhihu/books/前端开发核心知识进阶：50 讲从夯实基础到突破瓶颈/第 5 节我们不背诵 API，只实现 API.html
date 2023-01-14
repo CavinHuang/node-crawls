@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 5 节我们不背诵 API，只实现 API</h1>
+  <p>有不少刚入行的同学跟我说<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>JavaScript 很多 API 记不清楚怎么办<span class=" fw-cl "><span>？</span></span>数组的这方法<span class=" fw-cl "><span>、</span></span>那方法总是傻傻分不清楚<span class=" fw-cl "><span>，</span></span>该如何是好<span class=" fw-cl "><span>？</span></span>操作 DOM 的方式今天记<span class=" fw-cl "><span>、</span></span>明天忘<span class=" fw-cl "><span>，</span></span>真让人奔溃<span class=" fw-cl fw--collapsed"><span>！</span></span><span class=" fw-cl "><span>」</span></span>甚至有的开发者在讨论面试时<span class=" fw-cl "><span>，</span></span>总向我抱怨<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>面试官总爱纠结 API 的使用<span class=" fw-cl "><span>，</span></span>甚至 jQuery 某些方法的参数顺序都需要让我说清楚<span class=" fw-cl fw--collapsed"><span>！</span></span><span class=" fw-cl "><span>」</span></span></p>
+<p>我认为<span class=" fw-cl "><span>，</span></span>对于反复使用的方法<span class=" fw-cl "><span>，</span></span>所有人都要做到<span class="fw-op  "><span>「</span></span>机械记忆<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>能够反手写出<span class=" fw-cl "><span>。</span></span>一些貌似永远记不清的 API 只是因为用得不够多而已<span class=" fw-cl "><span>。</span></span></p>
+<p>在做面试官时<span class=" fw-cl "><span>，</span></span>我从来不强求开发者准确无误地<span class="fw-op  "><span>「</span></span>背诵<span class=" fw-cl "><span>」</span></span> API<span class=" fw-cl "><span>。</span></span>相反<span class=" fw-cl "><span>，</span></span>我喜欢从另外一个角度来考察面试者<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span><strong style="">既然记不清使用方法<span class=" fw-cl "><span>，</span></span>那么我告诉你它的使用方法<span class=" fw-cl "><span>，</span></span>你来实现一个吧<span class=" fw-cl fw--collapsed"><span>！</span></span></strong><span class=" fw-cl "><span>」</span></span>实现一个 API<span class=" fw-cl "><span>，</span></span>除了可以考察面试者对这个 API 的理解<span class=" fw-cl "><span>，</span></span>更能体现开发者的编程思维和代码能力<span class=" fw-cl "><span>。</span></span>对于积极上进的前端工程师<span class=" fw-cl "><span>，</span></span>模仿并实现一些经典方法<span class=" fw-cl "><span>，</span></span>应该是<span class="fw-op  "><span>「</span></span>家常便饭<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>这是比较基本的要求<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">本小节<span class=" fw-cl "><span>，</span></span>我根据了解的面试题目和作为面试官的经历<span class=" fw-cl "><span>，</span></span>挑了几个典型的 API<span class=" fw-cl "><span>，</span></span>通过对其不同程度<span class=" fw-cl "><span>，</span></span>不同方式的实现<span class=" fw-cl "><span>，</span></span>来覆盖 JavaScript 中的部分知识点和编程要领</strong><span class=" fw-cl "><span>。</span></span>通过学习本节内容<span class=" fw-cl "><span>，</span></span>期待你不仅能领会代码奥义<span class=" fw-cl "><span>，</span></span>更应该学习举一反三的方法<span class=" fw-cl "><span>。</span></span></p>
+<p>API 主题的相关知识点如下<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic3.zhimg.com/v2-52b5d36eab4354c426b3c49d8bee88c1.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:35.22954091816367% 0" data-src="https://pic3.zhimg.com/v2-52b5d36eab4354c426b3c49d8bee88c1.png">加载中...</span></figure>
+<h3>jQuery offset 实现</h3>
+<blockquote><br></blockquote>
+<p>这个话题演变自今日头条某部门面试题<span class=" fw-cl "><span>。</span></span>当时面试官提问<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>如何获取文档中任意一个元素距离文档 <code>document</code> 顶部的距离<span class=" fw-cl fw--collapsed"><span>？</span></span><span class=" fw-cl "><span>」</span></span></p>
+<p>熟悉 jQuery 的读者应该对 <code>offset</code> 方法并不陌生<span class=" fw-cl "><span>，</span></span>它返回或设置匹配元素相对于文档的偏移<span class="fw-op  "><span>（</span></span>位置<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span>这个方法返回的对象包含两个整型属性<span class=" fw-cl "><span>：</span></span><code>top</code> 和 <code>left</code><span class=" fw-cl "><span>，</span></span>以像素计<span class=" fw-cl "><span>。</span></span>如果可以使用 jQuery<span class=" fw-cl "><span>，</span></span> 我们可以直接调取该 API 获得结果<span class=" fw-cl "><span>。</span></span>但是<span class=" fw-cl "><span>，</span></span><strong style="">如果用原生 JavaScript 实现<span class=" fw-cl "><span>，</span></span>也就是说手动实现 jQuery</strong> <code><strong style="">offset</strong></code> <strong style="">方法<span class=" fw-cl "><span>，</span></span>该如何着手呢<span class=" fw-cl "><span>？</span></span></strong></p>
+<p>主要有两种思路<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style="">通过递归实现</li>
+  <li style="">通过 <code>getBoundingClientRect</code> API 实现</li>
+</ul>
+<h4>递归实现方案</h4>
+<p>我们通过遍历目标元素<span class=" fw-cl "><span>、</span></span>目标元素的父节点<span class=" fw-cl "><span>、</span></span>父节点的父节点......依次溯源<span class=" fw-cl "><span>，</span></span>并累加这些遍历过的节点相对于其最近祖先节点<span class="fw-op  "><span>（</span></span>且 <code>position</code> 属性非 <code>static</code><span class=" fw-cl "><span>）</span></span>的偏移量<span class=" fw-cl "><span>，</span></span>向上直到 <code>document</code><span class=" fw-cl "><span>，</span></span>累加即可得到结果<span class=" fw-cl "><span>。</span></span></p>
+<p>其中<span class=" fw-cl "><span>，</span></span>我们需要使用 JavaScript 的 <code>offsetTop</code> 来访问一个 DOM 节点上边框相对离其本身最近<span class=" fw-cl "><span>、</span></span>且 <code>position</code> 值为非 <code>static</code> 的祖先元素的垂直偏移量<span class=" fw-cl "><span>。</span></span>具体实现为<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const offset = ele =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let result = {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;top: 0,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;left: 0<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+const getOffset = (node, init) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (node.nodeType !== 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;position = window.getComputedStyle(node)['position']<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof(init) === 'undefined' &amp;&amp; position === 'static') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getOffset(node.parentNode)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.top = node.offsetTop + result.top - node.scrollTop<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.left = node.offsetLeft + result.left - node.scrollLeft<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (position === 'fixed') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getOffset(node.parentNode)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 当前 DOM 节点的 display === 'none' 时, 直接返回 {top: 0, left: 0}<br>
+ &nbsp;&nbsp;&nbsp;if (window.getComputedStyle(ele)['display'] === 'none') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;let position<br>
+<br>
+ &nbsp;&nbsp;&nbsp;getOffset(ele, true)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return result<br>
+<br>
+}</code></p>
+<p>上述代码并不难理解<span class=" fw-cl "><span>，</span></span>使用递归实现<span class=" fw-cl "><span>。</span></span>如果节点 <code>node.nodeType</code> 类型不是 <code>Element(1)</code><span class=" fw-cl "><span>，</span></span>则跳出<span class=" fw-cl "><span>；</span></span>如果相关节点的 <code>position</code> 属性为 <code>static</code><span class=" fw-cl "><span>，</span></span>则不计入计算<span class=" fw-cl "><span>，</span></span>进入下一个节点<span class="fw-op  "><span>（</span></span>其父节点<span class=" fw-cl "><span>）</span></span>的递归<span class=" fw-cl "><span>。</span></span>如果相关属性的 <code>display</code> 属性为 <code>none</code><span class=" fw-cl "><span>，</span></span>则应该直接返回 0 作为结果<span class=" fw-cl "><span>。</span></span></p>
+<p>这个实现很好地考察了开发者对于递归的初级应用<span class=" fw-cl "><span>、</span></span>以及对 JavaScript 方法的掌握程度<span class=" fw-cl "><span>。</span></span></p>
+<p>接下来<span class=" fw-cl "><span>，</span></span>我们换一种思路<span class=" fw-cl "><span>，</span></span>用一个相对较新的 API<span class=" fw-cl "><span>：</span></span> <code>getBoundingClientRect</code> 来实现 jQuery <code>offset</code> 方法<span class=" fw-cl "><span>。</span></span></p>
+<h4>getBoundingClientRect 方法</h4>
+<p><code>getBoundingClientRect</code> 方法用来描述一个元素的具体位置<span class=" fw-cl "><span>，</span></span>该位置的下面四个属性都是相对于视口左上角的位置而言的<span class=" fw-cl "><span>。</span></span>对某一节点执行该方法<span class=" fw-cl "><span>，</span></span>它的返回值是一个 <a href="https://developer.mozilla.org/zh-CN/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIDOMClientRect" title="DOMRect">DOMRect</a> 类型的对象<span class=" fw-cl "><span>。</span></span>这个对象表示一个矩形盒子<span class=" fw-cl "><span>，</span></span>它含有<span class=" fw-cl "><span>：</span></span><code>left</code><span class=" fw-cl "><span>、</span></span><code>top</code><span class=" fw-cl "><span>、</span></span><code>right</code> 和 <code>bottom</code> 等只读属性<span class=" fw-cl "><span>。</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic4.zhimg.com/v2-2de59aa344a3ef5db1e1c1a4a1b535b1.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:68.75% 0" data-src="https://pic4.zhimg.com/v2-2de59aa344a3ef5db1e1c1a4a1b535b1.png">加载中...</span></figure>
+<p>请参考实现代码<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const offset = ele =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let result = {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;top: 0,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;left: 0<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;// 当前为 IE11 以下<span class=" fw-cl "><span>，</span></span>直接返回 {top: 0, left: 0}<br>
+ &nbsp;&nbsp;&nbsp;if (!ele.getClientRects().length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;// 当前 DOM 节点的 display === 'none' 时<span class=" fw-cl "><span>，</span></span>直接返回 {top: 0, left: 0}<br>
+ &nbsp;&nbsp;&nbsp;if (window.getComputedStyle(ele)['display'] === 'none') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;result = ele.getBoundingClientRect()<br>
+ &nbsp;&nbsp;&nbsp;var docElement = ele.ownerDocument.documentElement<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;top: result.top + window.pageYOffset - docElement.clientTop,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;left: result.left + window.pageXOffset - docElement.clientLeft<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p><strong style="">需要注意的细节有<span class=" fw-cl "><span>：</span></span></strong></p>
+<ul>
+  <li style=""><br></li>
+</ul>
+<p><code>node.ownerDocument.documentElement</code> 的用法可能大家比较陌生<span class=" fw-cl "><span>，</span></span><code>ownerDocument</code> 是 DOM 节点的一个属性<span class=" fw-cl "><span>，</span></span>它返回当前节点的顶层的 <code>document</code> 对象<span class=" fw-cl "><span>。</span></span><code>ownerDocument</code> 是文档<span class=" fw-cl "><span>，</span></span><code>documentElement</code> 是根节点<span class=" fw-cl "><span>。</span></span>事实上<span class=" fw-cl "><span>，</span></span><code>ownerDocument</code> 下含 2 个节点<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style=""><br></li>
+</ul>
+<p><code></code></p>
+<ul>
+  <li style=""><code>documentElement</code></li>
+</ul>
+<p><code>docElement.clientTop</code><span class=" fw-cl "><span>，</span></span><code>clientTop</code> 是一个元素顶部边框的宽度<span class=" fw-cl "><span>，</span></span>不包括顶部外边距或内边距<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style="">除此之外<span class=" fw-cl "><span>，</span></span>该方法实现就是简单的几何运算<span class=" fw-cl "><span>，</span></span>边界 case 和兼容性处理<span class=" fw-cl "><span>，</span></span>也并不难理解<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<p>从这道题目看出<span class=" fw-cl "><span>，</span></span>相比考察<span class="fw-op  "><span>「</span></span>死记硬背<span class=" fw-cl "><span>」</span></span> API<span class=" fw-cl "><span>，</span></span>这样的实现更有意义<span class=" fw-cl "><span>。</span></span>站在面试官的角度<span class=" fw-cl "><span>，</span></span>我往往会给面试者<span class="fw-op  "><span>（</span></span>开发者<span class=" fw-cl "><span>）</span></span>提供相关的方法提示<span class=" fw-cl "><span>，</span></span>以引导其给出最后的方案实现<span class=" fw-cl "><span>。</span></span></p>
+<h3>数组 <code>reduce</code> 方法的相关实现</h3>
+<p>数组方法非常重要<span class=" fw-cl "><span>：</span></span><strong style="">因为数组就是数据<span class=" fw-cl "><span>，</span></span>数据就是状态<span class=" fw-cl "><span>，</span></span>状态反应着视图</strong><span class=" fw-cl "><span>。</span></span>对数组的操作我们不能陌生<span class=" fw-cl "><span>，</span></span>其中 <code>reduce</code> 方法更要做到驾轻就熟<span class=" fw-cl "><span>。</span></span>我认为这个方法很好地体现了<span class="fw-op  "><span>「</span></span>函数式<span class=" fw-cl "><span>」</span></span>理念<span class=" fw-cl "><span>，</span></span>也是当前非常热门的考察点之一<span class=" fw-cl "><span>。</span></span></p>
+<p>我们知道 <code>reduce</code> 方法是 ES5 引入的<span class=" fw-cl "><span>，</span></span>reduce 英文解释翻译过来为<span class="fw-op  "><span>「</span></span>减少<span class=" fw-cl "><span>，</span></span>缩小<span class=" fw-cl "><span>，</span></span>使还原<span class=" fw-cl "><span>，</span></span>使变弱<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>MDN 对该方法直述为<span class=" fw-cl "><span>：</span></span></p>
+<blockquote><br></blockquote>
+<p>The reduce method applies a function against an accumulator and each value of the array (from left-to-right) to reduce it to a single value.</p>
+<p>它的使用语法<span class=" fw-cl "><span>：</span></span></p>
+<p><code>arr.reduce(callback[, initialValue])</code></p>
+<p>这里我们简要介绍一下<span class=" fw-cl "><span>。</span></span></p>
+<ul>
+  <li style=""><code>reduce</code> 第一个参数 <code>callback</code> 是核心<span class=" fw-cl "><span>，</span></span>它对数组的每一项进行<span class="fw-op  "><span>「</span></span>叠加加工<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>其最后一次返回值将作为 <code>reduce</code>方法的最终返回值<span class=" fw-cl "><span>。</span></span> 它包含 4 个参数<span class=" fw-cl "><span>：</span></span>
+    <ul>
+      <li style=""><code>previousValue</code>　表示<span class="fw-op  "><span>「</span></span>上一次<span class=" fw-cl "><span>」</span></span> <code>callback</code> 函数的返回值</li>
+      <li style=""><code>currentValue</code>　数组遍历中正在处理的元素</li>
+      <li style=""><code>currentIndex</code>　可选<span class=" fw-cl "><span>，</span></span>表示 <code>currentValue</code> 在数组中对应的索引<span class=" fw-cl "><span>。</span></span>如果提供了 <code>initialValue</code><span class=" fw-cl "><span>，</span></span>则起始索引号为 0<span class=" fw-cl "><span>，</span></span>否则为 1</li>
+      <li style=""><code>array</code>　可选<span class=" fw-cl "><span>，</span></span>调用 <code>reduce()</code> 的数组</li>
+    </ul>
+  </li>
+  <li style=""><code>initialValue</code> 可选<span class=" fw-cl "><span>，</span></span>作为第一次调用 <code>callback</code> 时的第一个参数<span class=" fw-cl "><span>。</span></span>如果没有提供 <code>initialValue</code><span class=" fw-cl "><span>，</span></span>那么数组中的第一个元素将作为 &nbsp;<code>callback</code> 的第一个参数<span class=" fw-cl "><span>。</span></span></li>
+</ul>
+<h4><code>reduce</code> 实现 <code>runPromiseInSequence</code></h4>
+<p>我们看它的<strong style="">一个典型应用</strong><span class=" fw-cl "><span>，</span></span>按顺序运行 Promise<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const runPromiseInSequence = (array, value) =&gt; array.reduce(<br>
+ &nbsp;&nbsp;&nbsp;(promiseChain, currentFunction) =&gt; promiseChain.then(currentFunction),<br>
+ &nbsp;&nbsp;&nbsp;Promise.resolve(value)<br>
+)</code></p>
+<p><code>runPromiseInSequence</code> 方法将会被一个每一项都返回一个 Promise 的数组调用<span class=" fw-cl "><span>，</span></span>并且依次执行数组中的每一个 Promise<span class=" fw-cl "><span>，</span></span>请读者仔细体会<span class=" fw-cl "><span>。</span></span>如果觉得晦涩<span class=" fw-cl "><span>，</span></span>可以参考示例<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const f1 = () =&gt; new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('p1 running')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(1)<br>
+ &nbsp;&nbsp;&nbsp;}, 1000)<br>
+})<br>
+<br>
+const f2 = () =&gt; new Promise((resolve, reject) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;setTimeout(() =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log('p2 running')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(2)<br>
+ &nbsp;&nbsp;&nbsp;}, 1000)<br>
+})<br>
+<br>
+const array = [f1, f2]<br>
+<br>
+const runPromiseInSequence = (array, value) =&gt; array.reduce(<br>
+ &nbsp;&nbsp;&nbsp;(promiseChain, currentFunction) =&gt; promiseChain.then(currentFunction),<br>
+ &nbsp;&nbsp;&nbsp;Promise.resolve(value)<br>
+)<br>
+<br>
+runPromiseInSequence(array, 'init')</code></p>
+<p>执行结果如下图<span class=" fw-cl "><span>：</span></span></p>
+<p><br></p>
+<figure class="central"><img data-src="https://pic2.zhimg.com/v2-92f2653c50e313ab86553e98c23752a9.png" alt="图片" class="richText-img-source"><span class="processImgLazyload-placeholder-e5egJ richText-img-placeholder" style="padding:36% 0" data-src="https://pic2.zhimg.com/v2-92f2653c50e313ab86553e98c23752a9.png">加载中...</span></figure>
+<h4><code>reduce</code> 实现 <code>pipe</code></h4>
+<p><code>reduce</code> 的另外一个<strong style="">典型应用</strong>可以参考函数式方法 <code>pipe</code> 的实现<span class=" fw-cl "><span>：</span></span><code>pipe(f, g, h)</code> 是一个 curry 化函数<span class=" fw-cl "><span>，</span></span>它返回一个新的函数<span class=" fw-cl "><span>，</span></span>这个新的函数将会完成 <code>(...args) =&gt; h(g(f(...args)))</code> 的调用<span class=" fw-cl "><span>。</span></span>即 <code>pipe</code> 方法返回的函数会接收一个参数<span class=" fw-cl "><span>，</span></span>这个参数传递给 <code>pipe</code> 方法第一个参数<span class=" fw-cl "><span>，</span></span>以供其调用<span class=" fw-cl "><span>。</span></span></p>
+<p><code>const pipe = (...functions) =&gt; input =&gt; functions.reduce(<br>
+ &nbsp;&nbsp;&nbsp;(acc, fn) =&gt; fn(acc),<br>
+ &nbsp;&nbsp;&nbsp;input<br>
+)</code></p>
+<p>仔细体会 <code>runPromiseInSequence</code> 和 <code>pipe</code> 这两个方法<span class=" fw-cl "><span>，</span></span>它们都是 <code>reduce</code> 应用的典型场景<span class=" fw-cl "><span>。</span></span></p>
+<h4>实现一个 <code>reduce</code></h4>
+<p>那么我们该如何实现一个 <code>reduce</code> 呢<span class=" fw-cl "><span>？</span></span>参考来自 MDN 的 polyfill<span class=" fw-cl "><span>：</span></span></p>
+<p><code>if (!Array.prototype.reduce) {<br>
+ &nbsp;Object.defineProperty(Array.prototype, 'reduce', {<br>
+ &nbsp;&nbsp;&nbsp;value: function(callback /*, initialValue*/) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this === null) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TypeError( 'Array.prototype.reduce ' + <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'called on null or undefined' )<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof callback !== 'function') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TypeError( callback +<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' is not a function')<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var o = Object(this)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var len = o.length &gt;&gt;&gt; 0<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var k = 0<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var value<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (arguments.length &gt;= 2) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value = arguments[1]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (k &lt; len &amp;&amp; !(k in o)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;k++<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (k &gt;= len) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TypeError( 'Reduce of empty array ' +<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'with no initial value' )<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value = o[k++]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (k &lt; len) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (k in o) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value = callback(value, o[k], k, o)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;k++<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return value<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;})<br>
+}</code></p>
+<p>上述代码中使用了 <code>value</code> 作为初始值<span class=" fw-cl "><span>，</span></span>并通过 <code>while</code> 循环<span class=" fw-cl "><span>，</span></span>依次累加计算出 <code>value</code> 结果并输出<span class=" fw-cl "><span>。</span></span>但是相比 MDN 上述实现<span class=" fw-cl "><span>，</span></span>我个人更喜欢的实现方案是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Array.prototype.reduce = Array.prototype.reduce || function(func, initialValue) {<br>
+ &nbsp;&nbsp;&nbsp;var arr = this<br>
+ &nbsp;&nbsp;&nbsp;var base = typeof initialValue === 'undefined' ? arr[0] : initialValue<br>
+ &nbsp;&nbsp;&nbsp;var startPoint = typeof initialValue === 'undefined' ? 1 : 0<br>
+ &nbsp;&nbsp;&nbsp;arr.slice(startPoint)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.forEach(function(val, index) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;base = func(base, val, index + startPoint, arr)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})<br>
+ &nbsp;&nbsp;&nbsp;return base<br>
+}</code></p>
+<p>核心原理就是使用 <code>forEach</code> 来代替 <code>while</code> 实现结果的累加<span class=" fw-cl "><span>，</span></span>它们本质上是相同的<span class=" fw-cl "><span>。</span></span></p>
+<p>我也同样看了下 ES5-shim 里的 pollyfill<span class=" fw-cl "><span>，</span></span>跟上述思路完全一致<span class=" fw-cl "><span>。</span></span>唯一的区别在于<span class=" fw-cl "><span>：</span></span>我用了 <code>forEach</code> 迭代而 ES5-shim 使用的是简单的 <code>for</code> 循环<span class=" fw-cl "><span>。</span></span>实际上<span class=" fw-cl "><span>，</span></span>如果<span class="fw-op  "><span>「</span></span>杠精<span class=" fw-cl "><span>」</span></span>一些<span class=" fw-cl "><span>，</span></span>我们会指出数组的 <code>forEach</code> 方法也是 ES5 新增的<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>用 ES5 的一个 API<span class="fw-op  "><span>（</span></span><code>forEach</code><span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>去实现另外一个 ES5 的 API<span class="fw-op  "><span>（</span></span><code>reduce</code><span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>这并没什么实际意义——这里的 pollyfill 就是在不兼容 ES5 的情况下<span class=" fw-cl "><span>，</span></span>模拟的降级方案<span class=" fw-cl "><span>。</span></span>此处不多做追究<span class=" fw-cl "><span>，</span></span>因为根本目的还是希望读者对 <code>reduce</code> 有一个全面透彻的了解<span class=" fw-cl "><span>。</span></span></p>
+<h4>通过 Koa only 模块源码认识 <code>reduce</code></h4>
+<p>通过了解并实现 <code>reduce</code> 方法<span class=" fw-cl "><span>，</span></span>我们对它已经有了比较深入的认识<span class=" fw-cl "><span>。</span></span>最后<span class=" fw-cl "><span>，</span></span>再来看一个 <code>reduce</code> 使用示例——通过 Koa 源码的 <a href="https://www.npmjs.com/package/only" title="only">only</a> 模块<span class=" fw-cl "><span>，</span></span>加深印象<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var o = {<br>
+ &nbsp;&nbsp;&nbsp;a: 'a',<br>
+ &nbsp;&nbsp;&nbsp;b: 'b',<br>
+ &nbsp;&nbsp;&nbsp;c: 'c'<br>
+}<br>
+only(o, ['a','b']) &nbsp;&nbsp;// {a: 'a', &nbsp;b: 'b'}</code></p>
+<p>该方法返回一个经过指定筛选属性的新对象<span class=" fw-cl "><span>。</span></span> ​<br>
+only 模块实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var only = function(obj, keys){<br>
+ &nbsp;&nbsp;&nbsp;obj = obj || {}<br>
+ &nbsp;&nbsp;&nbsp;if ('string' == typeof keys) keys = keys.split(/ +/)<br>
+ &nbsp;&nbsp;&nbsp;return keys.reduce(function(ret, key) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (null == obj[key]) return ret<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ret[key] = obj[key]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return ret<br>
+ &nbsp;&nbsp;&nbsp;}, {})<br>
+}</code></p>
+<p>小小的 <code>reduce</code> 及其衍生场景有很多值得我们玩味<span class=" fw-cl "><span>、</span></span>探究的地方<span class=" fw-cl "><span>。</span></span>举一反三<span class=" fw-cl "><span>，</span></span>活学活用是技术进阶的关键<span class=" fw-cl "><span>。</span></span></p>
+<h3><code>compose</code> 实现的几种方案</h3>
+<p>函数式理念——这一古老的概念如今在前端领域<span class="fw-op  "><span>「</span></span>遍地开花<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>。</span></span>函数式很多思想都值得借鉴<span class=" fw-cl "><span>，</span></span>其中一个细节<span class=" fw-cl "><span>：</span></span>compose 因为其巧妙的设计而被广泛运用<span class=" fw-cl "><span>。</span></span>对于它的实现<span class=" fw-cl "><span>，</span></span>从面向过程式到函数式实现<span class=" fw-cl "><span>，</span></span>风格迥异<span class=" fw-cl "><span>，</span></span>值得我们探究<span class=" fw-cl "><span>。</span></span>在面试当中<span class=" fw-cl "><span>，</span></span>也经常有面试官要求实现 <code>compose</code> 方法<span class=" fw-cl "><span>，</span></span>我们先看什么是 <code>compose</code><span class=" fw-cl "><span>。</span></span></p>
+<p><code>compose</code> 其实和前面提到的 <code>pipe</code> 一样<span class=" fw-cl "><span>，</span></span>就是执行一连串不定长度的任务<span class="fw-op  "><span>（</span></span>方法<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>比如<span class=" fw-cl "><span>：</span></span></p>
+<p><code>let funcs = [fn1, fn2, fn3, fn4]<br>
+let composeFunc = compose(...funcs)</code></p>
+<p>执行<span class=" fw-cl "><span>：</span></span></p>
+<p><code>composeFunc(args)</code></p>
+<p>就相当于<span class=" fw-cl "><span>：</span></span></p>
+<p><code>fn1(fn2(fn3(fn4(args))))</code></p>
+<p>总结一下 <code>compose</code> 方法的关键点<span class=" fw-cl "><span>：</span></span></p>
+<ul>
+  <li style=""><code>compose</code> 的参数是函数数组<span class=" fw-cl "><span>，</span></span>返回的也是一个函数</li>
+  <li style=""><code>compose</code> 的参数是任意长度的<span class=" fw-cl "><span>，</span></span>所有的参数都是函数<span class=" fw-cl "><span>，</span></span>执行方向是自右向左的<span class=" fw-cl "><span>，</span></span>因此初始函数一定放到参数的最右面</li>
+  <li style=""><code>compose</code> 执行后返回的函数可以接收参数<span class=" fw-cl "><span>，</span></span>这个参数将作为初始函数的参数<span class=" fw-cl "><span>，</span></span>所以初始函数的参数是多元的<span class=" fw-cl "><span>，</span></span>初始函数的返回结果将作为下一个函数的参数<span class=" fw-cl "><span>，</span></span>以此类推<span class=" fw-cl "><span>。</span></span>因此除了初始函数之外<span class=" fw-cl "><span>，</span></span>其他函数的接收值是一元的</li>
+</ul>
+<p>我们发现<span class=" fw-cl "><span>，</span></span>实际上<span class=" fw-cl "><span>，</span></span><code>compose</code> 和 <code>pipe</code> 的差别只在于调用顺序的不同<span class=" fw-cl "><span>：</span></span></p>
+<p><code>// compose<br>
+fn1(fn2(fn3(fn4(args))))<br>
+<br>
+// pipe<br>
+fn4(fn3(fn2(fn1(args))))</code></p>
+<p>即然跟我们先前实现的 <code>pipe</code> 方法如出一辙<span class=" fw-cl "><span>，</span></span>那么还有什么好深入分析的呢<span class=" fw-cl "><span>？</span></span>请继续阅读<span class=" fw-cl "><span>，</span></span>看看还能玩出什么花儿来<span class=" fw-cl "><span>。</span></span></p>
+<p><code>compose</code> 最简单的实现是面向过程的<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const compose = function(...args) {<br>
+ &nbsp;&nbsp;&nbsp;let length = args.length<br>
+ &nbsp;&nbsp;&nbsp;let count = length - 1<br>
+ &nbsp;&nbsp;&nbsp;let result<br>
+ &nbsp;&nbsp;&nbsp;return function f1 (...arg1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result = args[count].apply(this, arg1)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (count &lt;= 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count = length - 1<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count--<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return f1.call(null, result)<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>这里的关键是用到了<strong style="">闭包</strong><span class=" fw-cl "><span>，</span></span>使用闭包变量储存结果 <code>result</code> 和函数数组长度以及遍历索引<span class=" fw-cl "><span>，</span></span>并利用递归思想<span class=" fw-cl "><span>，</span></span>进行结果的累加计算<span class=" fw-cl "><span>。</span></span>整体实现符合正常的面向过程思维<span class=" fw-cl "><span>，</span></span>不难理解<span class=" fw-cl "><span>。</span></span></p>
+<p>聪明的读者可能也会意识到<span class=" fw-cl "><span>，</span></span>利用上文所讲的 <code>reduce</code> 方法<span class=" fw-cl "><span>，</span></span>应该能更<strong style="">函数式</strong>地解决问题<span class=" fw-cl "><span>：</span></span></p>
+<p><code>const reduceFunc = (f, g) =&gt; (...arg) =&gt; g.call(this, f.apply(this, arg))<br>
+const compose = (...args) =&gt; args.reverse().reduce(reduceFunc, args.shift())</code></p>
+<p>通过前面的学习<span class=" fw-cl "><span>，</span></span>结合 <code>call</code><span class=" fw-cl "><span>、</span></span><code>apply</code> 方法<span class=" fw-cl "><span>，</span></span>这样的实现并不难理解<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">我们继续开拓思路<span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>既然涉及串联和流程控制<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>那么还可以使用 Promise 实现<span class=" fw-cl "><span>：</span></span></strong></p>
+<p><code>const compose = (...args) =&gt; {<br>
+ &nbsp;&nbsp;&nbsp;let init = args.pop()<br>
+ &nbsp;&nbsp;&nbsp;return (...arg) =&gt; <br>
+ &nbsp;&nbsp;&nbsp;args.reverse().reduce((sequence, func) =&gt; <br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sequence.then(result =&gt; func.call(null, result))<br>
+ &nbsp;&nbsp;&nbsp;, Promise.resolve(init.apply(null, arg)))<br>
+}</code></p>
+<p>这种实现利用了 Promise 特性<span class=" fw-cl "><span>：</span></span>首先通过 <code>Promise.resolve(init.apply(null, arg))</code> 启动逻辑<span class=" fw-cl "><span>，</span></span>启动一个 <code>resolve</code> 值为最后一个函数接收参数后的返回值<span class=" fw-cl "><span>，</span></span>依次执行函数<span class=" fw-cl "><span>。</span></span>因为 <code>promise.then()</code> 仍然返回一个 Promise 类型值<span class=" fw-cl "><span>，</span></span>所以 <code>reduce</code> 完全可以按照 Promise 实例执行下去<span class=" fw-cl "><span>。</span></span></p>
+<p>既然能够使用 Promise 实现<span class=" fw-cl "><span>，</span></span>那么 <strong style="">generator</strong> 当然应该也可以实现<span class=" fw-cl "><span>。</span></span>这里给大家留一个思考题<span class=" fw-cl "><span>，</span></span>感兴趣的读者可以尝试<span class=" fw-cl "><span>，</span></span>欢迎在评论区或读者群讨论<span class=" fw-cl "><span>。</span></span></p>
+<p>最后<span class=" fw-cl "><span>，</span></span>我们再看下社区上著名的 lodash 和 Redux 的实现<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">lodash 版本</strong></p>
+<p><code>// lodash 版本<br>
+var compose = function(funcs) {<br>
+ &nbsp;&nbsp;&nbsp;var length = funcs.length<br>
+ &nbsp;&nbsp;&nbsp;var index = length<br>
+ &nbsp;&nbsp;&nbsp;while (index--) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (typeof funcs[index] !== 'function') {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TypeError('Expected a function');<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return function(...args) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var index = 0<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var result = length ? funcs.reverse()[index].apply(this, args) : args[0]<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while (++index &lt; length) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result = funcs[index].call(this, result)<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>lodash 版本更像我们的第一种实现方式<span class=" fw-cl "><span>，</span></span>理解起来也更容易<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">Redux 版本</strong></p>
+<p><code>// Redux 版本<br>
+function compose(...funcs) {<br>
+ &nbsp;&nbsp;&nbsp;if (funcs.length === 0) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return arg =&gt; arg<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (funcs.length === 1) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return funcs[0]<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;return funcs.reduce((a, b) =&gt; (...args) =&gt; a(b(...args)))<br>
+}</code></p>
+<p>总之<span class=" fw-cl "><span>，</span></span>还是充分利用了数组的 <code>reduce</code> 方法<span class=" fw-cl "><span>。</span></span></p>
+<p>函数式概念确实有些抽象<span class=" fw-cl "><span>，</span></span>需要开发者仔细琢磨<span class=" fw-cl "><span>，</span></span>并动手调试<span class=" fw-cl "><span>。</span></span>一旦顿悟<span class=" fw-cl "><span>，</span></span>必然会感受到其中的优雅和简洁<span class=" fw-cl "><span>。</span></span></p>
+<h3><code>apply</code><span class=" fw-cl "><span>、</span></span><code>bind</code> 进阶实现</h3>
+<p>面试中关于 <code>this</code> 绑定的相关话题如今已经<span class="fw-op  "><span>「</span></span>泛滥<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>同时对 <code>bind</code> 方法的实现<span class=" fw-cl "><span>，</span></span>社区上也有相关讨论<span class=" fw-cl "><span>。</span></span>但是很多内容尚不系统<span class=" fw-cl "><span>，</span></span>且存在一些瑕疵<span class=" fw-cl "><span>。</span></span>这里简单摘录我 2017 年年初写的文章 <a href="https://www.jianshu.com/p/6958f99db769" title="从一道面试题，到「我可能看了假源码」">从一道面试题<span class=" fw-cl "><span>，</span></span>到<span class="fw-op  "><span>「</span></span>我可能看了假源码<span class=" fw-cl "><span>」</span></span></a> 来递进讨论<span class=" fw-cl "><span>。</span></span>在<span class="fw-op  "><span>《</span></span>一网打尽 <code>this</code><span class=" fw-cl "><span>》</span></span>一课中<span class=" fw-cl "><span>，</span></span>我们介绍过对 <code>bind</code> 的实现<span class=" fw-cl "><span>，</span></span>这里进一步展开讲解<span class=" fw-cl "><span>。</span></span></p>
+<p>此处不再赘述 <code>bind</code> 函数的使用<span class=" fw-cl "><span>，</span></span>尚不清楚的读者可以自行补充一下基础知识<span class=" fw-cl "><span>。</span></span>我们先来看一个初级实现版本<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Function.prototype.bind = Function.prototype.bind || function (context) {<br>
+ &nbsp;&nbsp;&nbsp;var me = this;<br>
+ &nbsp;&nbsp;&nbsp;var argsArray = Array.prototype.slice.call(arguments);<br>
+ &nbsp;&nbsp;&nbsp;return function () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return me.apply(context, argsArray.slice(1))<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>这是一般合格开发者提供的答案<span class=" fw-cl "><span>，</span></span>如果面试者能写到这里<span class=" fw-cl "><span>，</span></span>给他 60 分<span class=" fw-cl "><span>。</span></span></p>
+<p><strong style="">先简要解读一下<span class=" fw-cl "><span>：</span></span></strong></p>
+<p>基本原理是使用 <code>apply</code> 进行模拟 <code>bind</code><span class=" fw-cl "><span>。</span></span>函数体内的 <code>this</code> 就是需要绑定 <code>this</code> 的函数<span class=" fw-cl "><span>，</span></span>或者说是原函数<span class=" fw-cl "><span>。</span></span>最后使用 <code>apply</code> 来进行参数<span class="fw-op  "><span>（</span></span><code>context</code><span class=" fw-cl "><span>）</span></span>绑定<span class=" fw-cl "><span>，</span></span>并返回<span class=" fw-cl "><span>。</span></span></p>
+<p>与此同时<span class=" fw-cl "><span>，</span></span>将第一个参数<span class="fw-op  "><span>（</span></span><code>context</code><span class=" fw-cl "><span>）</span></span>以外的其他参数<span class=" fw-cl "><span>，</span></span>作为提供给原函数的预设参数<span class=" fw-cl "><span>，</span></span>这也是基本的<span class="fw-op  "><span>「</span></span> curry 化<span class=" fw-cl "><span>」</span></span>基础<span class=" fw-cl "><span>。</span></span></p>
+<p>上述实现方式<span class=" fw-cl "><span>，</span></span>我们返回的参数列表里包含<span class=" fw-cl "><span>：</span></span><code>argsArray.slice(1)</code><span class=" fw-cl "><span>，</span></span><strong style="">它的问题在于存在预置参数功能丢失的现象<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>想象我们返回的绑定函数中<span class=" fw-cl "><span>，</span></span>如果想实现预设传参<span class="fw-op  "><span>（</span></span>就像 <code>bind</code> 所实现的那样<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>，</span></span>就面临尴尬的局面<span class=" fw-cl "><span>。</span></span>真正实现<span class="fw-op  "><span>「</span></span> curry 化<span class=" fw-cl "><span>」</span></span>的<span class="fw-op  "><span>「</span></span>完美方式<span class=" fw-cl "><span>」</span></span>是<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Function.prototype.bind = Function.prototype.bind || function (context) {<br>
+ &nbsp;&nbsp;&nbsp;var me = this;<br>
+ &nbsp;&nbsp;&nbsp;var args = Array.prototype.slice.call(arguments, 1);<br>
+ &nbsp;&nbsp;&nbsp;return function () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var innerArgs = Array.prototype.slice.call(arguments);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var finalArgs = args.concat(innerArgs);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return me.apply(context, finalArgs);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+}</code></p>
+<p>但继续探究<span class=" fw-cl "><span>，</span></span>我们注意 <code>bind</code> 方法中<span class=" fw-cl "><span>：</span></span><code>bind</code> 返回的函数如果作为构造函数<span class=" fw-cl "><span>，</span></span>搭配 <code>new</code> 关键字出现的话<span class=" fw-cl "><span>，</span></span>我们的绑定 <code>this</code> 就需要<span class="fw-op  "><span>「</span></span>被忽略<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span><code>this</code> 要绑定在实例上<span class=" fw-cl "><span>。</span></span>也就是说<span class=" fw-cl "><span>，</span></span><code>new</code> 的操作符要高于 <code>bind</code> 绑定<span class=" fw-cl "><span>，</span></span>兼容这种情况的实现<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Function.prototype.bind = Function.prototype.bind || function (context) {<br>
+ &nbsp;&nbsp;&nbsp;var me = this;<br>
+ &nbsp;&nbsp;&nbsp;var args = Array.prototype.slice.call(arguments, 1);<br>
+ &nbsp;&nbsp;&nbsp;var F = function () {};<br>
+ &nbsp;&nbsp;&nbsp;F.prototype = this.prototype;<br>
+ &nbsp;&nbsp;&nbsp;var bound = function () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var innerArgs = Array.prototype.slice.call(arguments);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var finalArgs = args.concat(innerArgs);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return me.apply(this instanceof F ? this : context || this, finalArgs);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;bound.prototype = new F();<br>
+ &nbsp;&nbsp;&nbsp;return bound;<br>
+}</code></p>
+<p>如果你认为这样就完了<span class=" fw-cl "><span>，</span></span>其实我会告诉你说<span class=" fw-cl "><span>，</span></span>高潮才刚要上演<span class=" fw-cl "><span>。</span></span>曾经的我也认为上述方法已经比较完美了<span class=" fw-cl "><span>，</span></span>直到我看了 es5-shim 源码<span class="fw-op  "><span>（</span></span>已适当删减<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>：</span></span></p>
+<p><code>function bind(that) {<br>
+ &nbsp;&nbsp;&nbsp;var target = this;<br>
+ &nbsp;&nbsp;&nbsp;if (!isCallable(target)) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;throw new TypeError('Function.prototype.bind called on incompatible ' + target);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;var args = array_slice.call(arguments, 1);<br>
+ &nbsp;&nbsp;&nbsp;var bound;<br>
+ &nbsp;&nbsp;&nbsp;var binder = function () {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this instanceof bound) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var result = target.apply(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array_concat.call(args, array_slice.call(arguments))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if ($Object(result) === result) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return target.apply(<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;that,<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array_concat.call(args, array_slice.call(arguments))<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;};<br>
+ &nbsp;&nbsp;&nbsp;var boundLength = max(0, target.length - args.length);<br>
+ &nbsp;&nbsp;&nbsp;var boundArgs = [];<br>
+ &nbsp;&nbsp;&nbsp;for (var i = 0; i &lt; boundLength; i++) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;array_push.call(boundArgs, '$' + i);<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;bound = Function('binder', 'return function (' + boundArgs.join(',') + '){ return binder.apply(this, arguments); }')(binder);<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if (target.prototype) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Empty.prototype = target.prototype;<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bound.prototype = new Empty();<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Empty.prototype = null;<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+ &nbsp;&nbsp;&nbsp;return bound;<br>
+}</code></p>
+<p>es5-shim 的实现到底在<span class="fw-op  "><span>「</span></span>搞什么鬼<span class=" fw-cl "><span>」</span></span>呢<span class=" fw-cl "><span>？</span></span>你可能不知道<span class=" fw-cl "><span>，</span></span>其实每个函数都有 <code>length</code> 属性<span class=" fw-cl "><span>。</span></span>对<span class=" fw-cl "><span>，</span></span>就像数组和字符串那样<span class=" fw-cl "><span>。</span></span>函数的 <code>length</code> 属性<span class=" fw-cl "><span>，</span></span>用于表示函数的形参个数<span class=" fw-cl "><span>。</span></span>更重要的是函数的 <code>length</code> 属性值是不可重写的<span class=" fw-cl "><span>。</span></span>我写了个测试代码来证明<span class=" fw-cl "><span>：</span></span></p>
+<p><code>function test (){}<br>
+test.length &nbsp;// 输出 0<br>
+test.hasOwnProperty('length') &nbsp;// 输出 true<br>
+Object.getOwnPropertyDescriptor('test', 'length') <br>
+// 输出<span class=" fw-cl "><span>：</span></span><br>
+// configurable: false, <br>
+// enumerable: false,<br>
+// value: 4, <br>
+// writable: false</code></p>
+<p>说到这里<span class=" fw-cl "><span>，</span></span>那就好解释了<span class=" fw-cl "><span>：</span></span><strong style="">es5-shim 是为了最大限度地进行兼容<span class=" fw-cl "><span>，</span></span>包括对返回函数</strong> <code><strong style="">length</strong></code> <strong style="">属性的还原</strong><span class=" fw-cl "><span>。</span></span>而如果按照我们之前实现的那种方式<span class=" fw-cl "><span>，</span></span><code>length</code> 值始终为零<span class=" fw-cl "><span>。</span></span>因此<span class=" fw-cl "><span>，</span></span>既然不能修改 <code>length</code> 的属性值<span class=" fw-cl "><span>，</span></span>那么在初始化时赋值总可以吧<span class=" fw-cl "><span>！</span></span>于是我们可通过 <code>eval</code> 和 <code>new Function</code> 的方式动态定义函数<span class=" fw-cl "><span>。</span></span>但是出于安全考虑<span class=" fw-cl "><span>，</span></span>在某些浏览器中使用 <code>eval</code> 或者 <code>Function()</code> 构造函数都会抛出异常<span class=" fw-cl "><span>。</span></span>然而巧合的是<span class=" fw-cl "><span>，</span></span>这些无法兼容的浏览器基本上都实现了 <code>bind</code> 函数<span class=" fw-cl "><span>，</span></span>这些异常又不会被触发<span class=" fw-cl "><span>。</span></span>在上述代码里<span class=" fw-cl "><span>，</span></span>重设绑定函数的 <code>length</code> 属性<span class=" fw-cl "><span>：</span></span></p>
+<p><code>var boundLength = max(0, target.length - args.length)</code></p>
+<p>构造函数调用情况<span class=" fw-cl "><span>，</span></span>在 <code>binder</code> 中也有效兼容<span class=" fw-cl "><span>：</span></span></p>
+<p><code>if (this instanceof bound) { <br>
+ &nbsp;&nbsp;&nbsp;... // 构造函数调用情况<br>
+} else {<br>
+ &nbsp;&nbsp;&nbsp;... // 正常方式调用<br>
+}<br>
+<br>
+if (target.prototype) {<br>
+ &nbsp;&nbsp;&nbsp;Empty.prototype = target.prototype;<br>
+ &nbsp;&nbsp;&nbsp;bound.prototype = new Empty();<br>
+ &nbsp;&nbsp;&nbsp;// 进行垃圾回收清理<br>
+ &nbsp;&nbsp;&nbsp;Empty.prototype = null;<br>
+}</code></p>
+<p>对比过几版的 polyfill 实现<span class=" fw-cl "><span>，</span></span>对于 <code>bind</code> 应该有了比较深刻的认识<span class=" fw-cl "><span>。</span></span>这一系列实现有效地考察了很重要的知识点<span class=" fw-cl "><span>：</span></span>比如 <code>this</code> 的指向<span class=" fw-cl "><span>、</span></span>JavaScript 闭包<span class=" fw-cl "><span>、</span></span>原型与原型链<span class=" fw-cl "><span>，</span></span>设计程序上的边界 case 和兼容性考虑经验等硬素质<span class=" fw-cl "><span>。</span></span></p>
+<h4>一道更好的面试题</h4>
+<p>最后<span class=" fw-cl "><span>，</span></span>现如今在很多面试中<span class=" fw-cl "><span>，</span></span>面试官都会以<span class="fw-op  "><span>「</span></span>实现 <code>bind</code><span class=" fw-cl "><span>」</span></span>作为题目<span class=" fw-cl "><span>。</span></span><strong style="">如果是我<span class=" fw-cl "><span>，</span></span>现在可能会规避这个很容易<span class="fw-op  "><span>「</span></span>应试<span class=" fw-cl "><span>」</span></span>的题目<span class=" fw-cl "><span>，</span></span>而是别出心裁<span class=" fw-cl "><span>，</span></span>让面试者实现一个 <span class="fw-op  "><span>「</span></span>call/apply<span class=" fw-cl fw--collapsed"><span>」</span></span></strong><span class=" fw-cl "><span>。</span></span>我们往往用 <code>call</code>/<code>apply</code> 模拟实现 <code>bind</code><span class=" fw-cl "><span>，</span></span>而直接实现 <code>call</code>/<code>apply</code> 也算简单<span class=" fw-cl "><span>：</span></span></p>
+<p><code>Function.prototype.applyFn = function (targetObject, argsArray) {<br>
+ &nbsp;&nbsp;&nbsp;if(typeof argsArray === 'undefined' || argsArray === null) {<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;argsArray = []<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;if(typeof targetObject === 'undefined' || targetObject === null){<br>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;targetObject = window<br>
+ &nbsp;&nbsp;&nbsp;}<br>
+<br>
+ &nbsp;&nbsp;&nbsp;targetObject = new Object(targetObject)<br>
+<br>
+ &nbsp;&nbsp;&nbsp;const targetFnKey = 'targetFnKey'<br>
+ &nbsp;&nbsp;&nbsp;targetObject[targetFnKey] = this<br>
+<br>
+ &nbsp;&nbsp;&nbsp;const result = targetObject[targetFnKey](...argsArray)<br>
+ &nbsp;&nbsp;&nbsp;delete targetObject[targetFnKey]<br>
+ &nbsp;&nbsp;&nbsp;return result<br>
+}</code></p>
+<p>这样的代码不难理解<span class=" fw-cl "><span>，</span></span>函数体内的 <code>this</code> 指向了调用 <code>applyFn</code> 的函数<span class=" fw-cl "><span>。</span></span>为了将该函数体内的 <code>this</code> 绑定在 <code>targetObject</code> 上<span class=" fw-cl "><span>，</span></span>我们采用了隐式绑定的方法<span class=" fw-cl "><span>：</span></span><code>targetObject[targetFnKey](...argsArray)</code><span class=" fw-cl "><span>。</span></span></p>
+<p>细心的读者会发现<span class=" fw-cl "><span>，</span></span>这里存在一个问题<span class=" fw-cl "><span>：</span></span>如果 <code>targetObject</code> 对象本身就存在 <code>targetFnKey</code> 这样的属性<span class=" fw-cl "><span>，</span></span>那么在使用 <code>applyFn</code> 函数时<span class=" fw-cl "><span>，</span></span>原有的 <code>targetFnKey</code> 属性值就会被覆盖<span class=" fw-cl "><span>，</span></span>之后被删除<span class=" fw-cl "><span>。</span></span>解决方案可以使用 ES6 &nbsp;<code>Sybmol()</code> 来保证键的唯一性<span class=" fw-cl "><span>；</span></span>另一种解决方案是用 <code>Math.random()</code> 实现独一无二的 key<span class=" fw-cl "><span>，</span></span>这里我们不再赘述<span class=" fw-cl "><span>。</span></span></p>
+<h3>实现这些 API 带来的启示</h3>
+<p>这些 API 的实现并不算复杂<span class=" fw-cl "><span>，</span></span>却能恰如其分地考验开发者的 JavaScript 基础<span class=" fw-cl "><span>。</span></span>基础是地基<span class=" fw-cl "><span>，</span></span>是探究更深入内容的钥匙<span class=" fw-cl "><span>，</span></span>是进阶之路上最重要的一环<span class=" fw-cl "><span>，</span></span>需要每个开发者重视<span class=" fw-cl "><span>。</span></span>在前端技术快速发展迭代的今天<span class=" fw-cl "><span>，</span></span>在<span class="fw-op  "><span>「</span></span>前端市场是否饱和<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>前端求职火爆异常<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>前端入门简单<span class=" fw-cl "><span>，</span></span>钱多人傻<span class=" fw-cl "><span>」</span></span>等众说纷纭的浮躁环境下<span class=" fw-cl "><span>，</span></span>对基础内功的修炼就显得尤为重要<span class=" fw-cl "><span>。</span></span>这也是你在前端路上能走多远<span class=" fw-cl "><span>、</span></span>走多久的关键<span class=" fw-cl "><span>。</span></span></p>
+<p>从面试的角度看<span class=" fw-cl "><span>，</span></span>面试题归根结底是对基础的考察<span class=" fw-cl "><span>，</span></span>只有对基础烂熟于胸<span class=" fw-cl "><span>，</span></span>才能具备突破面试的基本条件<span class=" fw-cl "><span>。</span></span></p>
+<p><a href="https://github.com/HOUCe/lucas-gitchat-courses" title="课程代码仓库请单击这里查看">课程代码仓库请单击这里查看</a><span class=" fw-cl "><span>。</span></span></p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1yLrx86TjAgXwzFk9NJ</span></p>
+</body>
+</html>
