@@ -743,6 +743,7 @@ const cacheDir = path.resolve(__dirname, '_cache')
 const getDetailUrl = (book, section) =>
   `https://www.zhihu.com/market/paid_column/${book}/section/${section}`;
 async function fetchCharpt(url, boolId = '', datas = []) {
+  console.log('【抓取剩余章节】')
   const request = new SpiderRequest(url, cookie);
   await sleep(10)
   const headers = request.getHeaders();
@@ -757,9 +758,13 @@ async function fetchCharpt(url, boolId = '', datas = []) {
             id: item.id,
           }))
         );
-        if (res.data.pagination) {
-          offset += 10;
-          fetchCharpt(res.data.pagination.next, boolId, datas);
+        console.log('【分页信息】', res.data.paging)
+        if (res.data.paging) {
+          const url = res.data.paging.next;
+          if (url) {
+            const currentUrl = url.indexOf("http:") > -1 ? url : `https:${url}`;
+            await fetchCharpt(currentUrl, boolId, datas);
+          }
         }
       }
     }
