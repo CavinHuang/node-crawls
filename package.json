@@ -13,7 +13,6 @@
     "@auramarker/epub-gen": "^1.0.5",
     "@mr-huang/html-to-epub": "^1.0.0",
     "@sitdown/zhihu": "^1.1.2",
-    "apify": "^3.1.1",
     "axios": "^0.27.2",
     "bagpipe": "^0.3.5",
     "canvas": "^2.11.0",
@@ -23,7 +22,6 @@
     "fs-extra": "^10.1.0",
     "image-size": "^1.0.2",
     "jsdom": "^21.0.0",
-    "puppeteer": "^19.5.1",
     "request": "^2.88.2",
     "sitdown": "^1.1.7"
   }

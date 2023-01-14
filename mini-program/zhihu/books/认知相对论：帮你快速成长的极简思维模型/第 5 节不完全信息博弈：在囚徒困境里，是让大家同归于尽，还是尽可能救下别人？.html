@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>第 5 节不完全信息博弈：在囚徒困境里，是让大家同归于尽，还是尽可能救下别人？</h1>
+  <p>2003 年的时候<span class=" fw-cl "><span>，</span></span>在一个叫<span class="fw-op  "><span>「</span></span>音速论坛<span class="fw-op  "><span>（</span></span>sonicbbs<span class=" fw-cl "><span>）</span></span>中推理天下版块<span class=" fw-cl "><span>，</span></span>一位叫<span class="fw-op  "><span>「</span></span>加菲鼠<span class=" fw-cl "><span>」</span></span>的网友提了一个问题<span class=" fw-cl "><span>：</span></span></p>
+<p><strong>五个囚犯先后从 100 颗绿豆中抓绿豆<span class=" fw-cl "><span>。</span></span>抓得最多和最少的人将被处死<span class=" fw-cl "><span>，</span></span>不能交流<span class=" fw-cl "><span>，</span></span>可以摸出剩下绿豆的数量<span class=" fw-cl "><span>，</span></span>谁的存活几率最</strong>大<span class=" fw-cl "><span>？</span></span></p>
+<p>这道题还有几个需要知道的点<span class=" fw-cl "><span>：</span></span></p>
+<p>1<span class=" fw-cl "><span>、</span></span>他们都是很聪明的人<span class=" fw-cl "><span>；</span></span></p>
+<p>2<span class=" fw-cl "><span>、</span></span>他们的原则是先求保命<span class=" fw-cl "><span>，</span></span>再去多杀人<span class=" fw-cl "><span>；</span></span></p>
+<p>3<span class=" fw-cl "><span>、</span></span>100 颗不必都分完<span class=" fw-cl "><span>，</span></span>但要保证每人至少抓一颗<span class=" fw-cl "><span>；</span></span></p>
+<p>4<span class=" fw-cl "><span>、</span></span>若有重复的情况<span class=" fw-cl "><span>，</span></span>则也算最大和最小<span class=" fw-cl "><span>，</span></span>一并处死</p>
+<p>通过解答这道题<span class=" fw-cl "><span>，</span></span>希望能帮助大家通过数学得到一些关于人生的感悟<span class=" fw-cl "><span>。</span></span></p>
+<p>这个问题的解答<span class=" fw-cl "><span>，</span></span>取决于我们如何从数学的角度理解题干<span class=" fw-cl "><span>。</span></span><br>
+首先<span class=" fw-cl "><span>，</span></span>我们来看题干<span class=" fw-cl "><span>，</span></span>题目给出的条件是这样的<span class=" fw-cl "><span>：</span></span></p>
+<p>1<span class=" fw-cl "><span>、</span></span>他们都是很聪明的人<span class=" fw-cl "><span>；</span></span></p>
+<p>2<span class=" fw-cl "><span>、</span></span>他们的原则是先求保命<span class=" fw-cl "><span>，</span></span>再去多杀人<span class=" fw-cl "><span>；</span></span></p>
+<p>3<span class=" fw-cl "><span>、</span></span>100 颗不必都分完<span class=" fw-cl "><span>，</span></span>但要保证每人至少抓一颗<span class=" fw-cl "><span>；</span></span></p>
+<p>4<span class=" fw-cl "><span>、</span></span>若有重复的情况<span class=" fw-cl "><span>，</span></span>则也算最大和最小<span class=" fw-cl "><span>，</span></span>一并处死<span class=" fw-cl "><span>。</span></span></p>
+<p>这里面最重要的就是第 2 条<span class=" fw-cl "><span>：</span></span><strong>他们都是很聪明的人<span class=" fw-cl "><span>，</span></span>他们的原则是先求保命<span class=" fw-cl "><span>，</span></span>再去多杀人<span class=" fw-cl "><span>；</span></span></strong></p>
+<p>对此我的理解是<span class=" fw-cl "><span>：</span></span></p>
+<p>a) 因为每个人都不能指望别人犯错<span class=" fw-cl "><span>，</span></span>因此抓豆的策略是<span class=" fw-cl "><span>：</span></span>在剩下的人采取最佳方案的时候<span class=" fw-cl "><span>，</span></span>自己的存活概最大<span class=" fw-cl "><span>；</span></span></p>
+<p>b) 如果有多种方案使得自己的存活概率最大且相同<span class=" fw-cl "><span>，</span></span>则采取杀死人最多的方案<span class=" fw-cl "><span>；</span></span><br>
+而在这个解读下<span class=" fw-cl "><span>，</span></span>这个问题或许会走向一个可怕的结局<span class=" fw-cl "><span>。</span></span></p>
+<p>下面<span class=" fw-cl "><span>，</span></span>我尽量不用数学语言<span class=" fw-cl "><span>，</span></span>而是用通俗的语言来分析这个问题<span class=" fw-cl "><span>。</span></span></p>
+<p>首先要说明的是<span class=" fw-cl "><span>，</span></span>题目要求每个人都至少抓一颗绿豆<span class=" fw-cl "><span>，</span></span>所以第一个人抓完绿豆后<span class=" fw-cl "><span>，</span></span>至少要留 4 颗绿豆给剩下的 4 个人<span class=" fw-cl "><span>；</span></span>同理<span class=" fw-cl "><span>，</span></span>第二个人要留至少 3 颗绿豆给后面的人<span class=" fw-cl "><span>；</span></span>第三个人要留 2 颗<span class=" fw-cl "><span>；</span></span>第 4 个人要留 1 颗<span class=" fw-cl "><span>。</span></span></p>
+<p>我们先不管第 1 个人咋样<span class=" fw-cl "><span>，</span></span>其实第 2 个人到第 5 个人的策略是显而易见的<span class=" fw-cl "><span>。</span></span></p>
+<p>情况讨论<span class=" fw-cl "><span>：</span></span></p>
+<p>下面我分两种情况讨论<span class=" fw-cl "><span>：</span></span></p>
+<p><strong>1.</strong> <strong>如果第</strong> <strong>1 个人取的绿豆数超过了</strong> <strong>20 颗<span class="fw-op  "><span>（</span></span>也就是总和的</strong> <strong>1/5<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></strong>&nbsp;</p>
+<p>那么<span class=" fw-cl "><span>，</span></span>对于第 2 个人来说<span class=" fw-cl "><span>，</span></span>他的最佳策略是<span class=" fw-cl "><span>：</span></span></p>
+<p>l 比第 1 个人取的绿豆数少至少 1 颗<span class=" fw-cl "><span>，</span></span>且在这个范围内尽可能多取<span class=" fw-cl "><span>；</span></span></p>
+<p>l 至少剩下 3 颗绿豆给后面 3 个人<span class=" fw-cl "><span>。</span></span></p>
+<p>这是因为<span class=" fw-cl "><span>，</span></span>第 1 个人已经取了超过均值数的绿豆数<span class=" fw-cl "><span>，</span></span>后面一定有人取不到 20 颗<span class=" fw-cl "><span>。</span></span>第 2 个人比均值少取 1 颗<span class=" fw-cl "><span>，</span></span>就可以保证自己不是最多或者最少的<span class=" fw-cl "><span>，</span></span>自己必然存活<span class=" fw-cl "><span>。</span></span>而在自己存活的情况下<span class=" fw-cl "><span>，</span></span>尽可能让后面的人少取绿豆<span class=" fw-cl "><span>，</span></span>让后面的人<span class="fw-op  "><span>「</span></span>卷<span class=" fw-cl "><span>」</span></span>起来<span class=" fw-cl "><span>，</span></span>所以在规则允许的情况下<span class=" fw-cl "><span>，</span></span>比第一个人少 1 颗是最好的<span class=" fw-cl "><span>。</span></span></p>
+<p>当然<span class=" fw-cl "><span>，</span></span>如果第 1 个人取了至少 50 颗绿豆<span class=" fw-cl "><span>，</span></span>那第 2 个人的策略就是取到剩下 3 颗即可<span class=" fw-cl "><span>，</span></span>这样就能让剩下的 3 个人都只能取 1 颗<span class=" fw-cl "><span>，</span></span>除了第 2 个人自己<span class=" fw-cl "><span>，</span></span>其他人都面临必死的结局啦<span class=" fw-cl "><span>。</span></span></p>
+<p>对于第 3<span class=" fw-cl "><span>、</span></span>4 个人来说<span class=" fw-cl "><span>，</span></span>如果剩下的绿豆数少于 60 颗<span class=" fw-cl "><span>、</span></span>40 颗<span class=" fw-cl "><span>，</span></span>那么策略是类似的<span class=" fw-cl "><span>：</span></span></p>
+<p>首先要保证自己比前面取得最多的人至少少一颗<span class="fw-op  "><span>（</span></span>因为他们看不到前面的人取的绿豆数<span class=" fw-cl "><span>，</span></span>所以只能取比前面所有人的均值严格少的绿豆数<span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>；</span></span>其次是留尽可能少的绿豆给后面的人<span class=" fw-cl "><span>；</span></span>而如果剩下的绿豆数多于 60 颗<span class=" fw-cl "><span>、</span></span>40 颗<span class=" fw-cl "><span>，</span></span>说明剩下的绿豆数足够<span class=" fw-cl "><span>，</span></span>那他们就尽量取前面人取绿豆的均值<span class=" fw-cl "><span>，</span></span>来让自己不是最多或最少的可能达到最多<span class=" fw-cl "><span>。</span></span><span class="fw-op  fw--collapsed"><span>（</span></span>我们称之为<span class="fw-op  "><span>「</span></span>均值策略<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl fw--collapsed"><span>）</span></span><span class=" fw-cl "><span>。</span></span></p>
+<p>将上述的策略描述成数学语言<span class=" fw-cl "><span>，</span></span>就是<span class=" fw-cl "><span>：</span></span></p>
+<p><strong>定义<span class=" fw-cl "><span>：</span></span></strong> m_{n} 为第 n 个人取走的绿豆数<span class=" fw-cl "><span>，</span></span>而 &nbsp;M_{n} 为前 n 个人取走的总绿豆数</p>
+<p><strong>引理<span class=" fw-cl "><span>：</span></span></strong>当 1-3 人取过绿豆数时<span class=" fw-cl "><span>，</span></span>如果如果被取走的绿豆数满足 20n<m_{n}<95+n<span class=" fw-cl "><span>，</span>则第 n+1 人个人应该取 min(96-M_{n}+n,[(M_{n}-1)/n]) 颗绿豆</m_{n}<95+n<span></p>
+<p>而对于第 5 个人来说<span class=" fw-cl "><span>，</span></span>他可能别无选择了<span class=" fw-cl "><span>：</span></span>如果剩下的绿豆数足够<span class=" fw-cl "><span>，</span></span>那就尽可能取前面 4 个绿豆数的均值<span class=" fw-cl "><span>；</span></span>如果不足够<span class=" fw-cl "><span>，</span></span>就全取完<span class=" fw-cl "><span>，</span></span>然后祈祷<span class=" fw-cl "><span>。</span></span></p>
+<p>不知道你发现没<span class=" fw-cl "><span>，</span></span>我们好像有意无意地忽略了第 1 个人的诉求——因为无论如何<span class=" fw-cl "><span>，</span></span>他一定是取绿豆数最多的人<span class=" fw-cl "><span>，</span></span>必死无疑了<span class=" fw-cl "><span>。</span></span></p>
+<p>第 1 个人当然不愿意就这样坐以待毙<span class=" fw-cl "><span>，</span></span>所以他选择方案 2 <span class=" fw-cl "><span>：</span></span></p>
+<p><strong>2.</strong> <strong>第</strong> <strong>1 个人至多取</strong> <strong>20 颗绿豆<span class=" fw-cl "><span>。</span></span></strong></p>
+<p>在这个情况下<span class=" fw-cl "><span>，</span></span>第 2 个人将面临什么样的局势呢<span class=" fw-cl "><span>？</span></span></p>
+<p>如果他取的绿豆数比第 1 个人多<span class=" fw-cl "><span>，</span></span>并且和第 1 个人取的绿豆总和超过了 40 颗<span class=" fw-cl "><span>，</span></span>那么按照上面分析的<span class=" fw-cl "><span>，</span></span>若第 3<span class=" fw-cl "><span>、</span></span>4 个人采取策略<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>比前面所有人的均值严格少<span class=" fw-cl "><span>，</span></span>且尽可能留最少的绿豆数给后面的人<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>第 5 个人采取策略<span class=" fw-cl "><span>：</span></span><span class="fw-op  fw--collapsed"><span>「</span></span>取前 4 个人的均值<span class=" fw-cl "><span>，</span></span>如果不够则取完<span class=" fw-cl fw--collapsed"><span>」</span></span><span class=" fw-cl "><span>，</span></span>那么第 2 个人毫无疑问就成为了取绿豆数最多的人<span class=" fw-cl "><span>，</span></span>必死无疑<span class=" fw-cl "><span>。</span></span></p>
+<p>所以第 2 个人取的绿豆数必须要少于 40 减去第一个人取的绿豆数<span class=" fw-cl "><span>。</span></span></p>
+<p>在这种情况下<span class=" fw-cl "><span>，</span></span>第 3<span class=" fw-cl "><span>、</span></span>4<span class=" fw-cl "><span>、</span></span>5 个人都会采用<span class="fw-op  "><span>「</span></span>均值策略<span class=" fw-cl "><span>」</span></span>来确保自己存活的概率最大<span class=" fw-cl "><span>。</span></span></p>
+<p>用数学语言讲<span class=" fw-cl "><span>：</span></span>就是当 n=2<span class=" fw-cl "><span>，</span></span>3 时<span class=" fw-cl "><span>，</span></span>若 M_{n}&lt;20n,则第 n+1 个人应该取 [M_{n}/n+0.5] 颗绿豆<span class=" fw-cl "><span>。</span></span></p>
+<p>这个时候<span class=" fw-cl "><span>，</span></span>一个有趣的情况出现了<span class=" fw-cl "><span>：</span></span></p>
+<p>l 如果第 2 个人取的绿豆数比第 1 个人多<span class=" fw-cl "><span>，</span></span>那么他会因为自己取的绿豆数全场最多而死<span class=" fw-cl "><span>；</span></span></p>
+<p>l 如果第 2 个人取的绿豆数比第 1 个人少<span class=" fw-cl "><span>，</span></span>那么他会因为自己取的绿豆数全场最少而死<span class=" fw-cl "><span>；</span></span></p>
+<p>l 如果第 2 个人取的绿豆数和第 1 个人相同<span class=" fw-cl "><span>，</span></span>那么所有人取的绿豆数都相同<span class=" fw-cl "><span>，</span></span>所有人都得死<span class=" fw-cl "><span>。</span></span></p>
+<p>咦<span class=" fw-cl "><span>？</span></span>第 2 个人横竖都得死<span class=" fw-cl "><span>？</span></span></p>
+<p>对了<span class=" fw-cl "><span>，</span></span>刚才我们似乎忽略了第 1 个人<span class=" fw-cl "><span>，</span></span>好像他也是横竖都得死<span class=" fw-cl "><span>？</span></span></p>
+<p>现在<span class=" fw-cl "><span>，</span></span>让我们把镁光灯聚焦到第 1 个人头上<span class=" fw-cl "><span>。</span></span></p>
+<p>他仔细思考了第 2～5 个人可能采取的策略<span class=" fw-cl "><span>，</span></span>发现了<span class="fw-op  "><span>「</span></span>自己必死<span class=" fw-cl "><span>」</span></span>的可怕现实<span class=" fw-cl "><span>。</span></span></p>
+<p>那么对他来说<span class=" fw-cl "><span>，</span></span>或许要面临一个抉择了<span class=" fw-cl "><span>：</span></span></p>
+<p>如果自己的存活概率为 0<span class=" fw-cl "><span>，</span></span>那么按照规则<span class=" fw-cl "><span>，</span></span>自己是要尽可能多杀人还是多救人<span class=" fw-cl "><span>？</span></span></p>
+<p>如果按照之前的假定<span class=" fw-cl "><span>，</span></span>他应该多杀人<span class=" fw-cl "><span>，</span></span>那他的选择其实很简单<span class=" fw-cl "><span>：</span></span><strong>取走 96 颗绿豆<span class=" fw-cl "><span>！</span></span>那剩下的人只能各自取</strong> <strong>1 颗绿豆<span class=" fw-cl "><span>，</span></span>所有人都必死了</strong><span class=" fw-cl "><span>。</span></span></p>
+<p>但如果<span class=" fw-cl "><span>，</span></span>他有了恻隐之心<span class=" fw-cl "><span>，</span></span>反正自己必死<span class=" fw-cl "><span>，</span></span>不如多救几个<span class=" fw-cl "><span>，</span></span>按照之前讨论的情况 1<span class=" fw-cl "><span>，</span></span>他可以选择取走 21～33 颗绿豆<span class=" fw-cl "><span>：</span></span></p>
+<p>如果他取了 21 颗<span class=" fw-cl "><span>，</span></span>后面的人分别取 20<span class=" fw-cl "><span>、</span></span>20<span class=" fw-cl "><span>、</span></span>20<span class=" fw-cl "><span>、</span></span>19 颗<span class=" fw-cl "><span>，</span></span>第 2～4 个人存活<span class=" fw-cl "><span>；</span></span>如果取了 33 颗<span class=" fw-cl "><span>，</span></span>后面的人分别取 32<span class=" fw-cl "><span>、</span></span>32<span class=" fw-cl "><span>、</span></span>2<span class=" fw-cl "><span>、</span></span>1 颗<span class=" fw-cl "><span>，</span></span>同样<span class=" fw-cl "><span>，</span></span>第 2～4 个人存活<span class=" fw-cl "><span>。</span></span></p>
+<p>如果少于 21 颗<span class=" fw-cl "><span>，</span></span>按照之前的分析<span class=" fw-cl "><span>，</span></span>第 2 个人肯定得死<span class=" fw-cl "><span>；</span></span>如果多于 33 颗<span class=" fw-cl "><span>，</span></span>第 4 个人只能取 1 颗<span class=" fw-cl "><span>，</span></span>必然死<span class=" fw-cl "><span>。</span></span></p>
+<p>所以<span class=" fw-cl "><span>，</span></span>第 1 个取 21～33 颗是最好的选择——可以救下 3 个人<span class=" fw-cl "><span>。</span></span></p>
+<p>如果是你<span class=" fw-cl "><span>，</span></span>会怎么选择呢<span class=" fw-cl "><span>？</span></span>是让大家同归于尽<span class=" fw-cl "><span>，</span></span>还是尽可能救下别人<span class=" fw-cl "><span>？</span></span></p>
+<p>作者<span class=" fw-cl "><span>：</span></span>曾加</p><p><span style="display:block;font-size: 13px;opacity:0.5;transform:translateY(-20px);">备案号:YXX1QZKkkwlHMBZY3DFb8lX</span></p>
+</body>
+</html>

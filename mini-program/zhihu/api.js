@@ -5,9 +5,11 @@ const dom = new JSDOM("<!DOCTYPE html><p>Hello world</p>", {
 // const { EPub } = require("@mr-huang/html-to-epub");
 var crypto = require("crypto");
 const { default: axios } = require("axios");
-const { saveBookInfo, saveBookData, normalTitle } = require("./saveBookInfo");
+const { saveBookInfo, saveBookData, normalTitle, downloadFile } = require("./saveBookInfo");
 const cheerio = require('cheerio');
 const path = require("path");
+const { sleep } = require("../../libs/request");
+const fs = require("fs");
 window = dom.window;
 document = window.document;
 navigator = window.navigator;
@@ -670,7 +672,7 @@ function getZse96(cookie, url, zse93, x81) {
 // https://api.zhihu.com/remix/well/1431705106886184960/catalog?offset=10&limit=13&order_by=global_idx&is_new_column=true
 
 const cookie =
-  "_xsrf=bcrEKtfm4bVzWRmL4Hqe8OFphtdOmtaM; KLBRSID=ca494ee5d16b14b649673c122ff27291|1673581060|1673571775;_zap=3cc0f52d-abe9-42c9-98d3-465975fd9ba9; _xsrf=YGxKtTfaodx3XafXLsO46WqFLfYmdjSK; Hm_lvt_98beee57fd2ef70ccdd5ca52b9740c49=1672709778,1673312506; d_c0=AEBXshZlHRaPTsBrhraibR2XUmQ62Op7oTg=|1672709778; captcha_session_v2=2|1:0|10:1673312512|18:captcha_session_v2|88:MDdWTDlPM3hYV0ZxYTF0WUROdU0vVG1nQTJ3ZlQ5MkxHcTMyMG9hVkR5cHNyQ3gzYXExQUIrNnBrcFVSVW1Vbw==|88cbea0757f577a2bb28df82285bf2057cea5faad18c915acab482d86184bf62; captcha_ticket_v2=2|1:0|10:1673312527|17:captcha_ticket_v2|704:eyJ2YWxpZGF0ZSI6IkNOMzFfNHBLT083ZklUZzBYUFotQ0RhVkZqWGl4TEtOLmZUcFZoMW5rYnlNcjhGWTBUOUFVZVRIdG1uSDE4QWZ5R3JTVHVnQ0Y2aGRkc0pVd0s1aDY5aWMuZS1maTlsdkpqZ2tETGlqdUZ3VGpmaDhIYmotdzJlV0lLc1FZT0JBa3NuYXJDRXpRbS00U3dLcDhIR0tkU3ZId3ljVkhCNEd5UzlvMDc4dnRwSVQ0aUFoSUtpNGNaQURBRkxWS2VoVWk0LWxVOWtBcXp6MUplbGF5by0uN3ViejVGVTFHYVdCVnBMN1doa2J0SFNDRVNpSnVNaUNrOVp5ZVBpTGJhQ0pFdjhWU2prZ01samRGUWNzd2I2Q2hVWHZJUjhrSnQ5MEptbGFXdUJMX0dIOEppNWhIVXdCZXUtd3liQXF4VVJWandqUE14UHdpaElWZXQtMHlsVVFHRngucUR3NzRhVTAyN2sxX09aLVU3WTFTb3RmUkR5VVl1Z1h4c0l3X3ZYZjBfejZtYmM1TmgxMFAwNnlYWU1ramJ6SmdQUS1OTjdseW5tejhIOUdlLnFncE1aT0FDRUl6d1F1NWpSLm5TUFp5Vnc4UkZGZk44emdLdEJJNkJ1TkxySnZxUEt3ZzZVRUE4aF9zZkRNeHBSYk9NZWZTOTFHU2p4MVNuUFFXb3lTMyJ9|508db7826076f99423adf09b4b8ca90e8edae3fafd9e0b3dc03552f39416301c; edu_user_uuid=edu-v1|c3a531eb-51aa-481f-9bbe-59f5aded819e; Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49=1673511462; z_c0=2|1:0|10:1673511464|4:z_c0|92:Mi4xSW9VLVFRQUFBQUFBUUZleUZtVWRGaVlBQUFCZ0FsVk5FQWVxWkFBaU1DMDF6YTNVM0EtRVNXSHk4ekF5MmFDelBB|c96e6c967619ab6585f7f73d5383cf19601bcf6c95be8b9eef358f055d8c2558; KLBRSID=53650870f91603bc3193342a80cf198c|1673514228|1673509787; __utma=51854390.239998728.1673402960.1673402960.1673405080.2; __utmc=51854390; __utmz=51854390.1673402960.1.1.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/question/512158920; __utmv=51854390.100--|2=registration_date=20221208=1^3=entry_date=20221208=1; arialoadData=false; ariafontScale=1; ariaDefaultTheme=default; ariaFixed=true; ariawapChangeViewPort=false; ariaReadtype=1; ariaoldFixedStatus=false; ariaStatus=false; tst=r";
+  "_xsrf=bcrEKtfm4bVzWRmL4Hqe8OFphtdOmtaM; KLBRSID=ca494ee5d16b14b649673c122ff27291|1673581060|1673571775;_zap=9664c935-361f-43c0-a98f-f9618de5b5c0; d_c0=AMBXA2viIRaPTiayW2XDwwutZFH9WpsgzQE=|1673011068; Hm_lvt_98beee57fd2ef70ccdd5ca52b9740c49=1673011068,1673070343,1673534637,1673621005; captcha_session_v2=2|1:0|10:1673011069|18:captcha_session_v2|88:M091VEJQRGM1NEo1Q3R0WkU0Vi8rODFqVDQ3L3djMlprVGpzREEycE9pN1Y3RXdSaDMvanpCbEpUSWdtMXZGVQ==|6bf88cd2e485ecf4ee03bde1c94d3a980e2f76748edd89858e8a3d1adc56da26; captcha_ticket_v2=2|1:0|10:1673011088|17:captcha_ticket_v2|704:eyJ2YWxpZGF0ZSI6IkNOMzFfWnFKZ3JYOHpoTGsuMHVHTWsuallIcXlFcEhsTWxoX2FJWXU3ZkxGU3Bxa2NzZHBNaUdTWXBhZVVGU1oxZG9QQ2VXRkwuYXFkMlUtNTE3NUM2OE1hbWFuRks3bEF0UEtQNlA2ZnlUTzhDSmExVE81UFVnMkFJNFAxMnhNQTdvZUh6ZU45QnhrQmphOFJLWXdRTjI3TFFBOGRTQi5BQUs0bTdBUi5RbGJiWjZxdHByV3dKbER2S1gwNndNdFFkekh2dERiMGdXZHZpcDU5dFBvUXU4SWNSSWVBNkp4VXVNcFdhMVktZ1E0S2FFcFhId0lOc0owcXIwSnJ0NHYwUUZhR0dFUW0yV2U1RXgyd0tsRkxzQ3R0bkd4YUVyY3FFMG9tWC5ITkZCU2pFaERNOEpoQ1FDaEt4bmJnMFYybUJ3REJHczdCLnduVkVVdkpLLndyV0JjYXE5a2pFSHlTcVRQc0pxVHFaSHM0cXlrNEV3QmtXSk1hdGgxdldWRGF5UmU5eUtXUlJDSDdkZ3JxamtHWS5ZbG9UcFYyenNvYkluWkdjSnRkSE9ZbS5tSjRRMW9BcGR3NEZULkV1OExKTlVPeGpDRERyZ09RWlBZUUtsUnhiWnFOc054amZwUUtuS0VieTQ2aFRUcW1ETlhQUVlFY01FWjl0VHo4blh6MyJ9|30e8d01fb847c15e38b1c658d9d06fd78854e32b4c07a15f1a874e45e8c1824e; z_c0=2|1:0|10:1673011103|4:z_c0|92:Mi4xSW9VLVFRQUFBQUFBd0ZjRGEtSWhGaVlBQUFCZ0FsVk5uMjJsWkFEWlQybFQ4cWM2WlBCNk9pX1dyaWZDdEVUR1FB|7de431aaf867ae9b927b020a3c9cc820176c2a7a5eb916d33567abf7c2490c35; ariaDefaultTheme=undefined; _xsrf=72bf5461-874d-4e4d-b5cc-ad632242fe06; Hm_lpvt_98beee57fd2ef70ccdd5ca52b9740c49=1673621005; tst=r; KLBRSID=0a401b23e8a71b70de2f4b37f5b4e379|1673624815|1673621026";
 
 class SpiderRequest {
   parseUrl
@@ -735,8 +737,14 @@ console.log(
 // request.getRequest(headers);
 const detailUrl = (sku, offset = 0) =>
   `https://api.zhihu.com/remix/well/${sku}/catalog?offset=10&limit=${offset}&order_by=global_idx&is_new_column=true`;
-async function fetchCharpt(url, datas = []) {
+
+const cacheDir = path.resolve(__dirname, '_cache')
+
+const getDetailUrl = (book, section) =>
+  `https://www.zhihu.com/market/paid_column/${book}/section/${section}`;
+async function fetchCharpt(url, boolId = '', datas = []) {
   const request = new SpiderRequest(url, cookie);
+  await sleep(10)
   const headers = request.getHeaders();
   const res = await request.getRequest(headers);
   if (res.status === 200) {
@@ -744,12 +752,9 @@ async function fetchCharpt(url, datas = []) {
       if (res.data.data.length) {
         datas.push(
           ...res.data.data.map((item) => ({
-            url:
-              item.section_cell.url.indexOf("https:") > -1
-                ? item.section_cell.url
-                : `https:${item.section_cell.url}`,
+            url: getDetailUrl(boolId, item.id),
             title: item.index.serial_number_txt + item.title,
-            id: item.section_cell.id,
+            id: item.id,
           }))
         );
         if (res.data.pagination) {
@@ -761,50 +766,56 @@ async function fetchCharpt(url, datas = []) {
   }
 }
 
-async function fetchDetail(url = '', sku) {
-  const res = []
-  console.log('【开始抓取】', url)
+async function fetchDetail(url = "", bookId) {
+  const res = [];
+  console.log("【开始抓取】", url);
+  await sleep(10);
   const content = await axios({
     url,
-    type: 'GET',
+    type: "GET",
     headers: {
-      Cookie: cookie
-    }
-  })
+      Cookie: cookie,
+    },
+  });
   if (content.status === 200) {
-    const $ = cheerio.load(content.data)
+    const $ = cheerio.load(content.data);
     const appData = $("#resolved").val();
     const loadmore = $(".CatalogModule-allSection-ctqBJ");
 
     if (appData) {
-      const data = JSON.parse(appData)
-      const catalogData = data.appContext.catalogData || { default: [], paging: {} };
-      console.log(data.appContext)
-      res.push(...catalogData.default.map(item => {
-        return {
-          title: item.index.serialNumberTxt + item.title,
-          id: item.sectionCell.id,
-          url: item.sectionCell.url
-        };
-      }))
+      const data = JSON.parse(appData);
+      const catalogData = data.appContext.catalogData || {
+        default: [],
+        paging: {},
+      };
+      const extra = catalogData.extra;
+      res.push(
+        ...catalogData.default.map((item) => {
+          return {
+            title: item.index.serialNumberTxt + item.title,
+            id: item.id,
+            url: getDetailUrl(bookId, item.id),
+          };
+        })
+      );
       if (loadmore) {
         const url = catalogData.paging.next;
         if (url) {
-          console.log("【开始请求剩余】", url)
+          console.log("【开始请求剩余】", url);
           const currentUrl = url.indexOf("http:") > -1 ? url : `https:${url}`;
-          await fetchCharpt(currentUrl, res);
+          await fetchCharpt(currentUrl, bookId, res);
         }
-        
       }
     }
-    
   }
-  return res
+  return res;
 }
 
 async function fetchChartptContent(url = '') {
   let html = ''
   console.log('【开始抓取内容】', url)
+
+  await sleep(10)
   const content = await axios({
     url,
     type: 'GET',
@@ -814,7 +825,8 @@ async function fetchChartptContent(url = '') {
   })
   if (content.status === 200) {
     const $ = cheerio.load(content.data)
-    html = $("#manuscript").html().toString();
+    const _html = $("#manuscript").html();
+    html = _html ? _html : '';
   }
   return html
 }
@@ -822,47 +834,95 @@ async function fetchChartptContent(url = '') {
 const listUrl = (offset) =>
   `https://api.zhihu.com/pluton/shelves?limit=10&offset=${offset}`;
 
+function getBookCache (bookId) {
+  if (!fs.existsSync(path.resolve(cacheDir, bookId))) return []
+  return fs.readFileSync(path.resolve(cacheDir, bookId)).toString().split('\n')
+}
+
 let offset = 0
 async function getListData(offset) {
   const request = new SpiderRequest(listUrl(offset), cookie);
+  await sleep(10);
   const res = await request.getRequest({
     Cookie: cookie
   })
   if (res.status === 200) {
     if (res.data) {
       if (res.data.data.length) {
+        let hasChange = false;
         for (let i = 0; i < res.data.data.length; i++) {
           const book = res.data.data[i];
           // 开始抓取章节信息
           console.log("书名：", book.title);
           console.log("开始抓取章节", book.business_url);
-          const chartpts = await fetchDetail(book.business_url, book.sku_id);
+          const chartpts = await fetchDetail(
+            book.business_url,
+            book.business_id
+          );
           // await fetchCharpt(book.sku_id, 0, chartpts);
           res.data.data[i].chartpts = chartpts;
-          console.log("【获取到的所有章节数据】", chartpts)
+          console.log("【获取到的所有章节数据】", chartpts);
           // 请求章节内
+          // 下载封面
+          console.log("【开始下载封面】", book.image[0]);
+          const coverPath = path.resolve(
+            __dirname,
+            `./books/${normalTitle(book.title)}`
+          );
+          if (!fs.existsSync(path.join(coverPath, 'cover.jpg'))) {
+            await downloadFile(book.image[0], coverPath, "cover.jpg");
+          }
+          
           const bookData = {
             title: book.title,
             author: book.author,
-            cover: book.image[0],
-            output: path.resolve(__dirname, `./books/${normalTitle(book.title)}/read.epub`),
-            content: []
+            cover: path.resolve(
+              __dirname,
+              `./books/${normalTitle(book.title)}`,
+              'cover.jpg'
+            ),
+            content: [],
           };
           for (let j = 0; j < chartpts.length; j++) {
-            const item = chartpts[j]
-            const content = await fetchChartptContent(item.url)
+            const item = chartpts[j];
+            const bookCaches = getBookCache(book.business_id) || []
+            if (bookCaches.includes(item.id)) {
+              console.log(`【${book.title}=>${item.title}】已经存在，跳过！`)
+              continue
+            }
+            hasChange = true
+            const content = await fetchChartptContent(item.url);
             bookData.content.push({
               title: item.title,
-              data: content
-            })
-            saveBookData(book.title, { id: item.id, content, title: item.title })
-            // console.log('【开始保存电子书】', book.title)
-            // const epub = new EPub(bookData);
-            // await epub.render();
-            // console.log('【保存电子书完成】')
+              data: content,
+            });
+            saveBookData(book.title, {
+              id: item.id,
+              content,
+              title: item.title,
+            });
+            fs.appendFileSync(path.resolve(cacheDir, book.business_id), `${item.id}\n`);
+          }
+          if (hasChange) {
+            const { EPub } = await import("@mr-huang/html-to-epub");
+            console.log("【开始保存电子书】", book.title);
+            console.log("【配置】", bookData);
+            const epub = new EPub(
+              bookData,
+              path.resolve(
+                __dirname,
+                `./books/${normalTitle(book.title)}/${normalTitle(
+                  book.title
+                )}.epub`
+              )
+            );
+            await epub.render();
+            console.log("【保存电子书完成】");
           }
         }
-        saveBookInfo(res.data.data)
+        if (hasChange) {
+          saveBookInfo(res.data.data);
+        }
         if (res.data.pagination) {
           offset += 10;
           await getListData(offset);

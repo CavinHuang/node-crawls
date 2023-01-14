@@ -3,6 +3,7 @@ const fs = require('fs')
 const { Sitdown } = require("sitdown");
 const { applyZhihuRule } = require("@sitdown/zhihu");
 const { epubGen } = require("@auramarker/epub-gen");
+const { default: axios } = require('axios');
 
 let sitdown = new Sitdown({
   keepFilter: ["style"],
@@ -36,7 +37,7 @@ function saveBookInfo(data = []) {
 }
 
 function normalTitle(title = '') {
-  return title.replace(/[\\|\/|:|\*|\?|\"|\<|\>|\|]/g, ' ')
+  return title.replace(/[\\|\/|:|\*|\?|\"|\<|\>|\|《|》|\r|\n]/g, ' ')
 }
 
 function saveBookData(book, charpt = {}) {
@@ -72,9 +73,45 @@ function saveBookData(book, charpt = {}) {
   fs.writeFileSync(`${charptPath}.md`, markdownContent);
 }
 
+/**
+ * @param {string} imgUrl 图片地址
+ * @param {string} filepath 文件保存的本地目录
+ * @param {string} flieName 保存的文件名
+ */
+async function downloadFile(imgUrl, filepath, flieName) {
+  return new Promise(async(resolve, reject) => {
+    if (!fs.existsSync(filepath)) {
+      fs.mkdirSync(filepath, { recursive: true });
+    }
+    const mypath = path.resolve(filepath, flieName);
+      const writer = fs.createWriteStream(mypath); // 创建写入对象
+      axios({
+          url: imgUrl,
+          method: "GET",
+          timeout: 10000,
+          responseType: "stream",
+      }).then(response => {
+        // 请求图片地址获取二进制数据流
+        response.data.pipe(writer); // 写入图片数据到文件中
+        writer.on("finish", () => {
+          console.log('写入成功:', path.join(filepath, flieName))
+          resolve(flieName)
+        });
+        writer.on("error", (e) => {
+          console.log('写入失败:', path.join(filepath, flieName))
+          reject(e)
+        });
+      }).catch(e => {
+        console.log('请求失败:', imgUrl)
+        reject(e)
+      })
+  });
+}
+
 
 module.exports = {
   saveBookInfo,
   saveBookData,
   normalTitle,
+  downloadFile,
 };
