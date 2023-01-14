@@ -759,7 +759,7 @@ async function fetchCharpt(url, boolId = '', datas = []) {
         );
         if (res.data.pagination) {
           offset += 10;
-          fetchCharpt(sku, offset);
+          fetchCharpt(res.data.pagination.next, boolId, datas);
         }
       }
     }
@@ -852,6 +852,10 @@ async function getListData(offset) {
         let hasChange = false;
         for (let i = 0; i < res.data.data.length; i++) {
           const book = res.data.data[i];
+          if (book.producer === 'training') {
+            console.log('【训练营课程跳过】', book.title)
+            continue
+          }
           // 开始抓取章节信息
           console.log("书名：", book.title);
           console.log("开始抓取章节", book.business_url);
